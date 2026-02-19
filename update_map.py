@@ -439,7 +439,54 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
     #   soft assignment step via hdbscan.all_points_membership_vectors().
     #   Note: soft clustering is not currently implemented here; enable
     #   prediction_data=True below as a first step if you want to explore it.
-    clusterer = HDBSCAN(min_cluster_size=5, min_samples=4, metric=cluster_metric)
+    # ════════════════════════════════════════════════════════════════════
+    # HDBSCAN SETTINGS — all changes take effect on the next build.
+    # These settings do not affect database.parquet in any way.
+    # ════════════════════════════════════════════════════════════════════
+    #
+    # ── min_cluster_size (int, default: 5) ──────────────────────────────
+    # Minimum number of papers required to form a cluster.
+    # Lower  → more clusters, more specific labels.
+    # Higher → fewer clusters, more general labels.
+    # Syntax:   HDBSCAN(min_cluster_size=5, ...)
+    # Range:    3–15 recommended for a ~300 paper corpus.
+    #
+    # ── min_samples (int, default: 4) ───────────────────────────────────
+    # Controls how conservative cluster assignment is.
+    # Lower  → more points pulled into clusters, fewer noise points.
+    # Higher → stricter assignment, more points marked as noise.
+    # Syntax:   HDBSCAN(..., min_samples=4, ...)
+    # Range:    1–5 recommended.
+    #
+    # ── cluster_selection_method (str, default: "eom") ──────────────────
+    # "eom"  — Excess of Mass; finds clusters of varying sizes (default).
+    # "leaf" — Selects leaf nodes; smaller, more granular clusters.
+    #          Try "leaf" if clusters feel too coarse.
+    # Syntax:   HDBSCAN(..., cluster_selection_method="leaf")
+    #
+    # ── metric (str, set automatically above) ───────────────────────────
+    # "cosine"    — used when clustering on 50D embeddings (current).
+    # "euclidean" — used as fallback when clustering on 2D coords.
+    # Do not change this directly; it is set by the cluster_metric variable.
+    #
+    # ── Adaptive min_cluster_size (scales with corpus size) ─────────────
+    # Keeps cluster count roughly proportional as the rolling DB changes.
+    # Syntax:   HDBSCAN(min_cluster_size=max(5, len(df) // 40), ...)
+    #
+    # ── cluster_selection_epsilon (float, default: 0.0) ─────────────────
+    # Merges clusters closer than this distance threshold. Useful if you
+    # see many tiny clusters that should logically be one topic.
+    # Syntax:   HDBSCAN(..., cluster_selection_epsilon=0.5)
+    # Range:    0.0 (off) to ~2.0; tune by inspecting cluster count.
+    #
+    # ── alpha (float, default: 1.0) ─────────────────────────────────────
+    # Controls how aggressively clusters are split during extraction.
+    # Higher → fewer, more stable clusters.
+    # Lower  → more splits, more clusters.
+    # Syntax:   HDBSCAN(..., alpha=1.0)
+    # Range:    0.5–2.0 typical.
+    # ════════════════════════════════════════════════════════════════════
+    clusterer = HDBSCAN(min_cluster_size=5, min_samples=4, metric=cluster_metric, cluster_selection_method="leaf")
     cluster_ids = clusterer.fit_predict(cluster_input)
 
     n_clusters = len(set(cluster_ids)) - (1 if -1 in cluster_ids else 0)
