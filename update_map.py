@@ -367,12 +367,12 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
         clean_id = re.sub(r"v\d+$", "", aid)
 
         try:
-            # Use filter() rather than Works()[url] — the bracket form passes
-            # the arXiv URL as a path segment and pyalex percent-encodes it,
-            # producing https%3A%2F%2F... which OpenAlex can't resolve.
-            # filter(ids={"arxiv": id}) routes to ?filter=ids.arxiv:ID
-            # which is a plain query parameter with no encoding issues.
-            results = pyalex.Works().filter(ids={"arxiv": clean_id}).get()
+            # ids.arxiv is not a valid OpenAlex filter field.
+            # locations.landing_page_url matches the arXiv abstract URL directly
+            # and is confirmed valid in the OpenAlex field list.
+            results = pyalex.Works().filter(
+                locations={"landing_page_url": f"https://arxiv.org/abs/{clean_id}"}
+            ).get()
             if not results:
                 not_found += 1
                 continue
