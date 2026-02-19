@@ -540,7 +540,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
             keyphrase_ngram_range=(1, 2),
             stop_words=KEYBERT_STOP_WORDS,
             use_mmr=True,
-            diversity=0.3,
+            diversity=0.9,
             top_n=3,
         )
         print(f"  Cluster {cid} ({mask.sum()} papers) top keywords: {keywords}")
