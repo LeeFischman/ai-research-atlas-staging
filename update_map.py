@@ -367,17 +367,11 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
         clean_id = re.sub(r"v\d+$", "", aid)
 
         try:
-            # ids.arxiv is not a valid OpenAlex filter field.
-            # locations.landing_page_url matches the arXiv abstract URL directly
-            # and is confirmed valid in the OpenAlex field list.
-            results = pyalex.Works().filter(
-                locations={"landing_page_url": f"https://arxiv.org/abs/{clean_id}"}
-            ).get()
-            if not results:
-                not_found += 1
-                continue
-
-            work = results[0]
+            # Use the arXiv DOI as the OpenAlex entity ID.
+            # Format: doi:10.48550/arxiv.{id} — confirmed working via browser test.
+            # This avoids all URL-encoding issues: the DOI contains no slashes
+            # in the path, so pyalex passes it through cleanly.
+            work = pyalex.Works()[f"doi:10.48550/arxiv.{clean_id}"]
 
             names, countries, types = [], [], []
             for authorship in work.get("authorships", []):
