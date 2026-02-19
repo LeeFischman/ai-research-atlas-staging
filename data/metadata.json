@@ -98,6 +98,8 @@
         "author_count": "author_count",
         "author_tier": "author_tier",
         "author_seniority": "author_seniority",
+        "institution_country": "institution_country",
+        "institution_type": "institution_type",
         "url": "url",
         "openalex_institution_names": "openalex_institution_names"
     }
