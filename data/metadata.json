@@ -1,0 +1,107 @@
+{
+    "props": {
+        "data": {
+            "id": "__row_index__",
+            "projection": {
+                "x": "projection_x",
+                "y": "projection_y"
+            }
+        },
+        "embeddingViewLabels": [
+            {
+                "x": 6.496788072586059,
+                "y": 6.395626831054687,
+                "text": "Lstm Demand"
+            },
+            {
+                "x": 6.963384819030762,
+                "y": 7.145058536529541,
+                "text": "Detection Backdoors"
+            },
+            {
+                "x": 8.695059680938721,
+                "y": 5.5819155216217045,
+                "text": "Correlation Functionals"
+            },
+            {
+                "x": 6.4797852516174315,
+                "y": 7.6742650985717775,
+                "text": "Llm Interactions"
+            },
+            {
+                "x": 8.010631442070007,
+                "y": 4.844958186149597,
+                "text": "Distillation Equalizer"
+            },
+            {
+                "x": 7.166359901428223,
+                "y": 4.901417446136475,
+                "text": "Activations S2D"
+            },
+            {
+                "x": 6.54406864302499,
+                "y": 5.524318865367344,
+                "text": "Binary Tokenizer"
+            },
+            {
+                "x": 6.3329665184021,
+                "y": 4.608033561706543,
+                "text": "Dnns Hawx"
+            },
+            {
+                "x": 10.24515860421317,
+                "y": 6.8843561581202914,
+                "text": "Perceptive Humanoid"
+            },
+            {
+                "x": 9.26611848977896,
+                "y": 6.858303143427922,
+                "text": "Reinforcement Learn"
+            },
+            {
+                "x": 9.60638599395752,
+                "y": 8.022158193588258,
+                "text": "Agv Fleet"
+            },
+            {
+                "x": 7.302014074827495,
+                "y": 8.477979986291183,
+                "text": "Reasoning Disentangling"
+            },
+            {
+                "x": 8.641415119171143,
+                "y": 9.045895303998675,
+                "text": "Merlean Agentic"
+            },
+            {
+                "x": 6.976439339773996,
+                "y": 9.431295122419085,
+                "text": "Anticipating Adversary"
+            },
+            {
+                "x": 6.1355531865900215,
+                "y": 8.690675822171299,
+                "text": "Evaluating Llms"
+            }
+        ],
+        "initialState": {
+            "version": "0.0.0"
+        }
+    },
+    "isStatic": true,
+    "database": {
+        "type": "wasm",
+        "load": true
+    },
+    "name_column": "title",
+    "label_column": "title",
+    "color_by": "Reputation",
+    "column_mappings": {
+        "title": "title",
+        "abstract": "abstract",
+        "Reputation": "Reputation",
+        "author_count": "author_count",
+        "author_tier": "author_tier",
+        "url": "url"
+    }
+}
