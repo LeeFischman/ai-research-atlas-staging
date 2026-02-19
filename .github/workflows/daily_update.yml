@@ -1,0 +1,52 @@
+@@ -0,0 +1,51 @@
+name: Update AI Research Atlas
+
+on:
+  schedule:
+    # Runs at 14:00 UTC every day
+#    - cron: '0 14 * * *'
+  workflow_dispatch: # Allows manual runs for testing
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Update Script
+        run: python update_map.py
+
+      - name: Commit and Push Database Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if git status --porcelain | grep -q "database.parquet"; then
+            git add database.parquet
+            git commit -m "Update rolling database: $(date -u +'%Y-%m-%d')"
+            git push
+          else
+            echo "No changes to database.parquet"
+          fi
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs
+          branch: gh-pages
