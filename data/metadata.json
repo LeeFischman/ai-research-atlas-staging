@@ -9,74 +9,74 @@
         },
         "embeddingViewLabels": [
             {
-                "x": -4.5006038546562195,
-                "y": 1.424280807375908,
-                "text": "Perceptive Humanoid"
-            },
-            {
-                "x": -4.041566023459802,
-                "y": 3.4155287742614746,
+                "x": 7.061977569873516,
+                "y": 5.08468536230234,
                 "text": "Dynamics Odyn"
             },
             {
-                "x": -1.583042249083519,
-                "y": 1.6399982571601868,
-                "text": "Curated Clinical"
+                "x": 7.253089129924774,
+                "y": 7.138900518417358,
+                "text": "Perceptive Humanoid"
             },
             {
-                "x": -1.197910573747423,
-                "y": 1.2706867257754009,
-                "text": "Abductive Explanations"
+                "x": 3.631148910522461,
+                "y": 6.641628694534302,
+                "text": "Reasoning Disentangling"
             },
             {
-                "x": -0.11193938553333282,
-                "y": 2.2832576632499695,
-                "text": "Llm Humor"
+                "x": 3.979331761598587,
+                "y": 6.496925532817841,
+                "text": "Deepseek R1"
             },
             {
-                "x": -3.4981600840886435,
-                "y": 0.9589649041493734,
-                "text": "Agv Fleet"
+                "x": 6.479118135240343,
+                "y": 3.7900115648905435,
+                "text": "Approximation Dnns"
             },
             {
-                "x": -3.213081887178123,
-                "y": 2.1769500970840454,
-                "text": "Reinforcement Learn"
+                "x": 3.2312932312488556,
+                "y": 4.668559551239014,
+                "text": "Detection Backdoors"
             },
             {
-                "x": -0.11298178580279152,
-                "y": 1.6269866506258646,
-                "text": "Evaluating Llms"
+                "x": 5.55805154280229,
+                "y": 2.6806419004093516,
+                "text": "Image Classification"
             },
             {
-                "x": -0.8385511636734009,
-                "y": 0.4569325255496161,
-                "text": "Cybersecurity Refusal"
+                "x": 5.442152380943298,
+                "y": 3.7663486897945404,
+                "text": "Tokens Deepfusion"
             },
             {
-                "x": -2.13944719518934,
-                "y": 4.560056550162179,
-                "text": "Binary Tokenizer"
-            },
-            {
-                "x": -3.1831593811511993,
-                "y": 4.122356593608856,
-                "text": "Autoencoders Scalable"
-            },
-            {
-                "x": -2.172189836502075,
-                "y": 5.54904317855835,
+                "x": 6.526779842376709,
+                "y": 4.011105465888977,
                 "text": "Activations S2D"
             },
             {
-                "x": -1.8112390836079915,
-                "y": -0.020232672078741923,
-                "text": "Verification Autowebworld"
+                "x": 5.874112892150879,
+                "y": 7.556969547271729,
+                "text": "Reinforcement Vlm"
             },
             {
-                "x": -2.455186035897997,
-                "y": 0.09270434785220358,
-                "text": "Eaa Automating"
+                "x": 5.750639021396637,
+                "y": 6.266777813434601,
+                "text": "Feedback Learn"
+            },
+            {
+                "x": 6.563095609347026,
+                "y": 6.363508145014445,
+                "text": "Reinforcement Learn"
+            },
+            {
+                "x": 4.454100532965227,
+                "y": 7.922747525301847,
+                "text": "Merlean Agentic"
+            },
+            {
+                "x": 2.71876309468196,
+                "y": 6.6230845267956076,
+                "text": "Involvement Llm"
             }
         ],
         "initialState": {
@@ -97,6 +97,7 @@
         "Reputation": "Reputation",
         "author_count": "author_count",
         "author_tier": "author_tier",
+        "author_seniority": "author_seniority",
         "url": "url",
         "openalex_institution_names": "openalex_institution_names"
     }
