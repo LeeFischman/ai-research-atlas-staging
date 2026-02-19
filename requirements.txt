@@ -1,0 +1,14 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+arxiv
+pandas
+pyarrow
+numpy
+sentence-transformers
+umap-learn
+scikit-learn
+keybert
+pyyaml
+embedding-atlas
+typing_extensions>=4.10.0
+transformers
+torch
