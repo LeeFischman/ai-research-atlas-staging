@@ -537,10 +537,10 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
         # top_n: how many candidate keywords to extract (kept for debug printing).
         keywords = kw_model.extract_keywords(
             combined,
-            keyphrase_ngram_range=(1, 2),
+            keyphrase_ngram_range=(2, 2),
             stop_words=KEYBERT_STOP_WORDS,
             use_mmr=True,
-            diversity=0.9,
+            diversity=0.3,
             top_n=3,
         )
         print(f"  Cluster {cid} ({mask.sum()} papers) top keywords: {keywords}")
