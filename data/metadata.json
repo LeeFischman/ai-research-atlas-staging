@@ -9,89 +9,69 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 4.946734070777893,
-                "y": 11.472974181175232,
+                "x": 6.8858978152275085,
+                "y": 10.385345220565796,
                 "text": "Perceptive Humanoid"
             },
             {
-                "x": 6.321160609905537,
-                "y": 9.716129596416767,
-                "text": "Informed Neural"
+                "x": 3.45316834633167,
+                "y": 9.890454035538893,
+                "text": "Reasoning Disentangling"
             },
             {
-                "x": 3.3231162291306715,
-                "y": 8.826758824861967,
-                "text": "Reasoning Ruva"
+                "x": 6.8072118025559645,
+                "y": 8.510785249563364,
+                "text": "Dynamics Odyn"
             },
             {
-                "x": 2.703034427430895,
-                "y": 8.762960327996147,
-                "text": "Abductive Explanations"
+                "x": 3.2525055408477783,
+                "y": 8.02503776550293,
+                "text": "Detection Backdoors"
             },
             {
-                "x": 3.925514433119032,
-                "y": 9.449561648898655,
-                "text": "Agentic Rlvr"
+                "x": 4.704455920628139,
+                "y": 9.742508070809501,
+                "text": "Reasoning Reinforcement"
             },
             {
-                "x": 3.7196503480275473,
-                "y": 11.069410800933838,
-                "text": "Reinforcement Vlm"
+                "x": 5.344077428181966,
+                "y": 9.536073525746664,
+                "text": "Feedback Learn"
             },
             {
-                "x": 2.1978251457214357,
-                "y": 9.861239242553712,
-                "text": "Backdoors Lora"
-            },
-            {
-                "x": 4.324032204491751,
-                "y": 9.645266669137138,
-                "text": "Learn Language"
-            },
-            {
-                "x": 4.942921340465546,
-                "y": 10.384301602840424,
+                "x": 6.133250676668608,
+                "y": 9.645469225369967,
                 "text": "Reinforcement Learn"
             },
             {
-                "x": 1.491835579276085,
-                "y": 9.575185418128967,
-                "text": "Cybersecurity Refusal"
+                "x": 4.957988999106667,
+                "y": 10.987779660658402,
+                "text": "Llm Agent"
             },
             {
-                "x": 1.8368998836068546,
-                "y": 8.347021046806784,
-                "text": "Evaluating Llms"
-            },
-            {
-                "x": 2.817495435476303,
-                "y": 7.545775949954987,
-                "text": "Llm Humor"
-            },
-            {
-                "x": 2.835523533821106,
-                "y": 10.702876949310303,
-                "text": "Eaa Automating"
-            },
-            {
-                "x": 2.344455534761602,
-                "y": 11.180014350197531,
+                "x": 3.7300158739089966,
+                "y": 11.31899627049764,
                 "text": "Agentic Autoformalization"
             },
             {
-                "x": 6.298544020879836,
-                "y": 6.875390575045631,
-                "text": "Medical Image"
+                "x": 2.5995083451271057,
+                "y": 10.58539867401123,
+                "text": "Cybersecurity Refusal"
             },
             {
-                "x": 5.615573883056641,
-                "y": 7.754765714917864,
-                "text": "Tokens Deepfusion"
+                "x": 2.1764249354600906,
+                "y": 9.427509784698486,
+                "text": "Evaluation Ethnographic"
             },
             {
-                "x": 6.265646548498244,
-                "y": 8.478837444668724,
-                "text": "Autoencoders Scalable"
+                "x": 5.297363061171311,
+                "y": 7.241374712723952,
+                "text": "Prediction Deepfusion"
+            },
+            {
+                "x": 5.477932729219136,
+                "y": 6.498560466264424,
+                "text": "Dnns Uctecg"
             }
         ],
         "initialState": {
@@ -112,6 +92,7 @@
         "Reputation": "Reputation",
         "author_count": "author_count",
         "author_tier": "author_tier",
-        "url": "url"
+        "url": "url",
+        "openalex_institution_names": "openalex_institution_names"
     }
 }
