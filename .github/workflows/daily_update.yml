@@ -1,5 +1,4 @@
-@@ -0,0 +1,51 @@
-name: Update AI Research Atlas
+name: Update AI Research Atlas Staging
 
 on:
 #  schedule:
