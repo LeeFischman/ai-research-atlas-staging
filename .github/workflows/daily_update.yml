@@ -1,9 +1,9 @@
-name: Update AI Research Atlas Staging
+name: Update AI Research Atlas
 
 on:
-#  schedule:
+  schedule:
     # Runs at 14:00 UTC every day
-#    - cron: '0 14 * * *'
+    - cron: '0 14 * * *'
   workflow_dispatch: # Allows manual runs for testing
 
 permissions:
@@ -39,6 +39,7 @@ jobs:
           if git status --porcelain | grep -q "database.parquet"; then
             git add database.parquet
             git commit -m "Update rolling database: $(date -u +'%Y-%m-%d')"
+            git pull --rebase origin main
             git push
           else
             echo "No changes to database.parquet"
