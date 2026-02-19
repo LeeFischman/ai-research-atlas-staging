@@ -310,12 +310,18 @@ def fetch_arxiv(client, search) -> list:
 # that OpenAlex hasn't indexed yet.
 # ──────────────────────────────────────────────
 OPENALEX_EMAIL  = "lee@leefischman.com"   # polite-pool identifier
-OPENALEX_BATCH  = 50                       # IDs per request (safe URL length)
-OPENALEX_SLEEP  = 0.12                     # seconds between batches (~8 req/sec)
+OPENALEX_SLEEP  = 0.12                     # seconds between requests (~8 req/sec)
 
 def fetch_openalex_data(arxiv_ids: list) -> dict:
     """
-    Batch lookup institution data for a list of arXiv IDs.
+    Look up institution data for a list of arXiv IDs via the OpenAlex
+    single-work endpoint:
+        GET /works/https://arxiv.org/abs/{id}
+
+    This is the most reliable approach — no query string construction,
+    no batch filter syntax, and the endpoint is explicitly documented.
+    One HTTP request per paper; at OPENALEX_SLEEP spacing the total
+    overhead for 250 papers is ~30s, well within the daily job budget.
 
     Returns a dict mapping each original arxiv_id to:
         {
@@ -324,44 +330,36 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
             "institution_types":     list[str],   # parallel institution types
         }
 
-    Papers not yet indexed in OpenAlex return empty lists (not an error).
-    Network/API errors are caught per-batch so one failure doesn't abort
-    the run — affected papers simply fall back to text-search scoring.
+    Papers not yet indexed in OpenAlex return empty lists (not an error —
+    they fall back to text-search scoring in calculate_reputation).
+    All other errors are caught per-paper so one failure never aborts the run.
     """
     if not arxiv_ids:
         return {}
 
-    # Strip version suffix for the query: "2502.08745v1" → "2502.08745"
-    # Keep a map so we can write results back under the original ID.
-    clean_to_original: dict[str, str] = {}
-    for aid in arxiv_ids:
-        clean_id = re.sub(r"v\d+$", "", aid)
-        clean_to_original[clean_id] = aid
-
-    clean_ids = list(clean_to_original.keys())
-
-    # Pre-fill with empty results so every original ID has an entry,
-    # even if its batch fails or it isn't indexed yet.
+    # Pre-fill with empty results so every ID has an entry regardless of
+    # whether the lookup succeeds or the paper isn't indexed yet.
     result: dict[str, dict] = {
         aid: {"institution_names": [], "institution_countries": [], "institution_types": []}
         for aid in arxiv_ids
     }
 
-    total_batches = (len(clean_ids) + OPENALEX_BATCH - 1) // OPENALEX_BATCH
-    print(f"  Querying OpenAlex for {len(clean_ids)} arXiv IDs "
-          f"({total_batches} batch{'es' if total_batches != 1 else ''})...")
+    indexed = 0
+    not_found = 0
+    errors = 0
 
-    for batch_num, i in enumerate(range(0, len(clean_ids), OPENALEX_BATCH), start=1):
-        batch = clean_ids[i : i + OPENALEX_BATCH]
+    print(f"  Querying OpenAlex for {len(arxiv_ids)} arXiv IDs "
+          f"(single-work endpoint, ~{len(arxiv_ids) * OPENALEX_SLEEP:.0f}s)...")
 
-        # OpenAlex filter: ids.arxiv supports pipe-separated OR matching.
-        # select= limits the response to only the fields we need, keeping
-        # payloads small and parsing fast.
+    for i, aid in enumerate(arxiv_ids):
+        # Strip version suffix: "2502.08745v1" → "2502.08745"
+        clean_id = re.sub(r"v\d+$", "", aid)
+
+        # OpenAlex single-work lookup by external arXiv URL.
+        # select= restricts response to only the fields we need.
         url = (
-            "https://api.openalex.org/works"
-            f"?filter=ids.arxiv:{'|'.join(batch)}"
-            f"&select=ids,authorships"
-            f"&per_page={len(batch)}"
+            f"https://api.openalex.org/works/https://arxiv.org/abs/{clean_id}"
+            f"?select=ids,authorships"
             f"&mailto={OPENALEX_EMAIL}"
         )
 
@@ -371,56 +369,49 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
                 headers={"User-Agent": f"ai-research-atlas/1.0 (mailto:{OPENALEX_EMAIL})"},
             )
             with urllib.request.urlopen(req, timeout=30) as resp:
-                data = json.loads(resp.read().decode())
+                work = json.loads(resp.read().decode())
 
-            works = data.get("results", [])
-            matched = 0
-            for work in works:
-                # Resolve the work back to its clean arXiv ID.
-                ids_obj  = work.get("ids", {})
-                arxiv_url = ids_obj.get("arxiv", "")          # "https://arxiv.org/abs/2502.08745"
-                if not arxiv_url:
-                    continue
-                work_clean_id = re.sub(r"v\d+$", "", arxiv_url.split("/")[-1])
+            names, countries, types = [], [], []
+            for authorship in work.get("authorships", []):
+                for inst in authorship.get("institutions", []):
+                    name    = inst.get("display_name", "").strip()
+                    country = inst.get("country_code", "").strip()
+                    itype   = inst.get("type", "").strip()
+                    if name and name not in names:   # deduplicate
+                        names.append(name)
+                        countries.append(country)
+                        types.append(itype)
 
-                if work_clean_id not in clean_to_original:
-                    continue
+            result[aid] = {
+                "institution_names":     names,
+                "institution_countries": countries,
+                "institution_types":     types,
+            }
+            if names:
+                indexed += 1
 
-                original_id = clean_to_original[work_clean_id]
-                names, countries, types = [], [], []
-
-                for authorship in work.get("authorships", []):
-                    for inst in authorship.get("institutions", []):
-                        name    = inst.get("display_name", "").strip()
-                        country = inst.get("country_code", "").strip()
-                        itype   = inst.get("type", "").strip()
-                        if name and name not in names:   # deduplicate
-                            names.append(name)
-                            countries.append(country)
-                            types.append(itype)
-
-                result[original_id] = {
-                    "institution_names":     names,
-                    "institution_countries": countries,
-                    "institution_types":     types,
-                }
-                if names:
-                    matched += 1
-
-            print(f"  Batch {batch_num}/{total_batches}: "
-                  f"{len(works)} works returned, {matched} with institutions.")
-
+        except urllib.error.HTTPError as exc:
+            if exc.code == 404:
+                not_found += 1   # not yet indexed — silent, expected for new papers
+            else:
+                errors += 1
+                print(f"  OpenAlex HTTP {exc.code} for {aid} — falling back to text-search.")
         except Exception as exc:
-            print(f"  Batch {batch_num}/{total_batches} failed ({exc}). "
-                  "Affected papers will fall back to text-search scoring.")
+            errors += 1
+            print(f"  OpenAlex error for {aid} ({exc}) — falling back to text-search.")
 
-        if batch_num < total_batches:
-            time.sleep(OPENALEX_SLEEP)
+        time.sleep(OPENALEX_SLEEP)
 
-    indexed   = sum(1 for v in result.values() if v["institution_names"])
-    unindexed = len(arxiv_ids) - indexed
-    print(f"  OpenAlex: {indexed} papers with institution data, "
-          f"{unindexed} not yet indexed (text-search fallback).")
+        # Progress heartbeat every 50 papers so the log shows the job is alive.
+        if (i + 1) % 50 == 0:
+            print(f"  ... {i + 1}/{len(arxiv_ids)} looked up "
+                  f"({indexed} with institutions so far)")
+
+    total = len(arxiv_ids)
+    print(f"  OpenAlex: {indexed} with institutions | "
+          f"{not_found} not indexed (404) | "
+          f"{errors} errors | "
+          f"{total - indexed - not_found - errors} found but no institution data.")
     return result
 
 
