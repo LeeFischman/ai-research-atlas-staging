@@ -314,61 +314,40 @@ OPENALEX_SLEEP  = 0.12                     # seconds between requests (~8 req/se
 
 def fetch_openalex_data(arxiv_ids: list) -> dict:
     """
-    Look up institution data for a list of arXiv IDs via the OpenAlex
-    single-work endpoint:
-        GET /works/arxiv:{id}
+    Look up institution data for a list of arXiv IDs using pyalex.
 
-    Uses the arxiv: shorthand prefix — the nested-URL form
-    (/works/https://arxiv.org/abs/ID) causes urllib to percent-encode
-    the inner :// which results in spurious 404s.
-    IDs not present in the returned dict should be treated as "not yet fetched":
-      - 404  → paper not yet indexed; caller should leave openalex_fetched=False
-               so it gets retried on the next daily run
-      - other errors → same treatment, logged individually
+    pyalex handles all URL construction and endpoint resolution internally,
+    avoiding the URL-encoding issues encountered with raw urllib calls.
 
-    This means openalex_fetched=True is only ever set for papers where we
-    actually got a response from OpenAlex (even if that response had no
-    institution data), so newly-submitted papers are automatically retried
-    each day until OpenAlex indexes them.
+    Returns a dict containing ONLY the IDs that got a successful response.
+    IDs not present in the returned dict stay openalex_fetched=False and
+    are retried on the next daily run (covers the ~1-2 day indexing lag).
     """
     if not arxiv_ids:
         return {}
 
-    result: dict[str, dict] = {}   # only populated on 200 responses
+    try:
+        import pyalex
+        pyalex.config.email = OPENALEX_EMAIL
+    except ImportError:
+        print("  pyalex not installed — skipping OpenAlex lookup. "
+              "Add 'pyalex' to requirements.txt.")
+        return {}
+
+    result: dict[str, dict] = {}
     indexed = 0
     not_found = 0
     errors = 0
 
     print(f"  Querying OpenAlex for {len(arxiv_ids)} arXiv IDs "
-          f"(single-work endpoint, ~{len(arxiv_ids) * OPENALEX_SLEEP:.0f}s)...")
+          f"(pyalex, ~{len(arxiv_ids) * OPENALEX_SLEEP:.0f}s)...")
 
     for i, aid in enumerate(arxiv_ids):
-        # Strip version suffix: "2502.08745v1" → "2502.08745"
         clean_id = re.sub(r"v\d+$", "", aid)
 
-        # Use the arxiv: shorthand rather than the nested-URL form
-        # (/works/https://arxiv.org/abs/ID) which urllib may percent-encode,
-        # turning :// into %3A%2F%2F and causing spurious 404s.
-        url = (
-            f"https://api.openalex.org/works/arxiv:{clean_id}"
-            f"?select=ids,authorships"
-            f"&mailto={OPENALEX_EMAIL}"
-        )
-
-        # Log the first URL so it can be manually verified if 404s persist.
-        if i == 0:
-            print(f"  Sample URL: {url}")
-
         try:
-            req = urllib.request.Request(
-                url,
-                headers={"User-Agent": f"ai-research-atlas/1.0 (mailto:{OPENALEX_EMAIL})"},
-            )
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                work = json.loads(resp.read().decode())
+            work = pyalex.Works()[f"https://arxiv.org/abs/{clean_id}"]
 
-            # Got a real 200 response — record it regardless of whether
-            # institution data is present, so we don't re-query next run.
             names, countries, types = [], [], []
             for authorship in work.get("authorships", []):
                 for inst in authorship.get("institutions", []):
@@ -388,27 +367,24 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
             if names:
                 indexed += 1
 
-        except urllib.error.HTTPError as exc:
-            if exc.code == 404:
-                not_found += 1   # not yet indexed — silent, will retry tomorrow
+        except Exception as exc:
+            err_str = str(exc)
+            if "404" in err_str or "not found" in err_str.lower():
+                not_found += 1
             else:
                 errors += 1
-                print(f"  OpenAlex HTTP {exc.code} for {aid} — will retry next run.")
-        except Exception as exc:
-            errors += 1
-            print(f"  OpenAlex error for {aid} ({exc}) — will retry next run.")
+                print(f"  OpenAlex error for {aid} ({exc}) — will retry next run.")
 
         time.sleep(OPENALEX_SLEEP)
 
-        # Progress heartbeat every 50 papers.
         if (i + 1) % 50 == 0:
             print(f"  ... {i + 1}/{len(arxiv_ids)} queried "
                   f"({indexed} with institutions so far)")
 
-    responded   = len(result)
+    responded = len(result)
     print(f"  OpenAlex: {indexed} with institutions | "
           f"{responded - indexed} found but no institution data | "
-          f"{not_found} not yet indexed (404, will retry) | "
+          f"{not_found} not yet indexed (will retry) | "
           f"{errors} errors.")
     return result
 
