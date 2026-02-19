@@ -316,9 +316,11 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
     """
     Look up institution data for a list of arXiv IDs via the OpenAlex
     single-work endpoint:
-        GET /works/https://arxiv.org/abs/{id}
+        GET /works/arxiv:{id}
 
-    Returns a dict containing ONLY the IDs that got a successful 200 response.
+    Uses the arxiv: shorthand prefix — the nested-URL form
+    (/works/https://arxiv.org/abs/ID) causes urllib to percent-encode
+    the inner :// which results in spurious 404s.
     IDs not present in the returned dict should be treated as "not yet fetched":
       - 404  → paper not yet indexed; caller should leave openalex_fetched=False
                so it gets retried on the next daily run
@@ -344,11 +346,18 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
         # Strip version suffix: "2502.08745v1" → "2502.08745"
         clean_id = re.sub(r"v\d+$", "", aid)
 
+        # Use the arxiv: shorthand rather than the nested-URL form
+        # (/works/https://arxiv.org/abs/ID) which urllib may percent-encode,
+        # turning :// into %3A%2F%2F and causing spurious 404s.
         url = (
-            f"https://api.openalex.org/works/https://arxiv.org/abs/{clean_id}"
+            f"https://api.openalex.org/works/arxiv:{clean_id}"
             f"?select=ids,authorships"
             f"&mailto={OPENALEX_EMAIL}"
         )
+
+        # Log the first URL so it can be manually verified if 404s persist.
+        if i == 0:
+            print(f"  Sample URL: {url}")
 
         try:
             req = urllib.request.Request(
