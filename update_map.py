@@ -367,7 +367,17 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
         clean_id = re.sub(r"v\d+$", "", aid)
 
         try:
-            work = pyalex.Works()[f"https://arxiv.org/abs/{clean_id}"]
+            # Use filter() rather than Works()[url] — the bracket form passes
+            # the arXiv URL as a path segment and pyalex percent-encodes it,
+            # producing https%3A%2F%2F... which OpenAlex can't resolve.
+            # filter(ids={"arxiv": id}) routes to ?filter=ids.arxiv:ID
+            # which is a plain query parameter with no encoding issues.
+            results = pyalex.Works().filter(ids={"arxiv": clean_id}).get()
+            if not results:
+                not_found += 1
+                continue
+
+            work = results[0]
 
             names, countries, types = [], [], []
             for authorship in work.get("authorships", []):
@@ -390,9 +400,6 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
 
         except Exception as exc:
             err_str = str(exc).lower()
-            # Log the first exception in full so we can diagnose unexpected formats.
-            if not_found + errors == 0:
-                print(f"  First exception (for diagnosis): {type(exc).__name__}: {exc}")
             if "404" in err_str or "not found" in err_str or "no work" in err_str:
                 not_found += 1
             else:
