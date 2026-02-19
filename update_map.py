@@ -9,6 +9,7 @@ import time
 import shutil
 import random
 import urllib.error
+import urllib.request
 from datetime import datetime, timedelta, timezone
 
 # ──────────────────────────────────────────────
@@ -199,9 +200,19 @@ def calculate_reputation(row) -> str:
     score = 0
     full_text = f"{row['title']} {row['abstract']}".lower()
 
-    # Institution match — strongest signal
-    if INSTITUTION_PATTERN.search(full_text):
-        score += 3
+    # Institution match — strongest signal.
+    # Use structured OpenAlex institution names when available (more accurate);
+    # fall back to regex text-search in title/abstract for unindexed papers.
+    inst_names = row.get("openalex_institution_names") if hasattr(row, "get") else None
+    if isinstance(inst_names, list) and inst_names:
+        # OpenAlex data is available — match against the cleaned institution names
+        inst_text = " | ".join(inst_names)
+        if INSTITUTION_PATTERN.search(inst_text):
+            score += 3
+    else:
+        # Fallback: text search in title/abstract (original approach)
+        if INSTITUTION_PATTERN.search(full_text):
+            score += 3
 
     # Public codebase — indicates reproducibility commitment
     if any(k in full_text for k in ["github.com", "huggingface.co"]):
@@ -270,6 +281,177 @@ def fetch_arxiv(client, search) -> list:
                   f"Retrying in {total_wait:.0f}s...")
             time.sleep(total_wait)
     raise RuntimeError(f"arXiv fetch failed after {MAX_RETRIES} attempts. Last: {last_exc}")
+
+
+# ──────────────────────────────────────────────
+# 5.5 OPENALEX INSTITUTION LOOKUP
+#
+# Replaces regex text-search with structured institution data.
+# Batch lookups via the OpenAlex REST API using arXiv IDs.
+# No API key required; mailto param places us in the polite pool
+# (~10 req/sec, effectively unlimited for our volume).
+#
+# Response fields used now (Step 1):
+#   authorships[].institutions[].display_name  → matched against INSTITUTION_PATTERN
+#   authorships[].institutions[].country_code  → stored for Step 3
+#   authorships[].institutions[].type          → stored for Step 4
+#
+# Schema additions to database.parquet:
+#   openalex_institution_names    list[str]  — deduplicated institution names
+#   openalex_institution_countries list[str] — ISO-2 country codes (parallel to names)
+#   openalex_institution_types    list[str]  — education/company/government/nonprofit
+#   openalex_fetched              bool       — True once we have queried OpenAlex,
+#                                             even if no results came back (prevents
+#                                             redundant re-queries on subsequent runs)
+#
+# Fallback: papers where openalex_fetched=False or the lookup returned no
+# institutions use the original INSTITUTION_PATTERN text-search in
+# calculate_reputation(). This covers papers submitted < ~2 days ago
+# that OpenAlex hasn't indexed yet.
+# ──────────────────────────────────────────────
+OPENALEX_EMAIL  = "lee@leefischman.com"   # polite-pool identifier
+OPENALEX_BATCH  = 50                       # IDs per request (safe URL length)
+OPENALEX_SLEEP  = 0.12                     # seconds between batches (~8 req/sec)
+
+def fetch_openalex_data(arxiv_ids: list) -> dict:
+    """
+    Batch lookup institution data for a list of arXiv IDs.
+
+    Returns a dict mapping each original arxiv_id to:
+        {
+            "institution_names":     list[str],   # display names, deduplicated
+            "institution_countries": list[str],   # parallel ISO-2 codes
+            "institution_types":     list[str],   # parallel institution types
+        }
+
+    Papers not yet indexed in OpenAlex return empty lists (not an error).
+    Network/API errors are caught per-batch so one failure doesn't abort
+    the run — affected papers simply fall back to text-search scoring.
+    """
+    if not arxiv_ids:
+        return {}
+
+    # Strip version suffix for the query: "2502.08745v1" → "2502.08745"
+    # Keep a map so we can write results back under the original ID.
+    clean_to_original: dict[str, str] = {}
+    for aid in arxiv_ids:
+        clean_id = re.sub(r"v\d+$", "", aid)
+        clean_to_original[clean_id] = aid
+
+    clean_ids = list(clean_to_original.keys())
+
+    # Pre-fill with empty results so every original ID has an entry,
+    # even if its batch fails or it isn't indexed yet.
+    result: dict[str, dict] = {
+        aid: {"institution_names": [], "institution_countries": [], "institution_types": []}
+        for aid in arxiv_ids
+    }
+
+    total_batches = (len(clean_ids) + OPENALEX_BATCH - 1) // OPENALEX_BATCH
+    print(f"  Querying OpenAlex for {len(clean_ids)} arXiv IDs "
+          f"({total_batches} batch{'es' if total_batches != 1 else ''})...")
+
+    for batch_num, i in enumerate(range(0, len(clean_ids), OPENALEX_BATCH), start=1):
+        batch = clean_ids[i : i + OPENALEX_BATCH]
+
+        # OpenAlex filter: ids.arxiv supports pipe-separated OR matching.
+        # select= limits the response to only the fields we need, keeping
+        # payloads small and parsing fast.
+        url = (
+            "https://api.openalex.org/works"
+            f"?filter=ids.arxiv:{'|'.join(batch)}"
+            f"&select=ids,authorships"
+            f"&per_page={len(batch)}"
+            f"&mailto={OPENALEX_EMAIL}"
+        )
+
+        try:
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": f"ai-research-atlas/1.0 (mailto:{OPENALEX_EMAIL})"},
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode())
+
+            works = data.get("results", [])
+            matched = 0
+            for work in works:
+                # Resolve the work back to its clean arXiv ID.
+                ids_obj  = work.get("ids", {})
+                arxiv_url = ids_obj.get("arxiv", "")          # "https://arxiv.org/abs/2502.08745"
+                if not arxiv_url:
+                    continue
+                work_clean_id = re.sub(r"v\d+$", "", arxiv_url.split("/")[-1])
+
+                if work_clean_id not in clean_to_original:
+                    continue
+
+                original_id = clean_to_original[work_clean_id]
+                names, countries, types = [], [], []
+
+                for authorship in work.get("authorships", []):
+                    for inst in authorship.get("institutions", []):
+                        name    = inst.get("display_name", "").strip()
+                        country = inst.get("country_code", "").strip()
+                        itype   = inst.get("type", "").strip()
+                        if name and name not in names:   # deduplicate
+                            names.append(name)
+                            countries.append(country)
+                            types.append(itype)
+
+                result[original_id] = {
+                    "institution_names":     names,
+                    "institution_countries": countries,
+                    "institution_types":     types,
+                }
+                if names:
+                    matched += 1
+
+            print(f"  Batch {batch_num}/{total_batches}: "
+                  f"{len(works)} works returned, {matched} with institutions.")
+
+        except Exception as exc:
+            print(f"  Batch {batch_num}/{total_batches} failed ({exc}). "
+                  "Affected papers will fall back to text-search scoring.")
+
+        if batch_num < total_batches:
+            time.sleep(OPENALEX_SLEEP)
+
+    indexed   = sum(1 for v in result.values() if v["institution_names"])
+    unindexed = len(arxiv_ids) - indexed
+    print(f"  OpenAlex: {indexed} papers with institution data, "
+          f"{unindexed} not yet indexed (text-search fallback).")
+    return result
+
+
+def apply_openalex_columns(df: pd.DataFrame, openalex: dict) -> pd.DataFrame:
+    """
+    Write OpenAlex lookup results into the DataFrame.
+    Only rows whose arXiv ID appears in `openalex` are updated;
+    existing rows in the rolling DB already have their columns set.
+    """
+    df = df.copy()
+
+    # Ensure columns exist for the whole DF (needed on first run with new schema).
+    for col in ("openalex_institution_names", "openalex_institution_countries",
+                "openalex_institution_types"):
+        if col not in df.columns:
+            df[col] = None
+
+    if "openalex_fetched" not in df.columns:
+        df["openalex_fetched"] = False
+
+    for idx, row in df.iterrows():
+        aid = row["id"]
+        if aid not in openalex:
+            continue
+        data = openalex[aid]
+        df.at[idx, "openalex_institution_names"]     = data["institution_names"]
+        df.at[idx, "openalex_institution_countries"] = data["institution_countries"]
+        df.at[idx, "openalex_institution_types"]     = data["institution_types"]
+        df.at[idx, "openalex_fetched"]               = True
+
+    return df
 
 
 # ──────────────────────────────────────────────
@@ -701,9 +883,8 @@ if __name__ == "__main__":
         print(f"  Loaded {len(existing_df)} existing papers from rolling DB.")
 
     # Fetch from arXiv
-        # Set a descriptive User-Agent as required by arXiv's API policy.
+    # Set a descriptive User-Agent as required by arXiv's API policy.
     # Without this, new clients may receive HTTP 406 rejections.
-    import urllib.request
     opener = urllib.request.build_opener()
     opener.addheaders = [("User-Agent",
         "ai-research-atlas/1.0 (https://github.com/lfischman/ai-research-atlas; "
@@ -750,6 +931,16 @@ if __name__ == "__main__":
         })
 
     new_df = pd.DataFrame(rows)
+
+    # ── OpenAlex institution lookup ──────────────────────────────────────
+    # Fetch structured institution data for the freshly-fetched papers.
+    # This replaces the regex text-search in calculate_reputation() for any
+    # paper that OpenAlex has already indexed (typically within 1-2 days of
+    # arXiv submission).  Papers returned with empty institution lists will
+    # fall back to the original text-search path inside calculate_reputation().
+    openalex_data = fetch_openalex_data(new_df["id"].tolist())
+    new_df = apply_openalex_columns(new_df, openalex_data)
+
     new_df["Reputation"] = new_df.apply(calculate_reputation, axis=1)
 
     # Merge into rolling DB
@@ -757,13 +948,39 @@ if __name__ == "__main__":
     df = df.drop(columns=["group"], errors="ignore")  # remove legacy column name
     print(f"  Rolling DB: {len(df)} papers after merge.")
 
+    # Ensure OpenAlex columns exist for all rows (including those loaded from
+    # an older parquet that predates this schema).
+    for col in ("openalex_institution_names", "openalex_institution_countries",
+                "openalex_institution_types"):
+        if col not in df.columns:
+            df[col] = None
+    if "openalex_fetched" not in df.columns:
+        df["openalex_fetched"] = False
+
+    # Backfill: query OpenAlex for any *existing* rows that haven't been
+    # fetched yet (e.g. first run after deploying this feature).
+    # We do this after merge so we don't re-query papers already processed
+    # in the new_df block above.
+    unfetched_mask = (df["openalex_fetched"] == False) & (~df["id"].isin(new_df["id"]))
+    unfetched_ids  = df.loc[unfetched_mask, "id"].tolist()
+    if unfetched_ids:
+        print(f"  Backfilling OpenAlex data for {len(unfetched_ids)} existing rows...")
+        backfill_data = fetch_openalex_data(unfetched_ids)
+        df = apply_openalex_columns(df, backfill_data)
+        # Recalculate Reputation for rows that got new institution data
+        newly_fetched = df["openalex_fetched"] & df["id"].isin(unfetched_ids)
+        if newly_fetched.any():
+            df.loc[newly_fetched, "Reputation"] = df.loc[newly_fetched].apply(
+                calculate_reputation, axis=1
+            )
+            print(f"  Re-scored Reputation for {newly_fetched.sum()} backfilled rows.")
+
     # Backfill Reputation for older rows that predate the column.
     if "Reputation" not in df.columns or df["Reputation"].isna().any():
         missing = df["Reputation"].isna() if "Reputation" in df.columns else pd.Series([True] * len(df))
         if missing.any():
             print(f"  Backfilling Reputation for {missing.sum()} older rows...")
             df.loc[missing, "Reputation"] = df.loc[missing].apply(calculate_reputation, axis=1)
-
     # Embed & project (incremental mode only)
     labels_path = None
     if EMBEDDING_MODE == "incremental":
@@ -783,6 +1000,18 @@ if __name__ == "__main__":
     # After merge the column is mixed-type, which pyarrow refuses to serialize.
     save_df = save_df.copy()
     save_df["date_added"] = pd.to_datetime(save_df["date_added"], utc=True).dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # Normalize OpenAlex list columns: replace None/NaN with empty lists so
+    # pyarrow can infer a consistent list[string] type for the column.
+    for col in ("openalex_institution_names", "openalex_institution_countries",
+                "openalex_institution_types"):
+        if col in save_df.columns:
+            save_df[col] = save_df[col].apply(
+                lambda v: v if isinstance(v, list) else []
+            )
+    # openalex_fetched: ensure bool (not object)
+    if "openalex_fetched" in save_df.columns:
+        save_df["openalex_fetched"] = save_df["openalex_fetched"].fillna(False).astype(bool)
 
     save_df.to_parquet(DB_PATH, index=False)
     print(f"  Saved {len(save_df)} papers to {DB_PATH}.")
@@ -834,12 +1063,13 @@ if __name__ == "__main__":
         # conf["labelDensityThreshold"] = 0.1  # default is ~0.05
 
         conf.setdefault("column_mappings", {}).update({
-            "title":        "title",
-            "abstract":     "abstract",
-            "Reputation":   "Reputation",
-            "author_count": "author_count",
-            "author_tier":  "author_tier",
-            "url":          "url",
+            "title":                       "title",
+            "abstract":                    "abstract",
+            "Reputation":                  "Reputation",
+            "author_count":                "author_count",
+            "author_tier":                 "author_tier",
+            "url":                         "url",
+            "openalex_institution_names":  "openalex_institution_names",
         })
 
         with open(config_path, "w") as f:
