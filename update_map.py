@@ -17,6 +17,7 @@ from datetime import datetime, timedelta, timezone
 # ──────────────────────────────────────────────
 DB_PATH         = "database.parquet"
 STOP_WORDS_PATH = "stop_words.csv"
+RUN_STATE_PATH  = "run_state.json"   # tracks last fetch date to avoid duplicate arXiv calls
 RETENTION_DAYS  = 4       # papers older than this are pruned each run
 ARXIV_MAX       = 250     # max papers fetched per arXiv query
 
@@ -63,7 +64,27 @@ def clear_docs_contents(target_dir: str) -> None:
 
 
 # ──────────────────────────────────────────────
-# 3. REPUTATION SCORING
+# 3. RUN STATE
+#    Persists the last successful arXiv fetch date so re-running the
+#    workflow on the same calendar day (e.g. after a partial failure)
+#    skips the fetch and reuses the papers already in the rolling DB.
+# ──────────────────────────────────────────────
+def load_run_state() -> dict:
+    if os.path.exists(RUN_STATE_PATH):
+        try:
+            with open(RUN_STATE_PATH) as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+def save_run_state(state: dict) -> None:
+    with open(RUN_STATE_PATH, "w") as f:
+        json.dump(state, f, indent=2)
+
+
+# ──────────────────────────────────────────────
+# 4. REPUTATION SCORING
 # ──────────────────────────────────────────────
 INSTITUTION_PATTERN = re.compile(r"\b(" + "|".join([
 
@@ -225,7 +246,7 @@ def calculate_reputation(row) -> str:
 
 
 # ──────────────────────────────────────────────
-# 4. ROLLING DATABASE
+# 5. ROLLING DATABASE
 # ──────────────────────────────────────────────
 def load_existing_db() -> pd.DataFrame:
     if not os.path.exists(DB_PATH):
@@ -255,7 +276,7 @@ def merge_papers(existing: pd.DataFrame, new: pd.DataFrame) -> pd.DataFrame:
 
 
 # ──────────────────────────────────────────────
-# 5. ARXIV FETCH WITH EXPONENTIAL BACKOFF
+# 6. ARXIV FETCH WITH EXPONENTIAL BACKOFF
 # ──────────────────────────────────────────────
 BASE_WAIT   = 15
 MAX_WAIT    = 480
@@ -368,12 +389,15 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
                 indexed += 1
 
         except Exception as exc:
-            err_str = str(exc)
-            if "404" in err_str or "not found" in err_str.lower():
+            err_str = str(exc).lower()
+            # Log the first exception in full so we can diagnose unexpected formats.
+            if not_found + errors == 0:
+                print(f"  First exception (for diagnosis): {type(exc).__name__}: {exc}")
+            if "404" in err_str or "not found" in err_str or "no work" in err_str:
                 not_found += 1
             else:
                 errors += 1
-                print(f"  OpenAlex error for {aid} ({exc}) — will retry next run.")
+                print(f"  OpenAlex error for {aid} ({type(exc).__name__}: {exc}) — will retry next run.")
 
         time.sleep(OPENALEX_SLEEP)
 
@@ -422,7 +446,7 @@ def apply_openalex_columns(df: pd.DataFrame, openalex: dict) -> pd.DataFrame:
 
 
 # ──────────────────────────────────────────────
-# 6. INCREMENTAL EMBEDDING
+# 7. INCREMENTAL EMBEDDING
 #    Embeds only papers missing vectors, then re-projects
 #    ALL papers with UMAP for a globally coherent layout.
 # ──────────────────────────────────────────────
@@ -479,7 +503,7 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # ──────────────────────────────────────────────
-# 7. CLUSTER LABEL GENERATION
+# 8. CLUSTER LABEL GENERATION
 #
 # CURRENT APPROACH: KeyBERT (option 1)
 #   Uses semantic keyword extraction via SPECTER2 to find the most
@@ -710,7 +734,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
 
 
 # ──────────────────────────────────────────────
-# 8. HTML POP-OUT PANEL
+# 9. HTML POP-OUT PANEL
 # ──────────────────────────────────────────────
 def build_panel_html(run_date: str) -> str:
     return (
@@ -831,7 +855,7 @@ def build_panel_html(run_date: str) -> str:
 
 
 # ──────────────────────────────────────────────
-# 9. MAIN
+# 10. MAIN
 # ──────────────────────────────────────────────
 if __name__ == "__main__":
     clear_docs_contents("docs")
@@ -867,71 +891,79 @@ if __name__ == "__main__":
             print(f"  Migration: reset openalex_fetched for {bad_mask.sum()} rows "
                   f"with empty institution data (will re-query this run).")
 
-    # Fetch from arXiv
-    # Set a descriptive User-Agent as required by arXiv's API policy.
-    # Without this, new clients may receive HTTP 406 rejections.
-    opener = urllib.request.build_opener()
-    opener.addheaders = [("User-Agent",
-        "ai-research-atlas/1.0 (https://github.com/lfischman/ai-research-atlas; "
-        "mailto:lee.fischman@gmail.com)")]
-    urllib.request.install_opener(opener)
+    # Load run state — used to skip arXiv fetch if already ran today
+    run_state   = load_run_state()
+    today_date  = now.strftime("%Y-%m-%d")
+    already_ran = run_state.get("last_fetch_date") == today_date
 
-    client = arxiv.Client(page_size=100, delay_seconds=10)
-    search = arxiv.Search(
-        query=(
-            f"cat:cs.AI AND submittedDate:"
-            f"[{(now - timedelta(days=days_back)).strftime('%Y%m%d%H%M')}"
-            f" TO {now.strftime('%Y%m%d%H%M')}]"
-        ),
-        max_results=ARXIV_MAX,
-    )
+    if already_ran:
+        print(f"  arXiv already fetched today ({today_date}) — skipping fetch, "
+              f"reusing {len(existing_df)} papers from rolling DB.")
+        df     = existing_df.copy()
+        new_df = pd.DataFrame()   # empty — no new papers this run
+    else:
+        # Fetch from arXiv
+        # Set a descriptive User-Agent as required by arXiv's API policy.
+        # Without this, new clients may receive HTTP 406 rejections.
+        opener = urllib.request.build_opener()
+        opener.addheaders = [("User-Agent",
+            "ai-research-atlas/1.0 (https://github.com/lfischman/ai-research-atlas; "
+            "mailto:lee.fischman@gmail.com)")]
+        urllib.request.install_opener(opener)
 
-    results = fetch_arxiv(client, search)
-    if not results:
-        print("  No results returned from arXiv. Skipping build.")
-        exit(0)
+        client = arxiv.Client(page_size=100, delay_seconds=10)
+        search = arxiv.Search(
+            query=(
+                f"cat:cs.AI AND submittedDate:"
+                f"[{(now - timedelta(days=days_back)).strftime('%Y%m%d%H%M')}"
+                f" TO {now.strftime('%Y%m%d%H%M')}]"
+            ),
+            max_results=ARXIV_MAX,
+        )
 
-    print(f"  Fetched {len(results)} papers from arXiv.")
+        results = fetch_arxiv(client, search)
+        if not results:
+            print("  No results returned from arXiv. Skipping build.")
+            exit(0)
 
-    # Build new-papers DataFrame
-    today_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    rows = []
-    for r in results:
-        title    = r.title
-        abstract = r.summary
-        scrubbed = scrub_model_words(f"{title}. {title}. {abstract}")
-        # label_text: title only (repeated for TF-IDF weight), used for cluster
-        # labels in incremental mode where --text doesn't affect embeddings.
-        label_text = scrub_model_words(f"{title}. {title}. {title}.")
-        rows.append({
-            "title":        title,
-            "abstract":     abstract,
-            "text":         scrubbed,
-            "label_text":   label_text,
-            "url":          r.pdf_url,
-            "id":           r.entry_id.split("/")[-1],
-            "author_count": len(r.authors),
-            "author_tier":  categorize_authors(len(r.authors)),
-            "date_added":   today_str,
-        })
+        print(f"  Fetched {len(results)} papers from arXiv.")
 
-    new_df = pd.DataFrame(rows)
+        # Build new-papers DataFrame
+        today_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+        rows = []
+        for r in results:
+            title    = r.title
+            abstract = r.summary
+            scrubbed = scrub_model_words(f"{title}. {title}. {abstract}")
+            # label_text: title only (repeated for TF-IDF weight), used for cluster
+            # labels in incremental mode where --text doesn't affect embeddings.
+            label_text = scrub_model_words(f"{title}. {title}. {title}.")
+            rows.append({
+                "title":        title,
+                "abstract":     abstract,
+                "text":         scrubbed,
+                "label_text":   label_text,
+                "url":          r.pdf_url,
+                "id":           r.entry_id.split("/")[-1],
+                "author_count": len(r.authors),
+                "author_tier":  categorize_authors(len(r.authors)),
+                "date_added":   today_str,
+            })
 
-    # ── OpenAlex institution lookup ──────────────────────────────────────
-    # Fetch structured institution data for the freshly-fetched papers.
-    # This replaces the regex text-search in calculate_reputation() for any
-    # paper that OpenAlex has already indexed (typically within 1-2 days of
-    # arXiv submission).  Papers returned with empty institution lists will
-    # fall back to the original text-search path inside calculate_reputation().
-    openalex_data = fetch_openalex_data(new_df["id"].tolist())
-    new_df = apply_openalex_columns(new_df, openalex_data)
+        new_df = pd.DataFrame(rows)
 
-    new_df["Reputation"] = new_df.apply(calculate_reputation, axis=1)
+        # ── OpenAlex institution lookup ──────────────────────────────────────
+        openalex_data = fetch_openalex_data(new_df["id"].tolist())
+        new_df = apply_openalex_columns(new_df, openalex_data)
+        new_df["Reputation"] = new_df.apply(calculate_reputation, axis=1)
 
-    # Merge into rolling DB
-    df = merge_papers(existing_df, new_df)
-    df = df.drop(columns=["group"], errors="ignore")  # remove legacy column name
-    print(f"  Rolling DB: {len(df)} papers after merge.")
+        # Merge into rolling DB
+        df = merge_papers(existing_df, new_df)
+        df = df.drop(columns=["group"], errors="ignore")
+        print(f"  Rolling DB: {len(df)} papers after merge.")
+
+        # Record successful fetch so re-runs today skip arXiv
+        save_run_state({**run_state, "last_fetch_date": today_date})
 
     # Ensure OpenAlex columns exist for all rows (including those loaded from
     # an older parquet that predates this schema).
@@ -942,11 +974,11 @@ if __name__ == "__main__":
     if "openalex_fetched" not in df.columns:
         df["openalex_fetched"] = False
 
-    # Backfill: query OpenAlex for any *existing* rows that haven't been
-    # fetched yet (e.g. first run after deploying this feature).
-    # We do this after merge so we don't re-query papers already processed
-    # in the new_df block above.
-    unfetched_mask = (df["openalex_fetched"] == False) & (~df["id"].isin(new_df["id"]))
+    # Backfill: query OpenAlex for any rows that haven't been fetched yet.
+    # new_df is empty when arXiv was already fetched today, so this covers
+    # all unfetched rows in that case too.
+    new_ids        = set(new_df["id"].tolist()) if not new_df.empty else set()
+    unfetched_mask = (df["openalex_fetched"] == False) & (~df["id"].isin(new_ids))
     unfetched_ids  = df.loc[unfetched_mask, "id"].tolist()
     if unfetched_ids:
         print(f"  Backfilling OpenAlex data for {len(unfetched_ids)} existing rows...")
