@@ -458,7 +458,7 @@ def apply_openalex_columns(df: pd.DataFrame, openalex: dict) -> pd.DataFrame:
 
 
 # ──────────────────────────────────────────────
-# 6. AUTHOR SENIORITY (Step 2)
+# 6a. AUTHOR SENIORITY (Step 2)
 #
 # Fetches career citation counts for each unique author across the corpus.
 # Authors are deduplicated so shared authors are fetched only once per run.
@@ -589,8 +589,72 @@ def apply_author_seniority(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+
 # ──────────────────────────────────────────────
-# 7. INCREMENTAL EMBEDDING
+# 7. COUNTRY & INSTITUTION TYPE DIMENSIONS (Steps 3 & 4)
+#
+# Both fields are already stored in the parquet from the Step 1 fetch:
+#   openalex_institution_countries  list[str]  — ISO-2 codes, parallel to names
+#   openalex_institution_types      list[str]  — education/company/government/nonprofit
+#
+# We derive single scalar columns for Embedding Atlas color-by:
+#   institution_country  — most common country among the paper's institutions,
+#                          with a simple majority rule; "Unknown" if no data.
+#   institution_type     — most common type; "Unknown" if no data.
+#
+# "Most common" rather than "first" avoids over-weighting one author's
+# affiliation on large multi-institution papers.
+# ──────────────────────────────────────────────
+
+def most_common(values: list) -> str:
+    """Return the most frequent non-empty value in a list, or 'Unknown'."""
+    counts: dict[str, int] = {}
+    for v in values:
+        if v and isinstance(v, str):
+            counts[v] = counts.get(v, 0) + 1
+    return max(counts, key=counts.get) if counts else "Unknown"
+
+
+def apply_geo_and_type_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Derive scalar institution_country and institution_type columns from
+    the list columns written by apply_openalex_columns.
+    Rows without OpenAlex data get 'Unknown' for both.
+    """
+    df = df.copy()
+
+    # Ensure source list columns exist (graceful on pre-Step-1 parquet)
+    for col in ("openalex_institution_countries", "openalex_institution_types"):
+        if col not in df.columns:
+            df[col] = None
+
+    df["institution_country"] = df["openalex_institution_countries"].apply(
+        lambda v: most_common(v) if isinstance(v, list) else "Unknown"
+    )
+    df["institution_type"] = df["openalex_institution_types"].apply(
+        lambda v: most_common(v) if isinstance(v, list) else "Unknown"
+    )
+
+    # Summary for the run log
+    countries = df["institution_country"].value_counts()
+    top_countries = ", ".join(
+        f"{c} ({n})" for c, n in countries.head(5).items() if c != "Unknown"
+    )
+    types = df["institution_type"].value_counts()
+    type_summary = ", ".join(
+        f"{t} ({n})" for t, n in types.items() if t != "Unknown"
+    )
+    unknown_c = (df["institution_country"] == "Unknown").sum()
+    unknown_t = (df["institution_type"]    == "Unknown").sum()
+    print(f"  Institution countries: top 5 — {top_countries or 'none yet'} "
+          f"| {unknown_c} Unknown.")
+    print(f"  Institution types: {type_summary or 'none yet'} "
+          f"| {unknown_t} Unknown.")
+    return df
+
+
+# ──────────────────────────────────────────────
+# 8. INCREMENTAL EMBEDDING
 #    Embeds only papers missing vectors, then re-projects
 #    ALL papers with UMAP for a globally coherent layout.
 # ──────────────────────────────────────────────
@@ -647,7 +711,7 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # ──────────────────────────────────────────────
-# 8. CLUSTER LABEL GENERATION
+# 9. CLUSTER LABEL GENERATION
 #
 # CURRENT APPROACH: KeyBERT (option 1)
 #   Uses semantic keyword extraction via SPECTER2 to find the most
@@ -878,7 +942,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
 
 
 # ──────────────────────────────────────────────
-# 9. HTML POP-OUT PANEL
+# 10. HTML POP-OUT PANEL
 # ──────────────────────────────────────────────
 def build_panel_html(run_date: str) -> str:
     return (
@@ -976,6 +1040,12 @@ def build_panel_html(run_date: str) -> str:
 
   <div class="arm-tip"><span class="arm-tip-icon">&#x1F4A1;</span><span>Set color to <strong>author_tier</strong>; more authors tends to be better.</span></div>
 
+  <div class="arm-tip"><span class="arm-tip-icon">&#x1F4A1;</span><span>Set color to <strong>author_seniority</strong> to highlight papers with established researchers.</span></div>
+
+  <div class="arm-tip"><span class="arm-tip-icon">&#x1F310;</span><span>Set color to <strong>institution_country</strong> to see the geographic spread of AI research.</span></div>
+
+  <div class="arm-tip"><span class="arm-tip-icon">&#x1F3DB;</span><span>Set color to <strong>institution_type</strong> to compare academic vs industry research.</span></div>
+
     <hr class="arm-divider">
 
     <p class="arm-section">Books by the author</p>
@@ -999,7 +1069,7 @@ def build_panel_html(run_date: str) -> str:
 
 
 # ──────────────────────────────────────────────
-# 10. MAIN
+# 11. MAIN
 # ──────────────────────────────────────────────
 if __name__ == "__main__":
     clear_docs_contents("docs")
@@ -1144,10 +1214,14 @@ if __name__ == "__main__":
             df.loc[missing, "Reputation"] = df.loc[missing].apply(calculate_reputation, axis=1)
 
     # ── Author seniority (Step 2) ────────────────────────────────────────
-    # Fetch career citation stats for all authors whose IDs we got from
-    # OpenAlex, compute per-paper seniority tier, then re-score Reputation
-    # for any rows where seniority changed things.
     df = apply_author_seniority(df)
+
+    # ── Country & institution type dimensions (Steps 3 & 4) ──────────────
+    # No additional API calls needed — data is already in the parquet from
+    # the Step 1 OpenAlex fetch. Just derives scalar columns from the lists.
+    df = apply_geo_and_type_columns(df)
+
+    # Re-score Reputation now that all signals are populated
     df["Reputation"] = df.apply(calculate_reputation, axis=1)
 
     # Embed & project (incremental mode only)
@@ -1238,6 +1312,8 @@ if __name__ == "__main__":
             "author_count":                "author_count",
             "author_tier":                 "author_tier",
             "author_seniority":            "author_seniority",
+            "institution_country":         "institution_country",
+            "institution_type":            "institution_type",
             "url":                         "url",
             "openalex_institution_names":  "openalex_institution_names",
         })
