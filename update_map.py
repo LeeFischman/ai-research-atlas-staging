@@ -318,32 +318,21 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
     single-work endpoint:
         GET /works/https://arxiv.org/abs/{id}
 
-    This is the most reliable approach — no query string construction,
-    no batch filter syntax, and the endpoint is explicitly documented.
-    One HTTP request per paper; at OPENALEX_SLEEP spacing the total
-    overhead for 250 papers is ~30s, well within the daily job budget.
+    Returns a dict containing ONLY the IDs that got a successful 200 response.
+    IDs not present in the returned dict should be treated as "not yet fetched":
+      - 404  → paper not yet indexed; caller should leave openalex_fetched=False
+               so it gets retried on the next daily run
+      - other errors → same treatment, logged individually
 
-    Returns a dict mapping each original arxiv_id to:
-        {
-            "institution_names":     list[str],   # display names, deduplicated
-            "institution_countries": list[str],   # parallel ISO-2 codes
-            "institution_types":     list[str],   # parallel institution types
-        }
-
-    Papers not yet indexed in OpenAlex return empty lists (not an error —
-    they fall back to text-search scoring in calculate_reputation).
-    All other errors are caught per-paper so one failure never aborts the run.
+    This means openalex_fetched=True is only ever set for papers where we
+    actually got a response from OpenAlex (even if that response had no
+    institution data), so newly-submitted papers are automatically retried
+    each day until OpenAlex indexes them.
     """
     if not arxiv_ids:
         return {}
 
-    # Pre-fill with empty results so every ID has an entry regardless of
-    # whether the lookup succeeds or the paper isn't indexed yet.
-    result: dict[str, dict] = {
-        aid: {"institution_names": [], "institution_countries": [], "institution_types": []}
-        for aid in arxiv_ids
-    }
-
+    result: dict[str, dict] = {}   # only populated on 200 responses
     indexed = 0
     not_found = 0
     errors = 0
@@ -355,8 +344,6 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
         # Strip version suffix: "2502.08745v1" → "2502.08745"
         clean_id = re.sub(r"v\d+$", "", aid)
 
-        # OpenAlex single-work lookup by external arXiv URL.
-        # select= restricts response to only the fields we need.
         url = (
             f"https://api.openalex.org/works/https://arxiv.org/abs/{clean_id}"
             f"?select=ids,authorships"
@@ -371,13 +358,15 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 work = json.loads(resp.read().decode())
 
+            # Got a real 200 response — record it regardless of whether
+            # institution data is present, so we don't re-query next run.
             names, countries, types = [], [], []
             for authorship in work.get("authorships", []):
                 for inst in authorship.get("institutions", []):
                     name    = inst.get("display_name", "").strip()
                     country = inst.get("country_code", "").strip()
                     itype   = inst.get("type", "").strip()
-                    if name and name not in names:   # deduplicate
+                    if name and name not in names:
                         names.append(name)
                         countries.append(country)
                         types.append(itype)
@@ -392,38 +381,40 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
 
         except urllib.error.HTTPError as exc:
             if exc.code == 404:
-                not_found += 1   # not yet indexed — silent, expected for new papers
+                not_found += 1   # not yet indexed — silent, will retry tomorrow
             else:
                 errors += 1
-                print(f"  OpenAlex HTTP {exc.code} for {aid} — falling back to text-search.")
+                print(f"  OpenAlex HTTP {exc.code} for {aid} — will retry next run.")
         except Exception as exc:
             errors += 1
-            print(f"  OpenAlex error for {aid} ({exc}) — falling back to text-search.")
+            print(f"  OpenAlex error for {aid} ({exc}) — will retry next run.")
 
         time.sleep(OPENALEX_SLEEP)
 
-        # Progress heartbeat every 50 papers so the log shows the job is alive.
+        # Progress heartbeat every 50 papers.
         if (i + 1) % 50 == 0:
-            print(f"  ... {i + 1}/{len(arxiv_ids)} looked up "
+            print(f"  ... {i + 1}/{len(arxiv_ids)} queried "
                   f"({indexed} with institutions so far)")
 
-    total = len(arxiv_ids)
+    responded   = len(result)
     print(f"  OpenAlex: {indexed} with institutions | "
-          f"{not_found} not indexed (404) | "
-          f"{errors} errors | "
-          f"{total - indexed - not_found - errors} found but no institution data.")
+          f"{responded - indexed} found but no institution data | "
+          f"{not_found} not yet indexed (404, will retry) | "
+          f"{errors} errors.")
     return result
 
 
 def apply_openalex_columns(df: pd.DataFrame, openalex: dict) -> pd.DataFrame:
     """
     Write OpenAlex lookup results into the DataFrame.
-    Only rows whose arXiv ID appears in `openalex` are updated;
-    existing rows in the rolling DB already have their columns set.
+
+    Only rows whose arXiv ID is present in `openalex` are updated —
+    the dict only contains IDs that got a 200 response, so:
+      - openalex_fetched=True  → we got a response (may or may not have institutions)
+      - openalex_fetched=False → 404 or error; will be retried on the next run
     """
     df = df.copy()
 
-    # Ensure columns exist for the whole DF (needed on first run with new schema).
     for col in ("openalex_institution_names", "openalex_institution_countries",
                 "openalex_institution_types"):
         if col not in df.columns:
@@ -435,7 +426,7 @@ def apply_openalex_columns(df: pd.DataFrame, openalex: dict) -> pd.DataFrame:
     for idx, row in df.iterrows():
         aid = row["id"]
         if aid not in openalex:
-            continue
+            continue                   # 404 / error — leave openalex_fetched=False
         data = openalex[aid]
         df.at[idx, "openalex_institution_names"]     = data["institution_names"]
         df.at[idx, "openalex_institution_countries"] = data["institution_countries"]
@@ -872,6 +863,24 @@ if __name__ == "__main__":
         print("  First run — pre-filling with last 5 days of arXiv papers.")
     else:
         print(f"  Loaded {len(existing_df)} existing papers from rolling DB.")
+
+    # ── One-time migration: fix rows poisoned by the batch-400 bug ───────
+    # An earlier build used a pre-filled result dict, causing rows that got
+    # HTTP 400 errors to be marked openalex_fetched=True with empty institution
+    # lists.  Reset any such rows to False so they are retried this run.
+    # This guard is harmless once all rows have real data: the condition
+    # (fetched=True AND empty names) will simply never match.
+    if "openalex_fetched" in existing_df.columns and "openalex_institution_names" in existing_df.columns:
+        bad_mask = (
+            (existing_df["openalex_fetched"] == True) &
+            (existing_df["openalex_institution_names"].apply(
+                lambda v: not isinstance(v, list) or len(v) == 0
+            ))
+        )
+        if bad_mask.any():
+            existing_df.loc[bad_mask, "openalex_fetched"] = False
+            print(f"  Migration: reset openalex_fetched for {bad_mask.sum()} rows "
+                  f"with empty institution data (will re-query this run).")
 
     # Fetch from arXiv
     # Set a descriptive User-Agent as required by arXiv's API policy.
