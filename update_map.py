@@ -226,14 +226,17 @@ def calculate_reputation(row) -> str:
     # fall back to regex text-search in title/abstract for unindexed papers.
     inst_names = row.get("openalex_institution_names") if hasattr(row, "get") else None
     if isinstance(inst_names, list) and inst_names:
-        # OpenAlex data is available — match against the cleaned institution names
         inst_text = " | ".join(inst_names)
         if INSTITUTION_PATTERN.search(inst_text):
             score += 3
     else:
-        # Fallback: text search in title/abstract (original approach)
         if INSTITUTION_PATTERN.search(full_text):
             score += 3
+
+    # Author seniority — at least one established researcher on the paper
+    seniority = row.get("author_seniority") if hasattr(row, "get") else None
+    if seniority == "Established":
+        score += 2
 
     # Public codebase — indicates reproducibility commitment
     if any(k in full_text for k in ["github.com", "huggingface.co"]):
@@ -312,23 +315,21 @@ def fetch_arxiv(client, search) -> list:
 # No API key required; mailto param places us in the polite pool
 # (~10 req/sec, effectively unlimited for our volume).
 #
-# Response fields used now (Step 1):
+# Response fields used in Step 1:
 #   authorships[].institutions[].display_name  → matched against INSTITUTION_PATTERN
 #   authorships[].institutions[].country_code  → stored for Step 3
 #   authorships[].institutions[].type          → stored for Step 4
+#
+# Response fields used in Step 2:
+#   authorships[].author.id                    → OpenAlex author ID for seniority lookup
 #
 # Schema additions to database.parquet:
 #   openalex_institution_names    list[str]  — deduplicated institution names
 #   openalex_institution_countries list[str] — ISO-2 country codes (parallel to names)
 #   openalex_institution_types    list[str]  — education/company/government/nonprofit
-#   openalex_fetched              bool       — True once we have queried OpenAlex,
-#                                             even if no results came back (prevents
-#                                             redundant re-queries on subsequent runs)
-#
-# Fallback: papers where openalex_fetched=False or the lookup returned no
-# institutions use the original INSTITUTION_PATTERN text-search in
-# calculate_reputation(). This covers papers submitted < ~2 days ago
-# that OpenAlex hasn't indexed yet.
+#   openalex_author_ids           list[str]  — OpenAlex author IDs for this paper
+#   author_seniority              str        — "Established" / "Emerging" / "Unknown"
+#   openalex_fetched              bool       — True once we have queried OpenAlex
 # ──────────────────────────────────────────────
 OPENALEX_EMAIL  = "lee@leefischman.com"   # polite-pool identifier
 OPENALEX_SLEEP  = 0.12                     # seconds between requests (~8 req/sec)
@@ -374,7 +375,14 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
             work = pyalex.Works()[f"doi:10.48550/arxiv.{clean_id}"]
 
             names, countries, types = [], [], []
+            author_ids = []
             for authorship in work.get("authorships", []):
+                # Collect author OpenAlex IDs for the seniority lookup (Step 2).
+                # Cap at 8 authors — beyond that the marginal signal is low and
+                # it keeps the per-paper author fetch cost bounded.
+                author_id = authorship.get("author", {}).get("id", "").strip()
+                if author_id and author_id not in author_ids and len(author_ids) < 8:
+                    author_ids.append(author_id)
                 for inst in authorship.get("institutions", []):
                     name    = inst.get("display_name", "").strip()
                     country = inst.get("country_code", "").strip()
@@ -388,6 +396,7 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
                 "institution_names":     names,
                 "institution_countries": countries,
                 "institution_types":     types,
+                "author_ids":            author_ids,
             }
             if names:
                 indexed += 1
@@ -426,7 +435,7 @@ def apply_openalex_columns(df: pd.DataFrame, openalex: dict) -> pd.DataFrame:
     df = df.copy()
 
     for col in ("openalex_institution_names", "openalex_institution_countries",
-                "openalex_institution_types"):
+                "openalex_institution_types", "openalex_author_ids"):
         if col not in df.columns:
             df[col] = None
 
@@ -441,8 +450,142 @@ def apply_openalex_columns(df: pd.DataFrame, openalex: dict) -> pd.DataFrame:
         df.at[idx, "openalex_institution_names"]     = data["institution_names"]
         df.at[idx, "openalex_institution_countries"] = data["institution_countries"]
         df.at[idx, "openalex_institution_types"]     = data["institution_types"]
+        df.at[idx, "openalex_author_ids"]            = data.get("author_ids", [])
         df.at[idx, "openalex_fetched"]               = True
 
+    return df
+
+
+
+# ──────────────────────────────────────────────
+# 6. AUTHOR SENIORITY (Step 2)
+#
+# Fetches career citation counts for each unique author across the corpus.
+# Authors are deduplicated so shared authors are fetched only once per run.
+# Results are cached in-memory; nothing extra is written to parquet beyond
+# the per-paper author_seniority column.
+#
+# Seniority tiers (based on the highest-ranked author on the paper):
+#   Established  — cited_by_count ≥ 1000  OR  works_count ≥ 50
+#   Emerging     — cited_by_count ≥ 100   OR  works_count ≥ 10
+#   Unknown      — no OpenAlex author data available
+#
+# Reputation impact: +2 points for at least one Established author.
+# ──────────────────────────────────────────────
+
+# Seniority thresholds
+ESTABLISHED_CITATIONS = 1000
+ESTABLISHED_WORKS     = 50
+EMERGING_CITATIONS    = 100
+EMERGING_WORKS        = 10
+
+
+def fetch_author_stats(author_ids: list) -> dict:
+    """
+    Fetch cited_by_count and works_count for a list of OpenAlex author IDs.
+
+    Deduplicates before fetching so shared authors (common in cs.AI) are
+    only queried once. Returns a dict mapping author_id → stats dict.
+    IDs that fail silently return no entry (seniority falls back to Unknown).
+    """
+    if not author_ids:
+        return {}
+
+    try:
+        import pyalex
+        pyalex.config.email = OPENALEX_EMAIL
+    except ImportError:
+        return {}
+
+    unique_ids = list(dict.fromkeys(author_ids))   # deduplicate, preserve order
+    stats: dict[str, dict] = {}
+    errors = 0
+
+    print(f"  Fetching author stats for {len(unique_ids)} unique authors "
+          f"(~{len(unique_ids) * OPENALEX_SLEEP:.0f}s)...")
+
+    for i, author_id in enumerate(unique_ids):
+        try:
+            author = pyalex.Authors()[author_id]
+            stats[author_id] = {
+                "cited_by_count": author.get("cited_by_count", 0) or 0,
+                "works_count":    author.get("works_count", 0)    or 0,
+            }
+        except Exception as exc:
+            err_str = str(exc).lower()
+            if "404" not in err_str and "not found" not in err_str:
+                errors += 1
+        time.sleep(OPENALEX_SLEEP)
+
+        if (i + 1) % 100 == 0:
+            print(f"  ... {i + 1}/{len(unique_ids)} authors fetched")
+
+    print(f"  Author stats: {len(stats)} retrieved | "
+          f"{len(unique_ids) - len(stats) - errors} not found | {errors} errors.")
+    return stats
+
+
+def compute_author_seniority(author_ids: list, stats: dict) -> str:
+    """
+    Return the seniority tier of the most senior author on a paper.
+    Tiers: Established > Emerging > Unknown.
+    """
+    if not author_ids or not stats:
+        return "Unknown"
+
+    best = "Unknown"
+    for aid in author_ids:
+        s = stats.get(aid)
+        if not s:
+            continue
+        if (s["cited_by_count"] >= ESTABLISHED_CITATIONS or
+                s["works_count"] >= ESTABLISHED_WORKS):
+            return "Established"   # can't do better — short-circuit
+        if (s["cited_by_count"] >= EMERGING_CITATIONS or
+                s["works_count"] >= EMERGING_WORKS):
+            best = "Emerging"
+
+    return best
+
+
+def apply_author_seniority(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Collect all author IDs from papers that have openalex_author_ids,
+    fetch their career stats in one batched pass, then write
+    author_seniority for every row (fetched or not).
+    """
+    if "openalex_author_ids" not in df.columns:
+        df["author_seniority"] = "Unknown"
+        return df
+
+    # Gather all unique author IDs from the fetched rows
+    all_author_ids = []
+    for ids in df["openalex_author_ids"]:
+        if isinstance(ids, list):
+            all_author_ids.extend(ids)
+
+    if not all_author_ids:
+        df["author_seniority"] = "Unknown"
+        return df
+
+    # Deduplicate before fetching
+    unique_ids = list(dict.fromkeys(all_author_ids))
+    author_stats = fetch_author_stats(unique_ids)
+
+    # Compute per-paper seniority
+    df = df.copy()
+    if "author_seniority" not in df.columns:
+        df["author_seniority"] = "Unknown"
+
+    for idx, row in df.iterrows():
+        aids = row.get("openalex_author_ids")
+        if isinstance(aids, list) and aids:
+            df.at[idx, "author_seniority"] = compute_author_seniority(aids, author_stats)
+
+    est  = (df["author_seniority"] == "Established").sum()
+    emg  = (df["author_seniority"] == "Emerging").sum()
+    unk  = (df["author_seniority"] == "Unknown").sum()
+    print(f"  Author seniority: {est} Established | {emg} Emerging | {unk} Unknown.")
     return df
 
 
@@ -999,6 +1142,14 @@ if __name__ == "__main__":
         if missing.any():
             print(f"  Backfilling Reputation for {missing.sum()} older rows...")
             df.loc[missing, "Reputation"] = df.loc[missing].apply(calculate_reputation, axis=1)
+
+    # ── Author seniority (Step 2) ────────────────────────────────────────
+    # Fetch career citation stats for all authors whose IDs we got from
+    # OpenAlex, compute per-paper seniority tier, then re-score Reputation
+    # for any rows where seniority changed things.
+    df = apply_author_seniority(df)
+    df["Reputation"] = df.apply(calculate_reputation, axis=1)
+
     # Embed & project (incremental mode only)
     labels_path = None
     if EMBEDDING_MODE == "incremental":
@@ -1022,7 +1173,7 @@ if __name__ == "__main__":
     # Normalize OpenAlex list columns: replace None/NaN with empty lists so
     # pyarrow can infer a consistent list[string] type for the column.
     for col in ("openalex_institution_names", "openalex_institution_countries",
-                "openalex_institution_types"):
+                "openalex_institution_types", "openalex_author_ids"):
         if col in save_df.columns:
             save_df[col] = save_df[col].apply(
                 lambda v: v if isinstance(v, list) else []
@@ -1086,6 +1237,7 @@ if __name__ == "__main__":
             "Reputation":                  "Reputation",
             "author_count":                "author_count",
             "author_tier":                 "author_tier",
+            "author_seniority":            "author_seniority",
             "url":                         "url",
             "openalex_institution_names":  "openalex_institution_names",
         })
