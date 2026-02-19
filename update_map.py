@@ -486,7 +486,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
     # Syntax:   HDBSCAN(..., alpha=1.0)
     # Range:    0.5–2.0 typical.
     # ════════════════════════════════════════════════════════════════════
-    clusterer = HDBSCAN(min_cluster_size=5, min_samples=4, metric=cluster_metric, cluster_selection_method="leaf")
+    clusterer = HDBSCAN(min_cluster_size=3, min_samples=4, metric=cluster_metric, cluster_selection_method="leaf")
     cluster_ids = clusterer.fit_predict(cluster_input)
 
     n_clusters = len(set(cluster_ids)) - (1 if -1 in cluster_ids else 0)
