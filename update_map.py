@@ -701,6 +701,15 @@ if __name__ == "__main__":
         print(f"  Loaded {len(existing_df)} existing papers from rolling DB.")
 
     # Fetch from arXiv
+        # Set a descriptive User-Agent as required by arXiv's API policy.
+    # Without this, new clients may receive HTTP 406 rejections.
+    import urllib.request
+    opener = urllib.request.build_opener()
+    opener.addheaders = [("User-Agent",
+        "ai-research-atlas/1.0 (https://github.com/lfischman/ai-research-atlas; "
+        "mailto:lee.fischman@gmail.com)")]
+    urllib.request.install_opener(opener)
+
     client = arxiv.Client(page_size=100, delay_seconds=10)
     search = arxiv.Search(
         query=(
