@@ -9,74 +9,69 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 7.061977569873516,
-                "y": 5.08468536230234,
-                "text": "Dynamics Odyn"
-            },
-            {
-                "x": 7.253089129924774,
-                "y": 7.138900518417358,
+                "x": 10.14085566997528,
+                "y": 2.80540069937706,
                 "text": "Perceptive Humanoid"
             },
             {
-                "x": 3.631148910522461,
-                "y": 6.641628694534302,
+                "x": 8.681317549485426,
+                "y": 1.2671687694696279,
+                "text": "Dynamics Rethinking"
+            },
+            {
+                "x": 7.016993590763637,
+                "y": 4.434709957667759,
+                "text": "Curated Clinical"
+            },
+            {
+                "x": 7.17362254006522,
+                "y": 4.695688043321882,
                 "text": "Reasoning Disentangling"
             },
             {
-                "x": 3.979331761598587,
-                "y": 6.496925532817841,
-                "text": "Deepseek R1"
+                "x": 6.780149269104004,
+                "y": 1.500355562567711,
+                "text": "Prediction Deepfusion"
             },
             {
-                "x": 6.479118135240343,
-                "y": 3.7900115648905435,
-                "text": "Approximation Dnns"
+                "x": 6.496443308316744,
+                "y": 0.6855808287524642,
+                "text": "Recognition Uctecg"
             },
             {
-                "x": 3.2312932312488556,
-                "y": 4.668559551239014,
-                "text": "Detection Backdoors"
+                "x": 5.966425120830536,
+                "y": 3.3494390845298767,
+                "text": "Split Privacy"
             },
             {
-                "x": 5.55805154280229,
-                "y": 2.6806419004093516,
-                "text": "Image Classification"
+                "x": 8.40070161819458,
+                "y": 3.0150288105010987,
+                "text": "Learn Language"
             },
             {
-                "x": 5.442152380943298,
-                "y": 3.7663486897945404,
-                "text": "Tokens Deepfusion"
-            },
-            {
-                "x": 6.526779842376709,
-                "y": 4.011105465888977,
-                "text": "Activations S2D"
-            },
-            {
-                "x": 5.874112892150879,
-                "y": 7.556969547271729,
-                "text": "Reinforcement Vlm"
-            },
-            {
-                "x": 5.750639021396637,
-                "y": 6.266777813434601,
-                "text": "Feedback Learn"
-            },
-            {
-                "x": 6.563095609347026,
-                "y": 6.363508145014445,
+                "x": 9.107571840286255,
+                "y": 2.654328207174937,
                 "text": "Reinforcement Learn"
             },
             {
-                "x": 4.454100532965227,
-                "y": 7.922747525301847,
-                "text": "Merlean Agentic"
+                "x": 6.356814649369982,
+                "y": 5.4070548216501875,
+                "text": "Crowdfunding Disclose"
             },
             {
-                "x": 2.71876309468196,
-                "y": 6.6230845267956076,
-                "text": "Involvement Llm"
+                "x": 8.423753004807692,
+                "y": 5.38796879695012,
+                "text": "Executing Llm"
+            },
+            {
+                "x": 9.330150413513184,
+                "y": 4.119683456420899,
+                "text": "Agv Fleet"
+            },
+            {
+                "x": 8.793998718261719,
+                "y": 4.841224602290562,
+                "text": "Eaa Automating"
             }
         ],
         "initialState": {
@@ -100,6 +95,9 @@
         "author_seniority": "author_seniority",
         "institution_country": "institution_country",
         "institution_type": "institution_type",
+        "openalex_subfield": "openalex_subfield",
+        "openalex_topic": "openalex_topic",
+        "openalex_keywords": "openalex_keywords",
         "url": "url",
         "openalex_institution_names": "openalex_institution_names"
     }
