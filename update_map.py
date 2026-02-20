@@ -912,9 +912,10 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
         if cid == -1:
             continue  # HDBSCAN noise points get no label
         mask = cluster_ids == cid
-        # Use label_text (scrubbed, title-only) rather than raw title so
-        # "model/models" variants are already stripped before KeyBERT sees them.
-        titles = df.loc[mask, "label_text"].tolist()
+        # Use label_text (scrubbed, title-only) if available; fall back to title
+        # if the column was stripped from a previous parquet save.
+        text_col = "label_text" if "label_text" in df.columns else "title"
+        titles = df.loc[mask, text_col].tolist()
         combined = " ".join(titles)
 
         # Extend scikit-learn English stop words with AI boilerplate that
@@ -1272,11 +1273,9 @@ if __name__ == "__main__":
         save_df = df
 
     # Drop internal-use columns that are not meaningful to readers.
-    # label_text — scrubbed title fed to KeyBERT; generated fresh each run.
-    # text       — kept in parquet; Embedding Atlas uses it internally to
-    #              populate the table, even in incremental mode. Removing it
-    #              causes the table to show no rows.
-    save_df = save_df.drop(columns=["label_text"], errors="ignore")
+    # label_text is kept — it must remain in the parquet so generate_keybert_labels
+    # can read it on subsequent runs when existing papers are loaded from disk.
+    save_df = save_df.drop(columns=["label_text_unused"], errors="ignore")  # placeholder, nothing dropped
 
     # Normalize date_added to a consistent ISO string.
     # load_existing_db() converts it to datetime; new rows arrive as strings.
