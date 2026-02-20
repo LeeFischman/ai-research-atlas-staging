@@ -18,8 +18,8 @@ from datetime import datetime, timedelta, timezone
 DB_PATH         = "database.parquet"
 STOP_WORDS_PATH = "stop_words.csv"
 RUN_STATE_PATH  = "run_state.json"   # tracks last fetch date to avoid duplicate arXiv calls
-RETENTION_DAYS  = 4       # papers older than this are pruned each run
-ARXIV_MAX       = 250     # max papers fetched per arXiv query
+RETENTION_DAYS  = 14      # papers older than this are pruned each run
+ARXIV_MAX       = 1500    # max papers fetched per arXiv query
 
 # Embedding mode is controlled by the EMBEDDING_MODE env var.
 # Set automatically by the workflow_dispatch input in the YAML.
@@ -1113,7 +1113,7 @@ if __name__ == "__main__":
     # Load & prune existing rolling DB
     existing_df  = load_existing_db()
     is_first_run = existing_df.empty and not os.path.exists(DB_PATH)
-    days_back    = 5 if is_first_run else 2
+    days_back    = 15 if is_first_run else 2
 
     if is_first_run:
         print("  First run — pre-filling with last 5 days of arXiv papers.")
@@ -1194,7 +1194,7 @@ if __name__ == "__main__":
                 "id":           r.entry_id.split("/")[-1],
                 "author_count": len(r.authors),
                 "author_tier":  categorize_authors(len(r.authors)),
-                "date_added":   today_str,
+                "date_added":   r.published.strftime("%Y-%m-%dT%H:%M:%SZ"),
             })
 
         new_df = pd.DataFrame(rows)
@@ -1339,23 +1339,21 @@ if __name__ == "__main__":
         # Lower it to label more clusters including sparse ones.
         # conf["labelDensityThreshold"] = 0.1  # default is ~0.05
 
-        # column_mappings: keys are parquet column names, values are display
-        # names shown in the color dropdown and popup. Order controls dropdown order.
-        conf["column_mappings"] = {
-            "title":                      "Title",
-            "abstract":                   "Abstract",
-            "Reputation":                 "Reputation",
-            "author_count":               "Author Count",
-            "author_tier":                "Author Tier",
-            "author_seniority":           "Seniority",
-            "institution_country":        "Country",
-            "institution_type":           "Institution Type",
-            "openalex_subfield":          "Research Area",
-            "openalex_topic":             "Topic",
-            "openalex_keywords":          "Keywords",
-            "url":                        "URL",
-            "openalex_institution_names": "Institutions",
-        }
+        conf.setdefault("column_mappings", {}).update({
+            "title":                       "title",
+            "abstract":                    "abstract",
+            "Reputation":                  "Reputation",
+            "author_count":                "author_count",
+            "author_tier":                 "author_tier",
+            "author_seniority":            "author_seniority",
+            "institution_country":         "institution_country",
+            "institution_type":            "institution_type",
+            "openalex_subfield":           "openalex_subfield",
+            "openalex_topic":              "openalex_topic",
+            "openalex_keywords":           "openalex_keywords",
+            "url":                         "url",
+            "openalex_institution_names":  "openalex_institution_names",
+        })
 
         with open(config_path, "w") as f:
             json.dump(conf, f, indent=4)
