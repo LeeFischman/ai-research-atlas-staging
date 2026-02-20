@@ -9,99 +9,59 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 1.351174381646243,
-                "y": 6.082224065607244,
-                "text": "Improving Llm"
+                "x": 8.093628406524658,
+                "y": 6.23345103263855,
+                "text": "Split Privacy"
             },
             {
-                "x": 1.387190341949463,
-                "y": 7.0401402200971335,
-                "text": "Neuroscience Discovery"
+                "x": 11.051090749104818,
+                "y": 7.374481169382731,
+                "text": "Generalization Dense"
             },
             {
-                "x": 0.04055394297964605,
-                "y": 7.679807049887521,
-                "text": "Molecular Graph"
-            },
-            {
-                "x": 3.128666659196218,
-                "y": 5.6167235771814985,
-                "text": "Control Conversational"
-            },
-            {
-                "x": 3.1355156557900563,
-                "y": 3.3238301958356584,
-                "text": "Cps Flaws"
-            },
-            {
-                "x": 2.826432228088379,
-                "y": 2.9951619307200112,
-                "text": "Hackers Talk"
-            },
-            {
-                "x": 3.3757475444248746,
-                "y": 5.076452391488211,
-                "text": "Evaluation Ethnographic"
-            },
-            {
-                "x": -0.10643613617867231,
-                "y": 8.53470766544342,
-                "text": "Autoencoders Offline"
-            },
-            {
-                "x": 2.3394979685544968,
-                "y": 7.79006963968277,
-                "text": "Demosqa Deepfusion"
-            },
-            {
-                "x": 0.2339986339211464,
-                "y": 6.736529469490051,
-                "text": "Mavrl Reward"
-            },
-            {
-                "x": 2.1960067086749606,
-                "y": 5.510926352606879,
+                "x": 8.424856117793492,
+                "y": 7.911489963531494,
                 "text": "Reasoning Rfeval"
             },
             {
-                "x": 2.3817563354969025,
-                "y": 5.54836642742157,
-                "text": "Clinical Reasoning"
+                "x": 7.060643275578816,
+                "y": 6.176020781199138,
+                "text": "Social Truthstance"
             },
             {
-                "x": 0.13222888828470156,
-                "y": 5.049215463491587,
-                "text": "Agentic Reinforcement"
-            },
-            {
-                "x": 0.007034870396767344,
-                "y": 4.141074248722622,
-                "text": "Enhancing Quadruped"
-            },
-            {
-                "x": 1.584944764773051,
-                "y": 8.620889663696289,
-                "text": "Binary Tokenizer"
-            },
-            {
-                "x": 1.9798346281051635,
-                "y": 9.249885686238606,
-                "text": "Bonsai Convolutional"
-            },
-            {
-                "x": 1.0885497530301411,
-                "y": 8.615347862243652,
+                "x": 10.451418269764293,
+                "y": 6.137900525873357,
                 "text": "Multifaceted Learnable"
             },
             {
-                "x": 1.770715594291687,
-                "y": 4.153587073087692,
-                "text": "Analytics Llm"
+                "x": 10.39593557211069,
+                "y": 5.165473461151123,
+                "text": "Bonsai Convolutional"
             },
             {
-                "x": 0.9846901212419782,
-                "y": 4.180680888039725,
-                "text": "Reinforcement Llm4Cov"
+                "x": 7.0155195713043215,
+                "y": 6.969240474700928,
+                "text": "Assessment Measuring"
+            },
+            {
+                "x": 7.245213095347086,
+                "y": 8.934107971191406,
+                "text": "Agents Llm4Cov"
+            },
+            {
+                "x": 5.986750738961356,
+                "y": 8.090089253016881,
+                "text": "Cps Flaws"
+            },
+            {
+                "x": 8.530256843566894,
+                "y": 9.835108470916747,
+                "text": "Enhancing Quadruped"
+            },
+            {
+                "x": 9.401612213679723,
+                "y": 9.150814873831612,
+                "text": "Mavrl Reward"
             }
         ],
         "initialState": {
@@ -116,56 +76,6 @@
     "name_column": "title",
     "label_column": "title",
     "color_by": "Reputation",
-    "columns": [
-        {
-            "key": "title",
-            "name": "Title"
-        },
-        {
-            "key": "abstract",
-            "name": "Abstract"
-        },
-        {
-            "key": "author_count",
-            "name": "Authors"
-        },
-        {
-            "key": "author_tier",
-            "name": "Author Tier"
-        },
-        {
-            "key": "author_seniority",
-            "name": "Seniority"
-        },
-        {
-            "key": "Reputation",
-            "name": "Reputation"
-        },
-        {
-            "key": "institution_country",
-            "name": "Country"
-        },
-        {
-            "key": "institution_type",
-            "name": "Inst Type"
-        },
-        {
-            "key": "openalex_subfield",
-            "name": "Subfield"
-        },
-        {
-            "key": "openalex_topic",
-            "name": "Topic"
-        },
-        {
-            "key": "openalex_keywords",
-            "name": "Keywords"
-        },
-        {
-            "key": "url",
-            "name": "PDF Link"
-        }
-    ],
     "column_mappings": {
         "title": "title",
         "abstract": "abstract",
