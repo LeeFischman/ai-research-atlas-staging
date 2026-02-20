@@ -912,10 +912,9 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
         if cid == -1:
             continue  # HDBSCAN noise points get no label
         mask = cluster_ids == cid
-        # Use label_text (scrubbed, title-only) if available; fall back to title
-        # if the column was stripped from a previous parquet save.
-        text_col = "label_text" if "label_text" in df.columns else "title"
-        titles = df.loc[mask, text_col].tolist()
+        # Use label_text (scrubbed, title-only) rather than raw title so
+        # "model/models" variants are already stripped before KeyBERT sees them.
+        titles = df.loc[mask, "label_text"].tolist()
         combined = " ".join(titles)
 
         # Extend scikit-learn English stop words with AI boilerplate that
@@ -1258,20 +1257,6 @@ if __name__ == "__main__":
     # Re-score Reputation now that all signals are populated
     df["Reputation"] = df.apply(calculate_reputation, axis=1)
 
-    # ── Repair: regenerate 'text' for rows where it was stripped ─────────
-    # A previous build accidentally dropped the 'text' column from the parquet.
-    # Reconstruct it from title + abstract using the same scrub logic so
-    # Embedding Atlas can render the table correctly.
-    if "text" not in df.columns:
-        df["text"] = None
-    missing_text = df["text"].isna() | (df["text"] == "")
-    if missing_text.any():
-        print(f"  Repairing 'text' column for {missing_text.sum()} rows...")
-        df.loc[missing_text, "text"] = df.loc[missing_text].apply(
-            lambda r: scrub_model_words(f"{r['title']}. {r['title']}. {r['abstract']}"),
-            axis=1,
-        )
-
     # Embed & project (incremental mode only)
     labels_path = None
     if EMBEDDING_MODE == "incremental":
@@ -1285,11 +1270,6 @@ if __name__ == "__main__":
         save_df = df.drop(columns=["embedding", "projection_x", "projection_y"], errors="ignore")
     else:
         save_df = df
-
-    # Drop internal-use columns that are not meaningful to readers.
-    # label_text is kept — it must remain in the parquet so generate_keybert_labels
-    # can read it on subsequent runs when existing papers are loaded from disk.
-    save_df = save_df.drop(columns=["label_text_unused"], errors="ignore")  # placeholder, nothing dropped
 
     # Normalize date_added to a consistent ISO string.
     # load_existing_db() converts it to datetime; new rows arrive as strings.
@@ -1352,24 +1332,6 @@ if __name__ == "__main__":
         conf["name_column"]  = "title"
         conf["label_column"] = "title"
         conf["color_by"]     = "Reputation"
-
-        # Explicit columns array controls what appears in the table view
-        # and the order of columns. Without this, Embedding Atlas may not
-        # render the table at all.
-        conf["columns"] = [
-            {"key": "title",              "name": "Title"},
-            {"key": "abstract",           "name": "Abstract"},
-            {"key": "author_count",       "name": "Authors"},
-            {"key": "author_tier",        "name": "Author Tier"},
-            {"key": "author_seniority",   "name": "Seniority"},
-            {"key": "Reputation",         "name": "Reputation"},
-            {"key": "institution_country","name": "Country"},
-            {"key": "institution_type",   "name": "Inst Type"},
-            {"key": "openalex_subfield",  "name": "Subfield"},
-            {"key": "openalex_topic",     "name": "Topic"},
-            {"key": "openalex_keywords",  "name": "Keywords"},
-            {"key": "url",                "name": "PDF Link"},
-        ]
 
         # labelDensityThreshold controls how dense a cluster must be to receive
         # a floating label. Value is relative to the max density (0.0–1.0).
