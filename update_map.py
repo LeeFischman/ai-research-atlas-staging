@@ -1258,6 +1258,20 @@ if __name__ == "__main__":
     # Re-score Reputation now that all signals are populated
     df["Reputation"] = df.apply(calculate_reputation, axis=1)
 
+    # ── Repair: regenerate 'text' for rows where it was stripped ─────────
+    # A previous build accidentally dropped the 'text' column from the parquet.
+    # Reconstruct it from title + abstract using the same scrub logic so
+    # Embedding Atlas can render the table correctly.
+    if "text" not in df.columns:
+        df["text"] = None
+    missing_text = df["text"].isna() | (df["text"] == "")
+    if missing_text.any():
+        print(f"  Repairing 'text' column for {missing_text.sum()} rows...")
+        df.loc[missing_text, "text"] = df.loc[missing_text].apply(
+            lambda r: scrub_model_words(f"{r['title']}. {r['title']}. {r['abstract']}"),
+            axis=1,
+        )
+
     # Embed & project (incremental mode only)
     labels_path = None
     if EMBEDDING_MODE == "incremental":
