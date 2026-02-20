@@ -17,7 +17,8 @@ from datetime import datetime, timedelta, timezone
 # ──────────────────────────────────────────────
 DB_PATH         = "database.parquet"
 STOP_WORDS_PATH = "stop_words.csv"
-RUN_STATE_PATH  = "run_state.json"   # tracks last fetch date to avoid duplicate arXiv calls
+RUN_STATE_PATH        = "run_state.json"        # tracks last fetch date to avoid duplicate arXiv calls
+AUTHOR_STATS_CACHE   = "author_stats_cache.json"  # persists OpenAlex author stats between runs
 RETENTION_DAYS  = 14      # papers older than this are pruned each run
 ARXIV_MAX       = 1500    # max papers fetched per arXiv query
 
@@ -579,17 +580,40 @@ def compute_author_seniority(author_ids: list, stats: dict) -> str:
     return best
 
 
+def load_author_stats_cache() -> dict:
+    """Load persisted author stats from disk. Returns empty dict if not found."""
+    if os.path.exists(AUTHOR_STATS_CACHE):
+        try:
+            with open(AUTHOR_STATS_CACHE) as f:
+                cache = json.load(f)
+                print(f"  Author stats cache: loaded {len(cache)} entries from {AUTHOR_STATS_CACHE}.")
+                return cache
+        except Exception:
+            pass
+    return {}
+
+
+def save_author_stats_cache(cache: dict) -> None:
+    """Persist author stats to disk so they survive between runs."""
+    with open(AUTHOR_STATS_CACHE, "w") as f:
+        json.dump(cache, f)
+
+
 def apply_author_seniority(df: pd.DataFrame) -> pd.DataFrame:
     """
     Collect all author IDs from papers that have openalex_author_ids,
-    fetch their career stats in one batched pass, then write
-    author_seniority for every row (fetched or not).
+    fetch stats only for authors NOT already in the on-disk cache,
+    then write author_seniority for every row.
+
+    The cache (author_stats_cache.json) persists between runs so authors
+    seen in previous runs are never re-queried — same pattern as run_state.json
+    for arXiv fetches.
     """
     if "openalex_author_ids" not in df.columns:
         df["author_seniority"] = "Unknown"
         return df
 
-    # Gather all unique author IDs from the fetched rows
+    # Gather all unique author IDs across the corpus
     all_author_ids = []
     for ids in df["openalex_author_ids"]:
         if isinstance(ids, list):
@@ -599,11 +623,22 @@ def apply_author_seniority(df: pd.DataFrame) -> pd.DataFrame:
         df["author_seniority"] = "Unknown"
         return df
 
-    # Deduplicate before fetching
     unique_ids = list(dict.fromkeys(all_author_ids))
-    author_stats = fetch_author_stats(unique_ids)
 
-    # Compute per-paper seniority
+    # Load cache and only fetch IDs we haven't seen before
+    cache = load_author_stats_cache()
+    uncached = [aid for aid in unique_ids if aid not in cache]
+
+    if uncached:
+        print(f"  Author stats: {len(unique_ids) - len(uncached)} cached, "
+              f"{len(uncached)} new to fetch.")
+        new_stats = fetch_author_stats(uncached)
+        cache.update(new_stats)
+        save_author_stats_cache(cache)
+    else:
+        print(f"  Author stats: all {len(unique_ids)} authors in cache — skipping API calls.")
+
+    # Compute per-paper seniority using the full cache
     df = df.copy()
     if "author_seniority" not in df.columns:
         df["author_seniority"] = "Unknown"
@@ -611,7 +646,7 @@ def apply_author_seniority(df: pd.DataFrame) -> pd.DataFrame:
     for idx, row in df.iterrows():
         aids = row.get("openalex_author_ids")
         if isinstance(aids, list) and aids:
-            df.at[idx, "author_seniority"] = compute_author_seniority(aids, author_stats)
+            df.at[idx, "author_seniority"] = compute_author_seniority(aids, cache)
 
     est  = (df["author_seniority"] == "Established").sum()
     emg  = (df["author_seniority"] == "Emerging").sum()
@@ -780,7 +815,7 @@ USE_VOCAB_LABELS = True
 # Higher → fewer vocab labels, more KeyBERT fallbacks (more conservative).
 # Lower  → more vocab labels, accepts weaker matches.
 # Recommended range: 0.65–0.85.
-MIN_VOCAB_CONFIDENCE = 0.50
+MIN_VOCAB_CONFIDENCE = 0.75
 
 # ── VOCAB_EMBEDDINGS_PATH (str) ──────────────────────────────────────
 # Path to the pre-built vocabulary embeddings file.
@@ -969,6 +1004,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
     vocab_count = 0
     keybert_count = 0
     label_rows = []
+    diagnostics = []   # written to label_diagnostics.json for inspection
 
     for cid in sorted(set(cluster_ids)):
         if cid == -1:
@@ -976,6 +1012,16 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
 
         mask = cluster_ids == cid
         label_text = None
+        diag = {
+            "cluster_id":    int(cid),
+            "paper_count":   int(mask.sum()),
+            "method":        None,
+            "label":         None,
+            "vocab_score":   None,
+            "vocab_top10":   [],
+            "keybert_top3":  [],
+            "sample_titles": df.loc[mask, "title"].tolist()[:5],
+        }
 
         # ── Step 1: Try vocabulary centroid matching ─────────────────────
         if vocab_embeddings is not None and all_768d is not None:
@@ -983,14 +1029,17 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
             label_text, score, candidates = _vocab_label_for_centroid(
                 centroid, vocab_embeddings, vocab_labels, MIN_VOCAB_CONFIDENCE
             )
-            top3 = [(t, f"{s:.3f}") for t, s in candidates[:3]]
+            diag["vocab_score"] = round(float(score), 4)
+            diag["vocab_top10"] = [(t, round(float(s), 4)) for t, s in candidates[:10]]
             if label_text:
+                diag["method"] = "vocab"
                 print(f"  Cluster {cid} ({mask.sum()} papers) → vocab: '{label_text}' "
-                      f"(score={score:.3f}) | top3: {top3}")
+                      f"(score={score:.3f})")
+                print(f"    top5: {[(t, f'{s:.3f}') for t,s in candidates[:5]]}")
                 vocab_count += 1
             else:
-                print(f"  Cluster {cid} ({mask.sum()} papers) → vocab confidence too low "
-                      f"(best={score:.3f}: '{candidates[0][0]}') → falling back to KeyBERT")
+                print(f"  Cluster {cid} ({mask.sum()} papers) → vocab too low "
+                      f"(best={score:.3f}: '{candidates[0][0]}') → KeyBERT fallback")
 
         # ── Step 2: KeyBERT fallback ─────────────────────────────────────
         if label_text is None:
@@ -1018,15 +1067,43 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
             )
             print(f"  Cluster {cid} ({mask.sum()} papers) → keybert: {keywords}")
             if not keywords:
+                diag["method"] = "keybert_empty"
+                diagnostics.append(diag)
                 continue
             label_text = keywords[0][0].title()
+            diag["keybert_top3"] = [(kw, round(float(sc), 4)) for kw, sc in keywords]
+            diag["method"] = "keybert"
             keybert_count += 1
 
+        diag["label"] = label_text
+        diagnostics.append(diag)
         cx = float(coords_2d[mask, 0].mean())
         cy = float(coords_2d[mask, 1].mean())
         label_rows.append({"x": cx, "y": cy, "text": label_text})
 
     print(f"  Labeling summary: {vocab_count} vocabulary, {keybert_count} KeyBERT fallback.")
+
+    # ── Write diagnostics report ─────────────────────────────────────────
+    # label_diagnostics.json shows exactly what happened for every cluster:
+    #   - which label was chosen and why (vocab vs keybert)
+    #   - the top 10 vocab candidates with cosine scores
+    #   - the top 3 KeyBERT keywords (when used as fallback)
+    #   - 5 sample paper titles from the cluster
+    # Use this to tune MIN_VOCAB_CONFIDENCE and spot mismatches.
+    diag_path = "label_diagnostics.json"
+    with open(diag_path, "w") as f:
+        json.dump({
+            "summary": {
+                "total_clusters":  len(diagnostics),
+                "vocab_labels":    vocab_count,
+                "keybert_labels":  keybert_count,
+                "min_confidence":  MIN_VOCAB_CONFIDENCE,
+                "vocab_file":      VOCAB_EMBEDDINGS_PATH,
+                "vocab_loaded":    vocab_embeddings is not None,
+            },
+            "clusters": diagnostics,
+        }, f, indent=2)
+    print(f"  Wrote diagnostics to {diag_path} — inspect to tune labeling.")
 
     labels_df = pd.DataFrame(label_rows)
     labels_path = "labels.parquet"
