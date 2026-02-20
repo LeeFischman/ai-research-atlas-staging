@@ -1271,6 +1271,16 @@ if __name__ == "__main__":
     else:
         save_df = df
 
+    # Drop internal-use columns that are not meaningful to readers.
+    # label_text — scrubbed title fed to KeyBERT; generated fresh each run.
+    # text       — scrubbed embedding input. Dropped in incremental mode where
+    #              embeddings are pre-computed; kept in full mode because the
+    #              Embedding Atlas CLI reads it directly via --text "text".
+    cols_to_drop = ["label_text"]
+    if EMBEDDING_MODE == "incremental":
+        cols_to_drop.append("text")
+    save_df = save_df.drop(columns=cols_to_drop, errors="ignore")
+
     # Normalize date_added to a consistent ISO string.
     # load_existing_db() converts it to datetime; new rows arrive as strings.
     # After merge the column is mixed-type, which pyarrow refuses to serialize.
