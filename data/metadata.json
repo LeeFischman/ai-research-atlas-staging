@@ -77,18 +77,18 @@
     "label_column": "title",
     "color_by": "Reputation",
     "column_mappings": {
-        "title": "Title",
-        "abstract": "Abstract",
+        "title": "title",
+        "abstract": "abstract",
         "Reputation": "Reputation",
-        "author_count": "Author Count",
-        "author_tier": "Author Tier",
-        "author_seniority": "Seniority",
-        "institution_country": "Country",
-        "institution_type": "Institution Type",
-        "openalex_subfield": "Research Area",
-        "openalex_topic": "Topic",
-        "openalex_keywords": "Keywords",
-        "url": "URL",
-        "openalex_institution_names": "Institutions"
+        "author_count": "author_count",
+        "author_tier": "author_tier",
+        "author_seniority": "author_seniority",
+        "institution_country": "institution_country",
+        "institution_type": "institution_type",
+        "openalex_subfield": "openalex_subfield",
+        "openalex_topic": "openalex_topic",
+        "openalex_keywords": "openalex_keywords",
+        "url": "url",
+        "openalex_institution_names": "openalex_institution_names"
     }
 }
