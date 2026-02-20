@@ -391,8 +391,8 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
 
             # ── Step 5: topic taxonomy and keywords ──────────────────────
             # primary_topic gives the single best taxonomy match.
-            # Set TOPIC_SCORE_THRESHOLD to whatever seems best. 
-            TOPIC_SCORE_THRESHOLD = 0.01
+            # Only trust it when score ≥ 0.85; below that label as Unknown.
+            TOPIC_SCORE_THRESHOLD = 0.85
             primary = work.get("primary_topic") or {}
             topic_score = primary.get("score", 0) or 0
             if topic_score >= TOPIC_SCORE_THRESHOLD:
@@ -898,7 +898,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
     # Syntax:   HDBSCAN(..., alpha=1.0)
     # Range:    0.5–2.0 typical.
     # ════════════════════════════════════════════════════════════════════
-    clusterer = HDBSCAN(min_cluster_size=max(3, len(df) // 60), min_samples=4, metric=cluster_metric, cluster_selection_method="leaf")
+    clusterer = HDBSCAN(min_cluster_size=max(5, len(df) // 40), min_samples=4, metric=cluster_metric, cluster_selection_method="leaf")
     cluster_ids = clusterer.fit_predict(cluster_input)
 
     n_clusters = len(set(cluster_ids)) - (1 if -1 in cluster_ids else 0)
@@ -1337,23 +1337,25 @@ if __name__ == "__main__":
         # a floating label. Value is relative to the max density (0.0–1.0).
         # Raise it to suppress labels on small/sparse clusters.
         # Lower it to label more clusters including sparse ones.
-        conf["labelDensityThreshold"] = 0.03  # default is ~0.05
+        # conf["labelDensityThreshold"] = 0.1  # default is ~0.05
 
-        conf.setdefault("column_mappings", {}).update({
-            "title":                       "title",
-            "abstract":                    "abstract",
-            "Reputation":                  "Reputation",
-            "author_count":                "author_count",
-            "author_tier":                 "author_tier",
-            "author_seniority":            "author_seniority",
-            "institution_country":         "institution_country",
-            "institution_type":            "institution_type",
-            "openalex_subfield":           "openalex_subfield",
-            "openalex_topic":              "openalex_topic",
-            "openalex_keywords":           "openalex_keywords",
-            "url":                         "url",
-            "openalex_institution_names":  "openalex_institution_names",
-        })
+        # column_mappings: keys are parquet column names, values are display
+        # names shown in the color dropdown and popup. Order controls dropdown order.
+        conf["column_mappings"] = {
+            "title":                      "Title",
+            "abstract":                   "Abstract",
+            "Reputation":                 "Reputation",
+            "author_count":               "Author Count",
+            "author_tier":                "Author Tier",
+            "author_seniority":           "Seniority",
+            "institution_country":        "Country",
+            "institution_type":           "Institution Type",
+            "openalex_subfield":          "Research Area",
+            "openalex_topic":             "Topic",
+            "openalex_keywords":          "Keywords",
+            "url":                        "URL",
+            "openalex_institution_names": "Institutions",
+        }
 
         with open(config_path, "w") as f:
             json.dump(conf, f, indent=4)
