@@ -14,11 +14,6 @@
                 "text": "Split Privacy"
             },
             {
-                "x": 8.484270572662354,
-                "y": 7.660698175430298,
-                "text": "Deepseek R1"
-            },
-            {
                 "x": 11.051090749104818,
                 "y": 7.374481169382731,
                 "text": "Generalization Dense"
@@ -27,11 +22,6 @@
                 "x": 8.424856117793492,
                 "y": 7.911489963531494,
                 "text": "Reasoning Rfeval"
-            },
-            {
-                "x": 10.46325969696045,
-                "y": 6.357632637023926,
-                "text": "Autoencoders Scalable"
             },
             {
                 "x": 7.060643275578816,
@@ -49,14 +39,14 @@
                 "text": "Bonsai Convolutional"
             },
             {
-                "x": 8.604496717453003,
-                "y": 8.679428815841675,
-                "text": "Planning Reasoning"
-            },
-            {
                 "x": 7.0155195713043215,
                 "y": 6.969240474700928,
                 "text": "Assessment Measuring"
+            },
+            {
+                "x": 7.245213095347086,
+                "y": 8.934107971191406,
+                "text": "Agents Llm4Cov"
             },
             {
                 "x": 5.986750738961356,
@@ -64,29 +54,14 @@
                 "text": "Cps Flaws"
             },
             {
-                "x": 9.401612213679723,
-                "y": 9.150814873831612,
-                "text": "Mavrl Reward"
-            },
-            {
-                "x": 8.433571815490723,
-                "y": 9.759655475616455,
-                "text": "Agents Intentcua"
-            },
-            {
-                "x": 8.523310661315918,
-                "y": 9.926527976989746,
+                "x": 8.530256843566894,
+                "y": 9.835108470916747,
                 "text": "Enhancing Quadruped"
             },
             {
-                "x": 7.182282856532505,
-                "y": 9.097254616873604,
-                "text": "Agent Orchestration"
-            },
-            {
-                "x": 7.428184866905212,
-                "y": 8.721554279327393,
-                "text": "Agents Agriworld"
+                "x": 9.401612213679723,
+                "y": 9.150814873831612,
+                "text": "Mavrl Reward"
             }
         ],
         "initialState": {
@@ -101,20 +76,19 @@
     "name_column": "title",
     "label_column": "title",
     "color_by": "Reputation",
-    "labelDensityThreshold": 0.03,
     "column_mappings": {
-        "title": "title",
-        "abstract": "abstract",
+        "title": "Title",
+        "abstract": "Abstract",
         "Reputation": "Reputation",
-        "author_count": "author_count",
-        "author_tier": "author_tier",
-        "author_seniority": "author_seniority",
-        "institution_country": "institution_country",
-        "institution_type": "institution_type",
-        "openalex_subfield": "openalex_subfield",
-        "openalex_topic": "openalex_topic",
-        "openalex_keywords": "openalex_keywords",
-        "url": "url",
-        "openalex_institution_names": "openalex_institution_names"
+        "author_count": "Author Count",
+        "author_tier": "Author Tier",
+        "author_seniority": "Seniority",
+        "institution_country": "Country",
+        "institution_type": "Institution Type",
+        "openalex_subfield": "Research Area",
+        "openalex_topic": "Topic",
+        "openalex_keywords": "Keywords",
+        "url": "URL",
+        "openalex_institution_names": "Institutions"
     }
 }
