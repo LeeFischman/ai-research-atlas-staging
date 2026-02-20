@@ -391,8 +391,8 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
 
             # ── Step 5: topic taxonomy and keywords ──────────────────────
             # primary_topic gives the single best taxonomy match.
-            # Only trust it when score ≥ 0.85; below that label as Unknown.
-            TOPIC_SCORE_THRESHOLD = 0.85
+            # Set TOPIC_SCORE_THRESHOLD to whatever seems best. 
+            TOPIC_SCORE_THRESHOLD = 0.01
             primary = work.get("primary_topic") or {}
             topic_score = primary.get("score", 0) or 0
             if topic_score >= TOPIC_SCORE_THRESHOLD:
