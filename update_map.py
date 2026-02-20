@@ -377,9 +377,6 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
             names, countries, types = [], [], []
             author_ids = []
             for authorship in work.get("authorships", []):
-                # Collect author OpenAlex IDs for the seniority lookup (Step 2).
-                # Cap at 8 authors — beyond that the marginal signal is low and
-                # it keeps the per-paper author fetch cost bounded.
                 author_id = authorship.get("author", {}).get("id", "").strip()
                 if author_id and author_id not in author_ids and len(author_ids) < 8:
                     author_ids.append(author_id)
@@ -392,11 +389,37 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
                         countries.append(country)
                         types.append(itype)
 
+            # ── Step 5: topic taxonomy and keywords ──────────────────────
+            # primary_topic gives the single best taxonomy match.
+            # Only trust it when score ≥ 0.85; below that label as Unknown.
+            TOPIC_SCORE_THRESHOLD = 0.85
+            primary = work.get("primary_topic") or {}
+            topic_score = primary.get("score", 0) or 0
+            if topic_score >= TOPIC_SCORE_THRESHOLD:
+                openalex_topic    = primary.get("display_name", "Unknown") or "Unknown"
+                subfield_obj      = primary.get("subfield") or {}
+                openalex_subfield = subfield_obj.get("display_name", "Unknown") or "Unknown"
+            else:
+                openalex_topic    = "Unknown"
+                openalex_subfield = "Unknown"
+
+            # Keywords: free-text phrases, filtered to score ≥ 0.5 to drop noise.
+            KEYWORD_SCORE_THRESHOLD = 0.5
+            openalex_keywords = [
+                kw["display_name"]
+                for kw in (work.get("keywords") or [])
+                if (kw.get("score") or 0) >= KEYWORD_SCORE_THRESHOLD
+                and kw.get("display_name")
+            ]
+
             result[aid] = {
                 "institution_names":     names,
                 "institution_countries": countries,
                 "institution_types":     types,
                 "author_ids":            author_ids,
+                "openalex_topic":        openalex_topic,
+                "openalex_subfield":     openalex_subfield,
+                "openalex_keywords":     openalex_keywords,
             }
             if names:
                 indexed += 1
@@ -435,9 +458,14 @@ def apply_openalex_columns(df: pd.DataFrame, openalex: dict) -> pd.DataFrame:
     df = df.copy()
 
     for col in ("openalex_institution_names", "openalex_institution_countries",
-                "openalex_institution_types", "openalex_author_ids"):
+                "openalex_institution_types", "openalex_author_ids",
+                "openalex_keywords"):
         if col not in df.columns:
             df[col] = None
+
+    for col in ("openalex_topic", "openalex_subfield"):
+        if col not in df.columns:
+            df[col] = "Unknown"
 
     if "openalex_fetched" not in df.columns:
         df["openalex_fetched"] = False
@@ -451,6 +479,9 @@ def apply_openalex_columns(df: pd.DataFrame, openalex: dict) -> pd.DataFrame:
         df.at[idx, "openalex_institution_countries"] = data["institution_countries"]
         df.at[idx, "openalex_institution_types"]     = data["institution_types"]
         df.at[idx, "openalex_author_ids"]            = data.get("author_ids", [])
+        df.at[idx, "openalex_topic"]                 = data.get("openalex_topic", "Unknown")
+        df.at[idx, "openalex_subfield"]              = data.get("openalex_subfield", "Unknown")
+        df.at[idx, "openalex_keywords"]              = data.get("openalex_keywords", [])
         df.at[idx, "openalex_fetched"]               = True
 
     return df
@@ -1046,6 +1077,8 @@ def build_panel_html(run_date: str) -> str:
 
   <div class="arm-tip"><span class="arm-tip-icon">&#x1F3DB;</span><span>Set color to <strong>institution_type</strong> to compare academic vs industry research.</span></div>
 
+  <div class="arm-tip"><span class="arm-tip-icon">&#x1F9EC;</span><span>Set color to <strong>openalex_subfield</strong> to see research areas from the OpenAlex taxonomy.</span></div>
+
     <hr class="arm-divider">
 
     <p class="arm-section">Books by the author</p>
@@ -1247,7 +1280,8 @@ if __name__ == "__main__":
     # Normalize OpenAlex list columns: replace None/NaN with empty lists so
     # pyarrow can infer a consistent list[string] type for the column.
     for col in ("openalex_institution_names", "openalex_institution_countries",
-                "openalex_institution_types", "openalex_author_ids"):
+                "openalex_institution_types", "openalex_author_ids",
+                "openalex_keywords"):
         if col in save_df.columns:
             save_df[col] = save_df[col].apply(
                 lambda v: v if isinstance(v, list) else []
@@ -1314,6 +1348,9 @@ if __name__ == "__main__":
             "author_seniority":            "author_seniority",
             "institution_country":         "institution_country",
             "institution_type":            "institution_type",
+            "openalex_subfield":           "openalex_subfield",
+            "openalex_topic":              "openalex_topic",
+            "openalex_keywords":           "openalex_keywords",
             "url":                         "url",
             "openalex_institution_names":  "openalex_institution_names",
         })
