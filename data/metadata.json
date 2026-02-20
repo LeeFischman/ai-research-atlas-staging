@@ -31,32 +31,32 @@
             {
                 "x": 6.780149269104004,
                 "y": 1.500355562567711,
-                "text": "Prediction Deepfusion"
+                "text": "Language Encodings"
             },
             {
                 "x": 6.496443308316744,
                 "y": 0.6855808287524642,
-                "text": "Recognition Uctecg"
+                "text": "Lvlm Comprehensive"
             },
             {
                 "x": 5.966425120830536,
                 "y": 3.3494390845298767,
-                "text": "Split Privacy"
+                "text": "Adversarial Llms"
             },
             {
                 "x": 8.40070161819458,
                 "y": 3.0150288105010987,
-                "text": "Learn Language"
+                "text": "Agents Learn"
             },
             {
                 "x": 9.107571840286255,
                 "y": 2.654328207174937,
-                "text": "Reinforcement Learn"
+                "text": "Mavrl Reward"
             },
             {
                 "x": 6.356814649369982,
                 "y": 5.4070548216501875,
-                "text": "Crowdfunding Disclose"
+                "text": "Implications Indiceval"
             },
             {
                 "x": 8.423753004807692,
@@ -66,7 +66,7 @@
             {
                 "x": 9.330150413513184,
                 "y": 4.119683456420899,
-                "text": "Agv Fleet"
+                "text": "Scenicrules Autonomous"
             },
             {
                 "x": 8.793998718261719,
