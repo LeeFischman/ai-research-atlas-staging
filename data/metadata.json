@@ -76,6 +76,7 @@
     "name_column": "title",
     "label_column": "title",
     "color_by": "Reputation",
+    "labelDensityThreshold": 0.03,
     "column_mappings": {
         "title": "title",
         "abstract": "abstract",
