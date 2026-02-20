@@ -86,6 +86,56 @@
     "name_column": "title",
     "label_column": "title",
     "color_by": "Reputation",
+    "columns": [
+        {
+            "key": "title",
+            "name": "Title"
+        },
+        {
+            "key": "abstract",
+            "name": "Abstract"
+        },
+        {
+            "key": "author_count",
+            "name": "Authors"
+        },
+        {
+            "key": "author_tier",
+            "name": "Author Tier"
+        },
+        {
+            "key": "author_seniority",
+            "name": "Seniority"
+        },
+        {
+            "key": "Reputation",
+            "name": "Reputation"
+        },
+        {
+            "key": "institution_country",
+            "name": "Country"
+        },
+        {
+            "key": "institution_type",
+            "name": "Inst Type"
+        },
+        {
+            "key": "openalex_subfield",
+            "name": "Subfield"
+        },
+        {
+            "key": "openalex_topic",
+            "name": "Topic"
+        },
+        {
+            "key": "openalex_keywords",
+            "name": "Keywords"
+        },
+        {
+            "key": "url",
+            "name": "PDF Link"
+        }
+    ],
     "column_mappings": {
         "title": "title",
         "abstract": "abstract",
