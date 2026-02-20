@@ -1273,13 +1273,10 @@ if __name__ == "__main__":
 
     # Drop internal-use columns that are not meaningful to readers.
     # label_text — scrubbed title fed to KeyBERT; generated fresh each run.
-    # text       — scrubbed embedding input. Dropped in incremental mode where
-    #              embeddings are pre-computed; kept in full mode because the
-    #              Embedding Atlas CLI reads it directly via --text "text".
-    cols_to_drop = ["label_text"]
-    if EMBEDDING_MODE == "incremental":
-        cols_to_drop.append("text")
-    save_df = save_df.drop(columns=cols_to_drop, errors="ignore")
+    # text       — kept in parquet; Embedding Atlas uses it internally to
+    #              populate the table, even in incremental mode. Removing it
+    #              causes the table to show no rows.
+    save_df = save_df.drop(columns=["label_text"], errors="ignore")
 
     # Normalize date_added to a consistent ISO string.
     # load_existing_db() converts it to datetime; new rows arrive as strings.
