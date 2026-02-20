@@ -392,7 +392,7 @@ def fetch_openalex_data(arxiv_ids: list) -> dict:
             # ── Step 5: topic taxonomy and keywords ──────────────────────
             # primary_topic gives the single best taxonomy match.
             # Only trust it when score ≥ 0.85; below that label as Unknown.
-            TOPIC_SCORE_THRESHOLD = 0.85
+            TOPIC_SCORE_THRESHOLD = 0.0
             primary = work.get("primary_topic") or {}
             topic_score = primary.get("score", 0) or 0
             if topic_score >= TOPIC_SCORE_THRESHOLD:
@@ -744,36 +744,31 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 # ──────────────────────────────────────────────
 # 9. CLUSTER LABEL GENERATION
 #
-# CURRENT APPROACH: KeyBERT (option 1)
+# CURRENT APPROACH: KeyBERT with abstracts as input
 #   Uses semantic keyword extraction via SPECTER2 to find the most
-#   representative 1-2 word phrase for each spatial cluster. Produces
-#   meaningful labels like "federated learning" or "vision-language"
-#   rather than raw TF-IDF frequency winners.
+#   representative phrase for each cluster. Input is the concatenated
+#   abstracts of all papers in the cluster — abstracts are ~10x longer
+#   than titles and explicitly name the shared concept (e.g. "federated
+#   learning for healthcare") rather than just individual paper specifics.
+#   SPECTER2 was trained on full abstract text so this is the natural input.
 #
-# ALTERNATIVES (if you want to change approach):
+# PREVIOUS APPROACH: KeyBERT with label_text (title × 3, scrubbed)
+#   Titles are noun-dense but describe what a specific paper does, not the
+#   shared theme linking papers in a cluster. Re-enable by reverting the
+#   `abstracts = ...` line in generate_keybert_labels() to use "label_text".
+#
+# ALTERNATIVES (if you want to change approach further):
 #
 #   Option 2 — LLM-generated labels via Anthropic API (highest quality):
-#     After clustering, send the top-N titles per cluster to claude-haiku
-#     and ask for a 2-4 word descriptive label. Best results but adds
-#     latency and API cost. Requires ANTHROPIC_API_KEY in repo secrets.
-#     Rough implementation: collect cluster titles → call anthropic.Anthropic()
-#     client → parse response → write labels parquet.
+#     After clustering, send the top-N titles + abstracts per cluster to
+#     claude-haiku and ask for a 2-4 word descriptive label. Best semantic
+#     accuracy but adds latency and API cost (~20-30 calls per build).
+#     Requires ANTHROPIC_API_KEY in repo secrets.
 #
-#   Option 3 — Bigrams in label_text (lowest effort):
-#     Pre-process label_text to append bigrams joined with underscores
-#     (e.g. "reinforcement_learning", "graph_neural") before the atlas
-#     build. TF-IDF then has more distinctive tokens to rank. No new
-#     dependencies. Add to the label_text construction in the row builder:
-#       import nltk; nltk.download("punkt")
-#       from nltk import ngrams, word_tokenize
-#       words = word_tokenize(title.lower())
-#       bigrams = ["_".join(b) for b in ngrams(words, 2)]
-#       label_text = title + " " + " ".join(bigrams)
-#
-#   Option 4 — Pre-computed labels file from external tool:
-#     Generate a CSV/parquet with columns x, y, text (optional: level,
-#     priority) using any method, then pass via --labels to the CLI.
-#     This is the escape hatch if none of the above satisfy.
+#   Option 3 — Match cluster centroids against OpenAlex topic taxonomy:
+#     Find the named OpenAlex topic closest to each cluster centroid.
+#     Provides consistent, human-curated labels from a fixed vocabulary.
+#     Most complex to implement; relies on OpenAlex topic coverage.
 # ──────────────────────────────────────────────
 def generate_keybert_labels(df: pd.DataFrame) -> str:
     """
@@ -898,7 +893,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
     # Syntax:   HDBSCAN(..., alpha=1.0)
     # Range:    0.5–2.0 typical.
     # ════════════════════════════════════════════════════════════════════
-    clusterer = HDBSCAN(min_cluster_size=10, min_samples=4, metric=cluster_metric, cluster_selection_method="leaf")
+    clusterer = HDBSCAN(min_cluster_size=max(5, len(df) // 40), min_samples=4, metric=cluster_metric, cluster_selection_method="leaf")
     cluster_ids = clusterer.fit_predict(cluster_input)
 
     n_clusters = len(set(cluster_ids)) - (1 if -1 in cluster_ids else 0)
@@ -912,10 +907,26 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
         if cid == -1:
             continue  # HDBSCAN noise points get no label
         mask = cluster_ids == cid
-        # Use label_text (scrubbed, title-only) rather than raw title so
-        # "model/models" variants are already stripped before KeyBERT sees them.
-        titles = df.loc[mask, "label_text"].tolist()
-        combined = " ".join(titles)
+        # ── Input text for KeyBERT ───────────────────────────────────────
+        # Option 1 (current): Use abstracts.
+        #   Abstracts are ~10x longer than titles and more likely to explicitly
+        #   name the shared concept that binds a cluster (e.g. "federated
+        #   learning for healthcare" rather than just a paper's specific title).
+        #   SPECTER2 was trained on full abstract text, so this is the natural
+        #   input for its embedding model.
+        #
+        # Option 0 (previous): Use label_text (scrubbed titles, title × 3).
+        #   Titles are noun-dense and concise but describe what a specific paper
+        #   does, not the underlying theme connecting papers. Re-enable by
+        #   changing text_col to "label_text" (falls back to "title" if missing).
+        #
+        #   text_col = "label_text" if "label_text" in df.columns else "title"
+        #   abstracts = df.loc[mask, text_col].tolist()
+        #
+        # Option 2 (future): Concatenate title + abstract for maximum coverage.
+        #   abstracts = (df.loc[mask, "title"] + ". " + df.loc[mask, "abstract"]).tolist()
+        abstracts = df.loc[mask, "abstract"].tolist()
+        combined = " ".join(abstracts)
 
         # Extend scikit-learn English stop words with AI boilerplate that
         # KeyBERT would otherwise rank highly across all clusters.
@@ -923,6 +934,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
         # uses sklearn's list internally — we extend that list explicitly here.
         from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
         KEYBERT_STOP_WORDS = list(ENGLISH_STOP_WORDS) + [
+            # Generic AI/ML paper boilerplate — common across ALL clusters
             "model", "models", "modeling", "modeled",
             "paper", "propose", "proposed", "approach",
             "method", "methods", "task", "tasks", "performance", "results",
@@ -930,6 +942,13 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
             "based", "using", "show", "new", "novel", "training", "dataset",
             "data", "benchmark", "improve", "improved", "state", "art",
             "effective", "efficient", "robust", "demonstrate", "achieve",
+            # Abstract-specific boilerplate (far more common in abstracts than titles)
+            "present", "introduce", "existing", "recent", "large",
+            "address", "problem", "challenge", "issue", "key",
+            "conduct", "evaluate", "evaluation", "study", "studies",
+            "experiment", "experiments", "experimental", "empirical",
+            "outperform", "outperforms", "baseline", "baselines",
+            "significant", "significantly", "extensive", "comprehensive",
         ]
 
         # ── KeyBERT keyword extraction settings ─────────────────────────
@@ -1339,21 +1358,23 @@ if __name__ == "__main__":
         # Lower it to label more clusters including sparse ones.
         # conf["labelDensityThreshold"] = 0.1  # default is ~0.05
 
-        conf.setdefault("column_mappings", {}).update({
-            "title":                       "title",
-            "abstract":                    "abstract",
-            "Reputation":                  "Reputation",
-            "author_count":                "author_count",
-            "author_tier":                 "author_tier",
-            "author_seniority":            "author_seniority",
-            "institution_country":         "institution_country",
-            "institution_type":            "institution_type",
-            "openalex_subfield":           "openalex_subfield",
-            "openalex_topic":              "openalex_topic",
-            "openalex_keywords":           "openalex_keywords",
-            "url":                         "url",
-            "openalex_institution_names":  "openalex_institution_names",
-        })
+        # column_mappings: keys are parquet column names, values are display
+        # names shown in the color dropdown and popup. Order controls dropdown order.
+        conf["column_mappings"] = {
+            "title":                      "Title",
+            "abstract":                   "Abstract",
+            "Reputation":                 "Reputation",
+            "author_count":               "Author Count",
+            "author_tier":                "Author Tier",
+            "author_seniority":           "Seniority",
+            "institution_country":        "Country",
+            "institution_type":           "Institution Type",
+            "openalex_subfield":          "Research Area",
+            "openalex_topic":             "Topic",
+            "openalex_keywords":          "Keywords",
+            "url":                        "URL",
+            "openalex_institution_names": "Institutions",
+        }
 
         with open(config_path, "w") as f:
             json.dump(conf, f, indent=4)
