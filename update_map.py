@@ -793,17 +793,22 @@ VOCAB_EMBEDDINGS_PATH = "data/vocab_embeddings.npz"
 def _load_vocab_embeddings(path: str):
     """
     Load pre-computed vocabulary embeddings from disk.
-    Returns (embeddings, labels) or (None, None) if file not found.
+    Returns (embeddings, labels) or (None, None) if file not found or invalid.
     Embeddings are L2-normalised 768-dim SPECTER2 vectors, shape (N, 768).
     """
     if not os.path.exists(path):
         print(f"  [vocab] {path} not found — will use KeyBERT for all clusters.")
         return None, None
-    data = np.load(path, allow_pickle=True)
-    embeddings = data["embeddings"].astype(np.float32)
-    labels = data["labels"].tolist()
-    print(f"  [vocab] Loaded {len(labels)} vocabulary entries from {path}.")
-    return embeddings, labels
+    try:
+        data = np.load(path, allow_pickle=True)
+        embeddings = data["embeddings"].astype(np.float32)
+        labels = data["labels"].tolist()
+        print(f"  [vocab] Loaded {len(labels)} vocabulary entries from {path}.")
+        return embeddings, labels
+    except Exception as e:
+        print(f"  [vocab] Failed to load {path} ({e}) — will use KeyBERT for all clusters.")
+        print(f"  [vocab] Run the label-vocabulary-builder workflow to regenerate vocab_embeddings.npz.")
+        return None, None
 
 
 def _vocab_label_for_centroid(
