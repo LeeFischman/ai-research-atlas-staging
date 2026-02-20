@@ -1339,6 +1339,24 @@ if __name__ == "__main__":
         conf["label_column"] = "title"
         conf["color_by"]     = "Reputation"
 
+        # Explicit columns array controls what appears in the table view
+        # and the order of columns. Without this, Embedding Atlas may not
+        # render the table at all.
+        conf["columns"] = [
+            {"key": "title",              "name": "Title"},
+            {"key": "abstract",           "name": "Abstract"},
+            {"key": "author_count",       "name": "Authors"},
+            {"key": "author_tier",        "name": "Author Tier"},
+            {"key": "author_seniority",   "name": "Seniority"},
+            {"key": "Reputation",         "name": "Reputation"},
+            {"key": "institution_country","name": "Country"},
+            {"key": "institution_type",   "name": "Inst Type"},
+            {"key": "openalex_subfield",  "name": "Subfield"},
+            {"key": "openalex_topic",     "name": "Topic"},
+            {"key": "openalex_keywords",  "name": "Keywords"},
+            {"key": "url",                "name": "PDF Link"},
+        ]
+
         # labelDensityThreshold controls how dense a cluster must be to receive
         # a floating label. Value is relative to the max density (0.0–1.0).
         # Raise it to suppress labels on small/sparse clusters.
