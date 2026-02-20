@@ -9,54 +9,64 @@
         },
         "embeddingViewLabels": [
             {
+                "x": -0.06803461270303363,
+                "y": 7.62993499967787,
+                "text": "D_Eval Prove"
+            },
+            {
                 "x": 0.6372374956096921,
                 "y": 9.536179270063128,
-                "text": "Advsyngnn Structure"
+                "text": "1D Molhit"
+            },
+            {
+                "x": -0.3187757051653332,
+                "y": 8.043827321794298,
+                "text": "Finetuned Reward"
             },
             {
                 "x": 1.9634708523750306,
                 "y": 8.660768699645995,
-                "text": "Forecasting Timeomni"
+                "text": "Mse Ettm2"
             },
             {
                 "x": 0.611576992679726,
                 "y": 5.630563129078258,
-                "text": "Evaluation Ethnographic"
+                "text": "Llm Judgments"
             },
             {
                 "x": 1.2318375652486628,
                 "y": 6.43076211755926,
-                "text": "Lingual Classification"
+                "text": "Uncovers Annotator"
             },
             {
                 "x": 0.7530802299578985,
                 "y": 10.401448313395182,
-                "text": "Autoencoders Offline"
+                "text": "Pretrained Latent"
             },
             {
                 "x": 2.1154722858358315,
                 "y": 10.006949530707466,
-                "text": "Classification Uctecg"
+                "text": "Fuses Learnable"
             },
             {
                 "x": -1.6704882326580228,
                 "y": 6.800459884461903,
-                "text": "Analytics Llm"
+                "text": "Https Github"
             },
             {
                 "x": -1.224851154618793,
                 "y": 5.364979028701782,
-                "text": "Automating Stealthy"
+                "text": "Collusive Actions"
             },
             {
                 "x": -1.5190065009840603,
                 "y": 9.027520738798996,
-                "text": "Mavrl Reward"
+                "text": "Reward Posteriors"
             },
             {
                 "x": -2.2146758437156677,
                 "y": 8.176722662789482,
-                "text": "Enhancing Quadruped"
+                "text": "Autonomously Climb"
             }
         ],
         "initialState": {
@@ -72,18 +82,18 @@
     "label_column": "title",
     "color_by": "Reputation",
     "column_mappings": {
-        "title": "title",
-        "abstract": "abstract",
+        "title": "Title",
+        "abstract": "Abstract",
         "Reputation": "Reputation",
-        "author_count": "author_count",
-        "author_tier": "author_tier",
-        "author_seniority": "author_seniority",
-        "institution_country": "institution_country",
-        "institution_type": "institution_type",
-        "openalex_subfield": "openalex_subfield",
-        "openalex_topic": "openalex_topic",
-        "openalex_keywords": "openalex_keywords",
-        "url": "url",
-        "openalex_institution_names": "openalex_institution_names"
+        "author_count": "Author Count",
+        "author_tier": "Author Tier",
+        "author_seniority": "Seniority",
+        "institution_country": "Country",
+        "institution_type": "Institution Type",
+        "openalex_subfield": "Research Area",
+        "openalex_topic": "Topic",
+        "openalex_keywords": "Keywords",
+        "url": "URL",
+        "openalex_institution_names": "Institutions"
     }
 }
