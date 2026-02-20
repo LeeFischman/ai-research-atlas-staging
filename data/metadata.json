@@ -9,64 +9,59 @@
         },
         "embeddingViewLabels": [
             {
-                "x": -0.06803461270303363,
-                "y": 7.62993499967787,
-                "text": "D_Eval Prove"
+                "x": 5.129191841397967,
+                "y": 6.577197313308716,
+                "text": "Stochastic Gradient Optimization Techniques"
             },
             {
-                "x": 0.6372374956096921,
-                "y": 9.536179270063128,
-                "text": "1D Molhit"
+                "x": 4.770101577043533,
+                "y": 5.58242666721344,
+                "text": "Machine Learning and Data Classification"
             },
             {
-                "x": -0.3187757051653332,
-                "y": 8.043827321794298,
-                "text": "Finetuned Reward"
+                "x": 1.1669328131458976,
+                "y": 4.080990943041715,
+                "text": "Persona Design and Applications"
             },
             {
-                "x": 1.9634708523750306,
-                "y": 8.660768699645995,
-                "text": "Mse Ettm2"
+                "x": 2.1630652776131263,
+                "y": 4.159014481764573,
+                "text": "Topic Modeling"
             },
             {
-                "x": 0.611576992679726,
-                "y": 5.630563129078258,
-                "text": "Llm Judgments"
+                "x": 0.20816562958061696,
+                "y": 5.304248714447022,
+                "text": "Adversarial Robustness in Machine Learning"
             },
             {
-                "x": 1.2318375652486628,
-                "y": 6.43076211755926,
-                "text": "Uncovers Annotator"
+                "x": 1.3655725967966847,
+                "y": 4.802844206492106,
+                "text": "Adversarial Robustness in Machine Learning"
             },
             {
-                "x": 0.7530802299578985,
-                "y": 10.401448313395182,
-                "text": "Pretrained Latent"
+                "x": 1.1475519071454587,
+                "y": 6.310654142628545,
+                "text": "Software System Performance and Reliability"
             },
             {
-                "x": 2.1154722858358315,
-                "y": 10.006949530707466,
-                "text": "Fuses Learnable"
+                "x": 3.119085282087326,
+                "y": 7.5276468098163605,
+                "text": "Reinforcement Learning in Robotics"
             },
             {
-                "x": -1.6704882326580228,
-                "y": 6.800459884461903,
-                "text": "Https Github"
+                "x": 1.9202133200385354,
+                "y": 7.836289275776256,
+                "text": "Reinforcement Learning in Robotics"
             },
             {
-                "x": -1.224851154618793,
-                "y": 5.364979028701782,
-                "text": "Collusive Actions"
+                "x": 5.715680122375488,
+                "y": 6.027718630704013,
+                "text": "Stochastic Gradient Optimization Techniques"
             },
             {
-                "x": -1.5190065009840603,
-                "y": 9.027520738798996,
-                "text": "Reward Posteriors"
-            },
-            {
-                "x": -2.2146758437156677,
-                "y": 8.176722662789482,
-                "text": "Autonomously Climb"
+                "x": 5.6208217694209175,
+                "y": 4.716355433830848,
+                "text": "Domain Adaptation and Few-Shot Learning"
             }
         ],
         "initialState": {
