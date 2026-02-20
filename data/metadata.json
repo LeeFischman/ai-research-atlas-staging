@@ -9,44 +9,14 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 0.5689923940226436,
-                "y": 8.418212890625,
-                "text": "Cognitive Complexity"
-            },
-            {
-                "x": -0.06803461270303363,
-                "y": 7.62993499967787,
-                "text": "Reasoning Rfeval"
-            },
-            {
                 "x": 0.6372374956096921,
                 "y": 9.536179270063128,
                 "text": "Advsyngnn Structure"
             },
             {
-                "x": -0.01713961660861969,
-                "y": 6.7505998611450195,
-                "text": "Conversational Visual"
-            },
-            {
-                "x": -0.3187757051653332,
-                "y": 8.043827321794298,
-                "text": "Recommendation Medclarify"
-            },
-            {
                 "x": 1.9634708523750306,
                 "y": 8.660768699645995,
                 "text": "Forecasting Timeomni"
-            },
-            {
-                "x": -0.5719760835170746,
-                "y": 7.437803173065186,
-                "text": "Unforgeable Watermarks"
-            },
-            {
-                "x": -1.08542604247729,
-                "y": 7.15531047185262,
-                "text": "Infinite Verifiable"
             },
             {
                 "x": 0.611576992679726,
@@ -64,44 +34,29 @@
                 "text": "Autoencoders Offline"
             },
             {
+                "x": 2.1154722858358315,
+                "y": 10.006949530707466,
+                "text": "Classification Uctecg"
+            },
+            {
                 "x": -1.6704882326580228,
                 "y": 6.800459884461903,
                 "text": "Analytics Llm"
             },
             {
-                "x": -2.2146758437156677,
-                "y": 8.176722662789482,
-                "text": "Enhancing Quadruped"
+                "x": -1.224851154618793,
+                "y": 5.364979028701782,
+                "text": "Automating Stealthy"
             },
             {
-                "x": -1.2390073878424508,
-                "y": 8.336401530674525,
-                "text": "Exploration Llm"
-            },
-            {
-                "x": -1.6080971278927543,
-                "y": 9.24742230502042,
+                "x": -1.5190065009840603,
+                "y": 9.027520738798996,
                 "text": "Mavrl Reward"
             },
             {
-                "x": -1.1643613696098327,
-                "y": 5.141396427154541,
-                "text": "Safety Llm"
-            },
-            {
-                "x": -0.9480472087860108,
-                "y": 5.42557954788208,
-                "text": "Cybercrime Innovation"
-            },
-            {
-                "x": 2.140657424926758,
-                "y": 10.22656504313151,
-                "text": "Image Classification"
-            },
-            {
-                "x": 2.361417055130005,
-                "y": 9.484528541564941,
-                "text": "Autoencoder Nsclc"
+                "x": -2.2146758437156677,
+                "y": 8.176722662789482,
+                "text": "Enhancing Quadruped"
             }
         ],
         "initialState": {
