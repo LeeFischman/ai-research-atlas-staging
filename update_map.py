@@ -780,7 +780,7 @@ USE_VOCAB_LABELS = True
 # Higher → fewer vocab labels, more KeyBERT fallbacks (more conservative).
 # Lower  → more vocab labels, accepts weaker matches.
 # Recommended range: 0.65–0.85.
-MIN_VOCAB_CONFIDENCE = 0.75
+MIN_VOCAB_CONFIDENCE = 0.50
 
 # ── VOCAB_EMBEDDINGS_PATH (str) ──────────────────────────────────────
 # Path to the pre-built vocabulary embeddings file.
