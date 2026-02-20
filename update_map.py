@@ -1337,7 +1337,7 @@ if __name__ == "__main__":
         # a floating label. Value is relative to the max density (0.0–1.0).
         # Raise it to suppress labels on small/sparse clusters.
         # Lower it to label more clusters including sparse ones.
-        # conf["labelDensityThreshold"] = 0.1  # default is ~0.05
+        conf["labelDensityThreshold"] = 0.03  # default is ~0.05
 
         conf.setdefault("column_mappings", {}).update({
             "title":                       "title",
