@@ -1,8 +1,8 @@
 {
   "summary": {
-    "total_clusters": 12,
+    "total_clusters": 7,
     "vocab_labels": 0,
-    "keybert_labels": 12,
+    "keybert_labels": 7,
     "min_confidence": 0.75,
     "vocab_file": "data/vocab_embeddings.npz",
     "vocab_loaded": false
@@ -10,6 +10,64 @@
   "clusters": [
     {
       "cluster_id": 0,
+      "paper_count": 121,
+      "method": "keybert",
+      "label": "Densenet201 Inception",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "densenet201 inception",
+          0.843
+        ],
+        [
+          "multifaceted learnable",
+          0.8389
+        ],
+        [
+          "mitigating forgetting",
+          0.8228
+        ]
+      ],
+      "sample_titles": [
+        "Cross-household Transfer Learning Approach with LSTM-based Demand Forecasting",
+        "Dual-Signal Adaptive KV-Cache Optimization for Long-Form Video Understanding in Vision-Language Models",
+        "Towards Spatial Transcriptomics-driven Pathology Foundation Models",
+        "Dynamic Training-Free Fusion of Subject and Style LoRAs",
+        "Molecular Design beyond Training Data with Novel Extended Objective Functionals of Generative AI Models Driven by Quantum Annealing Computer"
+      ]
+    },
+    {
+      "cluster_id": 1,
+      "paper_count": 41,
+      "method": "keybert",
+      "label": "Llms Conversational",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "llms conversational",
+          0.8453
+        ],
+        [
+          "uncovers annotator",
+          0.8409
+        ],
+        [
+          "revise drafts",
+          0.8238
+        ]
+      ],
+      "sample_titles": [
+        "Multi-Agent Comedy Club: Investigating Community Discussion Effects on LLM Humor Generation",
+        "TruthStance: An Annotated Dataset of Conversations on Truth Social",
+        "Reasoning Language Models for complex assessments tasks: Evaluating parental cooperation from child protection case reports",
+        "Intra-Fairness Dynamics: The Bias Spillover Effect in Targeted LLM Alignment",
+        "How Uncertain Is the Grade? A Benchmark of Uncertainty Metrics for LLM-Based Automatic Assessment"
+      ]
+    },
+    {
+      "cluster_id": 2,
       "paper_count": 13,
       "method": "keybert",
       "label": "Evaluators Llm",
@@ -38,210 +96,7 @@
       ]
     },
     {
-      "cluster_id": 1,
-      "paper_count": 12,
-      "method": "keybert",
-      "label": "Uncovers Annotator",
-      "vocab_score": null,
-      "vocab_top10": [],
-      "keybert_top3": [
-        [
-          "uncovers annotator",
-          0.8637
-        ],
-        [
-          "genres comedy",
-          0.8402
-        ],
-        [
-          "conversational structure",
-          0.8353
-        ]
-      ],
-      "sample_titles": [
-        "TruthStance: An Annotated Dataset of Conversations on Truth Social",
-        "Are LLMs Ready to Replace Bangla Annotators?",
-        "Revisiting Northrop Frye's Four Myths Theory with Large Language Models",
-        "Beyond Binary Classification: Detecting Fine-Grained Sexism in Social Media Videos",
-        "When Semantic Overlap Is Not Enough: Cross-Lingual Euphemism Transfer Between Turkish and English"
-      ]
-    },
-    {
-      "cluster_id": 2,
-      "paper_count": 19,
-      "method": "keybert",
-      "label": "Evaluating Llms",
-      "vocab_score": null,
-      "vocab_top10": [],
-      "keybert_top3": [
-        [
-          "evaluating llms",
-          0.8303
-        ],
-        [
-          "clarifying rubrics",
-          0.8226
-        ],
-        [
-          "remain underexplored",
-          0.8119
-        ]
-      ],
-      "sample_titles": [
-        "Reasoning Language Models for complex assessments tasks: Evaluating parental cooperation from child protection case reports",
-        "How Uncertain Is the Grade? A Benchmark of Uncertainty Metrics for LLM-Based Automatic Assessment",
-        "Evaluating LLMs in Finance Requires Explicit Bias Consideration",
-        "Key Considerations for Domain Expert Involvement in LLM Design and Evaluation: An Ethnographic Study",
-        "Transforming GenAI Policy to Prompting Instruction: An RCT of Scalable Prompting Interventions in a CS1 Course"
-      ]
-    },
-    {
       "cluster_id": 3,
-      "paper_count": 13,
-      "method": "keybert",
-      "label": "Optimization Generative",
-      "vocab_score": null,
-      "vocab_top10": [],
-      "keybert_top3": [
-        [
-          "optimization generative",
-          0.8281
-        ],
-        [
-          "2d molecular",
-          0.8234
-        ],
-        [
-          "grained wyckoff",
-          0.8225
-        ]
-      ],
-      "sample_titles": [
-        "Molecular Design beyond Training Data with Novel Extended Objective Functionals of Generative AI Models Driven by Quantum Annealing Computer",
-        "B-DENSE: Branching For Dense Ensemble Network Learning",
-        "Numerical exploration of the range of shape functionals using neural networks",
-        "Random Wavelet Features for Graph Kernel Machines",
-        "A Hybrid TGN-SEAL Model for Dynamic Graph Link Prediction"
-      ]
-    },
-    {
-      "cluster_id": 4,
-      "paper_count": 21,
-      "method": "keybert",
-      "label": "Pretrained Latent",
-      "vocab_score": null,
-      "vocab_top10": [],
-      "keybert_top3": [
-        [
-          "pretrained latent",
-          0.8368
-        ],
-        [
-          "encoder leveraging",
-          0.827
-        ],
-        [
-          "w4a4 quantization",
-          0.8086
-        ]
-      ],
-      "sample_titles": [
-        "Dynamic Training-Free Fusion of Subject and Style LoRAs",
-        "UniWeTok: An Unified Binary Tokenizer with Codebook Size $\\mathit{2^{128}}$ for Unified Multimodal Large Language Model",
-        "S2D: Selective Spectral Decay for Quantization-Friendly Conditioning of Neural Activations",
-        "The geometry of invariant learning: an information-theoretic analysis of data augmentation and generalization",
-        "Explainable Token-level Noise Filtering for LLM Fine-tuning Datasets"
-      ]
-    },
-    {
-      "cluster_id": 5,
-      "paper_count": 9,
-      "method": "keybert",
-      "label": "Mse Ettm2",
-      "vocab_score": null,
-      "vocab_top10": [],
-      "keybert_top3": [
-        [
-          "mse ettm2",
-          0.8259
-        ],
-        [
-          "cho2026_tokenizer time",
-          0.8242
-        ],
-        [
-          "learnable discretization",
-          0.8118
-        ]
-      ],
-      "sample_titles": [
-        "Cross-household Transfer Learning Approach with LSTM-based Demand Forecasting",
-        "ASPEN: Spectral-Temporal Fusion for Cross-Subject Brain Decoding",
-        "A Systematic Evaluation of Sample-Level Tokenization Strategies for MEG Foundation Models",
-        "Position: Why a Dynamical Systems Perspective is Needed to Advance Time Series Modeling",
-        "Reverso: Efficient Time Series Foundation Models for Zero-shot Forecasting"
-      ]
-    },
-    {
-      "cluster_id": 6,
-      "paper_count": 13,
-      "method": "keybert",
-      "label": "Leveraging Unlabelled",
-      "vocab_score": null,
-      "vocab_top10": [],
-      "keybert_top3": [
-        [
-          "leveraging unlabelled",
-          0.8387
-        ],
-        [
-          "omics finetuning",
-          0.8333
-        ],
-        [
-          "cnn1d transformer",
-          0.8322
-        ]
-      ],
-      "sample_titles": [
-        "Towards Spatial Transcriptomics-driven Pathology Foundation Models",
-        "Feature Recalibration Based Olfactory-Visual Multimodal Model for Fine-Grained Rice Deterioration Detection",
-        "A Self-Supervised Approach for Enhanced Feature Representations in Object Detection Tasks",
-        "GRAFNet: Multiscale Retinal Processing via Guided Cortical Attention Feedback for Enhancing Medical Image Polyp Segmentation",
-        "Foundation Models for Medical Imaging: Status, Challenges, and Directions"
-      ]
-    },
-    {
-      "cluster_id": 7,
-      "paper_count": 16,
-      "method": "keybert",
-      "label": "Leveraging Saliency",
-      "vocab_score": null,
-      "vocab_top10": [],
-      "keybert_top3": [
-        [
-          "leveraging saliency",
-          0.8263
-        ],
-        [
-          "tracking occlusions",
-          0.8093
-        ],
-        [
-          "encoders llm2clip",
-          0.8035
-        ]
-      ],
-      "sample_titles": [
-        "Dual-Signal Adaptive KV-Cache Optimization for Long-Form Video Understanding in Vision-Language Models",
-        "GOT-JEPA: Generic Object Tracking with Model Adaptation and Occlusion Handling using Joint-Embedding Predictive Architecture",
-        "Automated Histopathology Report Generation via Pyramidal Feature Extraction and the UNI Foundation Model",
-        "AnchorWeave: World-Consistent Video Generation with Retrieved Local Spatial Memories",
-        "VariViT: A Vision Transformer for Variable Image Sizes"
-      ]
-    },
-    {
-      "cluster_id": 8,
       "paper_count": 23,
       "method": "keybert",
       "label": "Adversaries Behave",
@@ -270,7 +125,7 @@
       ]
     },
     {
-      "cluster_id": 9,
+      "cluster_id": 4,
       "paper_count": 12,
       "method": "keybert",
       "label": "Https Github",
@@ -299,7 +154,7 @@
       ]
     },
     {
-      "cluster_id": 10,
+      "cluster_id": 5,
       "paper_count": 30,
       "method": "keybert",
       "label": "Reward Posteriors",
@@ -328,7 +183,7 @@
       ]
     },
     {
-      "cluster_id": 11,
+      "cluster_id": 6,
       "paper_count": 15,
       "method": "keybert",
       "label": "Planners Varying",
