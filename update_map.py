@@ -740,7 +740,7 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
     if n_new:
         print(f"  Embedding {n_new} new paper(s) with SPECTER2...")
         idx     = df.index[needs_embed].tolist()
-        texts   = df.loc[idx, "text"].tolist()
+        texts   = df.loc[idx, "text_vector"].tolist()
         vectors = model.encode(texts, show_progress_bar=True, batch_size=16,
                                convert_to_numpy=True)
         # Assign row-by-row using integer positions to avoid pandas mixed-type
@@ -752,6 +752,36 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 
     all_vectors = np.array(df["embedding"].tolist(), dtype=np.float32)
     n = len(all_vectors)
+
+    # ── OpenAlex topic blending (optional) ──────────────────────────────
+    # Nudges each paper's SPECTER2 vector toward its OpenAlex topic vector
+    # before UMAP runs. Alpha=0.0 disables blending entirely (default).
+    # See OPENALEX_BLEND_ALPHA in the config block above for details.
+    if OPENALEX_BLEND_ALPHA > 0.0 and "openalex_topic" in df.columns:
+        vocab_emb, vocab_lbl = _load_vocab_embeddings(VOCAB_EMBEDDINGS_PATH)
+        if vocab_emb is not None:
+            # Build a lookup: topic name → L2-normalised 768D vector
+            topic_lookup = {lbl: vocab_emb[i] for i, lbl in enumerate(vocab_lbl)}
+            blended = 0
+            skipped = 0
+            for i, topic in enumerate(df["openalex_topic"].tolist()):
+                tvec = topic_lookup.get(topic)
+                if tvec is not None:
+                    # Both vectors are already unit-normalised; weighted sum
+                    # then re-normalise so cosine distances stay meaningful.
+                    mixed = (1.0 - OPENALEX_BLEND_ALPHA) * all_vectors[i] +                             OPENALEX_BLEND_ALPHA * tvec
+                    norm = np.linalg.norm(mixed)
+                    all_vectors[i] = mixed / norm if norm > 0 else mixed
+                    blended += 1
+                else:
+                    skipped += 1   # no topic match — SPECTER2 vector unchanged
+            print(f"  OpenAlex blend (alpha={OPENALEX_BLEND_ALPHA}): "
+                  f"{blended} blended, {skipped} unchanged (no topic match).")
+        else:
+            print("  OpenAlex blend skipped — vocab_embeddings.npz not found.")
+    elif OPENALEX_BLEND_ALPHA == 0.0:
+        print("  OpenAlex blend disabled (OPENALEX_BLEND_ALPHA=0.0).")
+
     print(f"  Projecting {n} papers with UMAP (two-stage)...")
 
     # ── Stage 1: 768D → 50D (for clustering) ────────────────────────────
@@ -799,6 +829,33 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 #   GitHub Actions workflow (see .github/workflows/update_map.yml).
 #   Contains ~300 pre-embedded CS/AI topic names from OpenAlex.
 # ──────────────────────────────────────────────
+
+# ════════════════════════════════════════════════════════════════════
+# OPENALEX TOPIC BLENDING
+# ════════════════════════════════════════════════════════════════════
+#
+# ── OPENALEX_BLEND_ALPHA (float, default: 0.0) ───────────────────────
+# Blends each paper's SPECTER2 embedding with its OpenAlex topic vector
+# before UMAP runs. The topic vector comes from vocab_embeddings.npz —
+# the same file used for cluster labeling.
+#
+# Formula: blended = (1 - alpha) * specter2_vector + alpha * topic_vector
+#
+# 0.0  → pure SPECTER2 (current default, no blending)
+# 0.2  → gentle nudge toward OpenAlex taxonomy (recommended starting point)
+# 0.5  → equal weight; clusters become more taxonomy-aligned
+# 1.0  → pure OpenAlex topic vectors (loses content-level nuance)
+#
+# Papers without a matched OpenAlex topic use their SPECTER2 vector unchanged.
+# If vocab_embeddings.npz is not found, blending is skipped silently.
+#
+# Requires LABEL_MODE = "vocab" or vocab_embeddings.npz to be present.
+# Has no effect when LABEL_MODE = "curated_20" (different embedding space).
+#
+# Recommended experiment: try 0.0 vs 0.2 vs 0.4 and compare cluster
+# coherence in label_diagnostics.json.
+OPENALEX_BLEND_ALPHA = 0.0
+# ════════════════════════════════════════════════════════════════════
 
 # ════════════════════════════════════════════════════════════════════
 # EMBEDDING MODEL SETTINGS
@@ -915,7 +972,7 @@ CURATED_20_LABELS = [
 # Higher → fewer vocab labels, more KeyBERT fallbacks (more conservative).
 # Lower  → more vocab labels, accepts weaker matches.
 # Recommended range: 0.65–0.85.
-MIN_VOCAB_CONFIDENCE = 0.50
+MIN_VOCAB_CONFIDENCE = 0.75
 
 # ── MIN_CURATED_CONFIDENCE (float, default: 0.30) ────────────────────
 # Minimum cosine similarity to accept a curated-20 match (LABEL_MODE="curated_20").
@@ -1090,8 +1147,8 @@ def generate_keybert_labels(df: pd.DataFrame) -> tuple:
     # Range:    0.5–2.0 typical.
     # ════════════════════════════════════════════════════════════════════
     clusterer = HDBSCAN(
-        min_cluster_size=max(5, len(df) // 80),
-        min_samples=2,
+        min_cluster_size=max(5, len(df) // 40),
+        min_samples=4,
         metric=cluster_metric,
         cluster_selection_method="leaf",
     )
@@ -1504,7 +1561,7 @@ if __name__ == "__main__":
             rows.append({
                 "title":        title,
                 "abstract":     abstract,
-                "text":         scrubbed,
+                "text_vector":  scrubbed,
                 "label_text":   label_text,
                 "url":          r.pdf_url,
                 "id":           r.entry_id.split("/")[-1],
@@ -1637,7 +1694,7 @@ if __name__ == "__main__":
         # To improve label quality in full mode, switch to incremental mode.
         atlas_cmd = [
             "embedding-atlas", DB_PATH,
-            "--text",       "text",
+            "--text",       "text_vector",
             "--model",      EMBEDDING_MODEL_ID,
             # "--stop-words", STOP_WORDS_PATH,  # omitted: NLTK default stop words are used
             "--export-application", "site.zip",
@@ -1679,6 +1736,7 @@ if __name__ == "__main__":
             "url":                        "URL",
             "openalex_institution_names": "Institutions",
             "cluster_label":              "Research Topic",
+            "text_vector":                "Scrubbed Text",
         }
 
         with open(config_path, "w") as f:
