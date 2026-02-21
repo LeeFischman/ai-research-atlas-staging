@@ -10,144 +10,174 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 1.9357625246047974,
-                "y": 5.369330406188965,
-                "text": "Constructionism Reconceptualizes"
+                "x": 3.0938690503438315,
+                "y": 7.113786856333415,
+                "text": "Cognitive Computing and Networks"
             },
             {
-                "x": 4.492600059509277,
-                "y": 5.066262245178223,
+                "x": 4.719932476679484,
+                "y": 7.721601327260335,
+                "text": "Adversarial Robustness in Machine Learning"
+            },
+            {
+                "x": 5.872584751674107,
+                "y": 8.08663981301444,
+                "text": "Machine Learning and Algorithms"
+            },
+            {
+                "x": 6.692095184326172,
+                "y": 6.396858978271484,
                 "text": "Machine Learning and Data Classification"
             },
             {
-                "x": 4.319806933403015,
-                "y": 6.999413728713989,
+                "x": 4.991304125104632,
+                "y": 7.457957199641636,
+                "text": "Machine Learning and Data Classification"
+            },
+            {
+                "x": 5.0363470077514645,
+                "y": 8.585662651062012,
+                "text": "Machine Learning and Data Classification"
+            },
+            {
+                "x": 4.178679275512695,
+                "y": 6.8595000267028805,
+                "text": "Explainable Artificial Intelligence (XAI)"
+            },
+            {
+                "x": 7.245490264892578,
+                "y": 8.432389545440675,
                 "text": "Stochastic Gradient Optimization Techniques"
             },
             {
-                "x": 3.387061595916748,
-                "y": 6.459844793592181,
-                "text": "Mechanistically Opaque"
+                "x": 2.1446348667144775,
+                "y": 7.524610710144043,
+                "text": "Adversarial Robustness in Machine Learning"
             },
             {
-                "x": 4.323876789637974,
-                "y": 5.696472099849156,
+                "x": 3.072724997997284,
+                "y": 8.444913864135742,
+                "text": "Software Testing and Debugging Techniques"
+            },
+            {
+                "x": 4.184903661410014,
+                "y": 8.377467632293701,
+                "text": "Security and Verification in Computing"
+            },
+            {
+                "x": 5.4686070283253985,
+                "y": 6.673909823099772,
+                "text": "Adversarial Robustness in Machine Learning"
+            },
+            {
+                "x": 6.7535554278980605,
+                "y": 7.179221890189431,
                 "text": "Time Series Analysis and Forecasting"
             },
             {
-                "x": 2.738274315992991,
-                "y": 5.855534553527832,
-                "text": "Underexplored Medclarify"
+                "x": 7.5391892751057945,
+                "y": 6.456496461232503,
+                "text": "Machine Learning and Data Classification"
             },
             {
-                "x": 1.380841503540675,
-                "y": 7.7368623812993365,
+                "x": 3.5509057309892444,
+                "y": 5.871535460154216,
+                "text": "Persona Design and Applications"
+            },
+            {
+                "x": 3.9520878394444785,
+                "y": 9.779220660527548,
                 "text": "Reinforcement Learning in Robotics"
             },
             {
-                "x": 1.868945837020874,
-                "y": 6.354979801177978,
-                "text": "Validation Pipelines"
+                "x": 1.912219660622733,
+                "y": 7.030059541974749,
+                "text": "Adversarial Robustness in Machine Learning"
             },
             {
-                "x": 5.225749731063843,
-                "y": 7.029702246189117,
-                "text": "Frontier Lvlms"
-            },
-            {
-                "x": 1.9638291358947755,
-                "y": 4.800975894927978,
-                "text": "Submissions Innoeval"
-            },
-            {
-                "x": 0.19711199045802155,
-                "y": 5.867524782816569,
-                "text": "Misbehaviors Require"
-            },
-            {
-                "x": 0.01476008870771953,
-                "y": 4.805616446903774,
-                "text": "Understudied Textbf"
-            },
-            {
-                "x": 0.02301379684358835,
-                "y": 5.315688514709473,
+                "x": 2.4675457000732424,
+                "y": 6.977567100524903,
                 "text": "Diverse Interdisciplinary Research Studies"
             },
             {
-                "x": 4.912563528333392,
-                "y": 7.3343323298863,
-                "text": "Regularizes Weight"
+                "x": 4.569048500061035,
+                "y": 6.048190498352051,
+                "text": "Text Readability and Simplification"
             },
             {
-                "x": 4.988785213894314,
-                "y": 6.30006742477417,
-                "text": "Pretrained Bidirectional"
+                "x": 4.338847849104139,
+                "y": 5.688567373487684,
+                "text": "Authorship Attribution and Profiling"
             },
             {
-                "x": 5.2794569333394366,
-                "y": 7.3859554926554365,
-                "text": "Variational Autoencoders"
+                "x": 3.162457057407924,
+                "y": 6.03103985105242,
+                "text": "Cognitive Science and Mapping"
             },
             {
-                "x": 2.4081053733825684,
-                "y": 7.261232471466064,
-                "text": "Grained Vqa"
-            },
-            {
-                "x": 5.365338047345479,
-                "y": 5.347944339116414,
-                "text": "Machine Learning in Healthcare"
-            },
-            {
-                "x": 5.910890706380209,
-                "y": 6.306467787424723,
-                "text": "Leveraging Saliency"
-            },
-            {
-                "x": 1.8440382927656174,
-                "y": 3.535757690668106,
-                "text": "Uncovers Annotator"
-            },
-            {
-                "x": 0.6755464540587531,
-                "y": 6.6884523497687445,
-                "text": "Age of Information Optimization"
-            },
-            {
-                "x": 1.0505863775809605,
-                "y": 6.09675935904185,
-                "text": "Https Github"
-            },
-            {
-                "x": 2.2450651781899587,
-                "y": 3.866992609841483,
-                "text": "Lingual Pipelines"
-            },
-            {
-                "x": 2.675232450167338,
-                "y": 8.25619932015737,
-                "text": "Offline Reinforcement"
-            },
-            {
-                "x": 3.3853548049926756,
-                "y": 8.00123109817505,
-                "text": "Reward Posteriors"
-            },
-            {
-                "x": 1.4215164979298909,
-                "y": 4.330211480458577,
+                "x": 3.2501152992248534,
+                "y": 6.42671537399292,
                 "text": "Bayesian Modeling and Causal Inference"
             },
             {
-                "x": 1.576180601119995,
-                "y": 3.991575765609741,
-                "text": "Assessment Decoding"
+                "x": 7.337602233886718,
+                "y": 8.173462390899658,
+                "text": "Stochastic Gradient Optimization Techniques"
             },
             {
-                "x": 0.9219086633788215,
-                "y": 3.9191588030921087,
-                "text": "Persona Design and Applications"
+                "x": 7.000660159371116,
+                "y": 7.5791730447248975,
+                "text": "Machine Learning and Data Classification"
+            },
+            {
+                "x": 5.06315803527832,
+                "y": 10.004105885823568,
+                "text": "Reinforcement Learning in Robotics"
+            },
+            {
+                "x": 7.8180059024265836,
+                "y": 8.240053721836635,
+                "text": "Stochastic Gradient Optimization Techniques"
+            },
+            {
+                "x": 7.304188183375767,
+                "y": 8.254216126033239,
+                "text": "Stochastic Gradient Optimization Techniques"
+            },
+            {
+                "x": 4.900261810847691,
+                "y": 9.197610310145787,
+                "text": "Reinforcement Learning in Robotics"
+            },
+            {
+                "x": 5.786896785100301,
+                "y": 9.451167901357016,
+                "text": "Machine Learning and Data Classification"
+            },
+            {
+                "x": 3.305204689502716,
+                "y": 9.031544804573059,
+                "text": "Age of Information Optimization"
+            },
+            {
+                "x": 7.909563636779785,
+                "y": 7.028012275695801,
+                "text": "Domain Adaptation and Few-Shot Learning"
+            },
+            {
+                "x": 8.290759996934371,
+                "y": 7.452682278373024,
+                "text": "Image and Video Quality Assessment"
+            },
+            {
+                "x": 3.1883880138397216,
+                "y": 8.286112403869629,
+                "text": "Distributed and Parallel Computing Systems"
+            },
+            {
+                "x": 3.6533428192138673,
+                "y": 8.056240844726563,
+                "text": "Machine Learning and Algorithms"
             }
         ],
         "initialState": {
