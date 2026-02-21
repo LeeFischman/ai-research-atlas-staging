@@ -1,44 +1,57 @@
 {
   "summary": {
-    "label_mode": "curated_20",
+    "label_mode": "vocab",
     "total_clusters": 12,
-    "vocab_labels": 0,
-    "curated_labels": 12,
-    "keybert_labels": 0,
-    "min_confidence": 0.3,
-    "vocab_file": "n/a",
+    "vocab_labels": 6,
+    "curated_labels": 0,
+    "keybert_labels": 6,
+    "min_confidence": 0.85,
+    "vocab_file": "data/vocab_embeddings.npz",
     "vocab_loaded": true
   },
   "clusters": [
     {
       "cluster_id": 0,
       "paper_count": 13,
-      "method": "curated_20",
-      "label": "Medical and Clinical AI",
-      "vocab_score": 0.8515,
+      "method": "keybert",
+      "label": "Evaluators Llm",
+      "vocab_score": 0.8465,
       "vocab_top10": [
         [
-          "Medical and Clinical AI",
-          0.8515
+          "Machine Learning and Data Classification",
+          0.8465
         ],
         [
-          "Reinforcement Learning from Human Feedback",
-          0.8454
+          "Explainable Artificial Intelligence (XAI)",
+          0.8448
         ],
         [
-          "Self-Supervised and Contrastive Learning",
-          0.8424
+          "Advanced Technologies in Various Fields",
+          0.8418
         ],
         [
-          "Adversarial Robustness and AI Safety",
-          0.8348
+          "Machine Learning and Algorithms",
+          0.8365
         ],
         [
-          "Benchmark Design and Evaluation Methodology",
-          0.8332
+          "Topic Modeling",
+          0.8357
         ]
       ],
-      "keybert_top3": [],
+      "keybert_top3": [
+        [
+          "evaluators llm",
+          0.848
+        ],
+        [
+          "competitions persona",
+          0.841
+        ],
+        [
+          "finetuned reward",
+          0.8278
+        ]
+      ],
       "sample_titles": [
         "Visual Persuasion: What Influences Decisions of Vision-Language Models?",
         "Synthetic Reader Panels: Tournament-Based Ideation with LLM Personas for Autonomous Publishing",
@@ -50,32 +63,45 @@
     {
       "cluster_id": 1,
       "paper_count": 12,
-      "method": "curated_20",
-      "label": "Self-Supervised and Contrastive Learning",
-      "vocab_score": 0.8373,
+      "method": "keybert",
+      "label": "Uncovers Annotator",
+      "vocab_score": 0.8386,
       "vocab_top10": [
         [
-          "Self-Supervised and Contrastive Learning",
-          0.8373
+          "Machine Learning and Data Classification",
+          0.8386
         ],
         [
-          "Benchmark Design and Evaluation Methodology",
-          0.8228
+          "Topic Modeling",
+          0.8378
         ],
         [
-          "Adversarial Robustness and AI Safety",
-          0.8146
+          "Authorship Attribution and Profiling",
+          0.8348
         ],
         [
-          "Medical and Clinical AI",
-          0.8145
+          "Text Readability and Simplification",
+          0.8346
         ],
         [
-          "Explainability and Interpretability",
-          0.8137
+          "Sentiment Analysis and Opinion Mining",
+          0.8329
         ]
       ],
-      "keybert_top3": [],
+      "keybert_top3": [
+        [
+          "uncovers annotator",
+          0.8637
+        ],
+        [
+          "genres comedy",
+          0.8402
+        ],
+        [
+          "conversational structure",
+          0.8353
+        ]
+      ],
       "sample_titles": [
         "TruthStance: An Annotated Dataset of Conversations on Truth Social",
         "Are LLMs Ready to Replace Bangla Annotators?",
@@ -87,29 +113,29 @@
     {
       "cluster_id": 2,
       "paper_count": 19,
-      "method": "curated_20",
-      "label": "AI Governance and Policy",
-      "vocab_score": 0.843,
+      "method": "vocab",
+      "label": "Persona Design and Applications",
+      "vocab_score": 0.8508,
       "vocab_top10": [
         [
-          "AI Governance and Policy",
-          0.843
+          "Persona Design and Applications",
+          0.8508
         ],
         [
-          "Benchmark Design and Evaluation Methodology",
-          0.8414
+          "Cognitive Science and Mapping",
+          0.8436
         ],
         [
-          "Medical and Clinical AI",
-          0.839
+          "Multi-Agent Systems and Negotiation",
+          0.8356
         ],
         [
-          "Reinforcement Learning from Human Feedback",
-          0.8284
+          "Bayesian Modeling and Causal Inference",
+          0.8353
         ],
         [
-          "On-Device and Edge AI",
-          0.8243
+          "Usability and User Interface Design",
+          0.8335
         ]
       ],
       "keybert_top3": [],
@@ -124,29 +150,29 @@
     {
       "cluster_id": 3,
       "paper_count": 13,
-      "method": "curated_20",
-      "label": "Self-Supervised and Contrastive Learning",
-      "vocab_score": 0.8458,
+      "method": "vocab",
+      "label": "Stochastic Gradient Optimization Techniques",
+      "vocab_score": 0.8626,
       "vocab_top10": [
         [
-          "Self-Supervised and Contrastive Learning",
-          0.8458
+          "Stochastic Gradient Optimization Techniques",
+          0.8626
         ],
         [
-          "Efficient Inference and Quantization",
-          0.8453
+          "Advanced Graph Neural Networks",
+          0.8444
         ],
         [
-          "Foundation Models and Scaling Laws",
-          0.8249
+          "Machine Learning and Data Classification",
+          0.8417
         ],
         [
-          "On-Device and Edge AI",
-          0.822
+          "Machine Learning and Algorithms",
+          0.8394
         ],
         [
-          "Benchmark Design and Evaluation Methodology",
-          0.8194
+          "Neural Networks and Applications",
+          0.8357
         ]
       ],
       "keybert_top3": [],
@@ -161,32 +187,45 @@
     {
       "cluster_id": 4,
       "paper_count": 21,
-      "method": "curated_20",
-      "label": "Efficient Inference and Quantization",
-      "vocab_score": 0.8514,
+      "method": "keybert",
+      "label": "Pretrained Latent",
+      "vocab_score": 0.8425,
       "vocab_top10": [
         [
-          "Efficient Inference and Quantization",
-          0.8514
+          "Stochastic Gradient Optimization Techniques",
+          0.8425
         ],
         [
-          "Self-Supervised and Contrastive Learning",
-          0.8486
+          "Machine Learning and Algorithms",
+          0.8303
         ],
         [
-          "Reinforcement Learning from Human Feedback",
-          0.8162
+          "Machine Learning and Data Classification",
+          0.8279
         ],
         [
-          "On-Device and Edge AI",
-          0.8075
+          "Domain Adaptation and Few-Shot Learning",
+          0.8206
         ],
         [
-          "Benchmark Design and Evaluation Methodology",
-          0.8045
+          "Generative Adversarial Networks and Image Synthesis",
+          0.8143
         ]
       ],
-      "keybert_top3": [],
+      "keybert_top3": [
+        [
+          "pretrained latent",
+          0.8368
+        ],
+        [
+          "encoder leveraging",
+          0.827
+        ],
+        [
+          "w4a4 quantization",
+          0.8086
+        ]
+      ],
       "sample_titles": [
         "Dynamic Training-Free Fusion of Subject and Style LoRAs",
         "UniWeTok: An Unified Binary Tokenizer with Codebook Size $\\mathit{2^{128}}$ for Unified Multimodal Large Language Model",
@@ -198,29 +237,29 @@
     {
       "cluster_id": 5,
       "paper_count": 9,
-      "method": "curated_20",
-      "label": "Self-Supervised and Contrastive Learning",
-      "vocab_score": 0.8392,
+      "method": "vocab",
+      "label": "Time Series Analysis and Forecasting",
+      "vocab_score": 0.852,
       "vocab_top10": [
         [
-          "Self-Supervised and Contrastive Learning",
+          "Time Series Analysis and Forecasting",
+          0.852
+        ],
+        [
+          "Data Analysis with R",
+          0.8427
+        ],
+        [
+          "Neural Networks and Applications",
+          0.8402
+        ],
+        [
+          "Machine Learning and ELM",
+          0.8395
+        ],
+        [
+          "Stochastic Gradient Optimization Techniques",
           0.8392
-        ],
-        [
-          "State Space Models",
-          0.8249
-        ],
-        [
-          "Efficient Inference and Quantization",
-          0.8213
-        ],
-        [
-          "Benchmark Design and Evaluation Methodology",
-          0.8196
-        ],
-        [
-          "Reinforcement Learning from Human Feedback",
-          0.8176
         ]
       ],
       "keybert_top3": [],
@@ -235,29 +274,29 @@
     {
       "cluster_id": 6,
       "paper_count": 13,
-      "method": "curated_20",
-      "label": "Self-Supervised and Contrastive Learning",
-      "vocab_score": 0.8693,
+      "method": "vocab",
+      "label": "AI in cancer detection",
+      "vocab_score": 0.8552,
       "vocab_top10": [
         [
-          "Self-Supervised and Contrastive Learning",
-          0.8693
+          "AI in cancer detection",
+          0.8552
         ],
         [
-          "Efficient Inference and Quantization",
-          0.8341
+          "Machine Learning and Data Classification",
+          0.8549
         ],
         [
-          "Benchmark Design and Evaluation Methodology",
-          0.8231
+          "Neural Networks and Applications",
+          0.852
         ],
         [
-          "Medical and Clinical AI",
-          0.8213
+          "Machine Learning in Healthcare",
+          0.8485
         ],
         [
-          "Reinforcement Learning from Human Feedback",
-          0.8148
+          "Advanced Technologies in Various Fields",
+          0.8468
         ]
       ],
       "keybert_top3": [],
@@ -272,32 +311,45 @@
     {
       "cluster_id": 7,
       "paper_count": 16,
-      "method": "curated_20",
-      "label": "Self-Supervised and Contrastive Learning",
-      "vocab_score": 0.8529,
+      "method": "keybert",
+      "label": "Leveraging Saliency",
+      "vocab_score": 0.843,
       "vocab_top10": [
         [
-          "Self-Supervised and Contrastive Learning",
-          0.8529
+          "Domain Adaptation and Few-Shot Learning",
+          0.843
         ],
         [
-          "Efficient Inference and Quantization",
-          0.84
+          "Advanced Image and Video Retrieval Techniques",
+          0.834
         ],
         [
-          "Adversarial Robustness and AI Safety",
-          0.809
+          "Advanced Neural Network Applications",
+          0.8319
         ],
         [
-          "Benchmark Design and Evaluation Methodology",
-          0.8086
+          "Advanced Image Processing Techniques",
+          0.8299
         ],
         [
-          "On-Device and Edge AI",
-          0.807
+          "Image and Video Quality Assessment",
+          0.8278
         ]
       ],
-      "keybert_top3": [],
+      "keybert_top3": [
+        [
+          "leveraging saliency",
+          0.8263
+        ],
+        [
+          "tracking occlusions",
+          0.8093
+        ],
+        [
+          "encoders llm2clip",
+          0.8035
+        ]
+      ],
       "sample_titles": [
         "Dual-Signal Adaptive KV-Cache Optimization for Long-Form Video Understanding in Vision-Language Models",
         "GOT-JEPA: Generic Object Tracking with Model Adaptation and Occlusion Handling using Joint-Embedding Predictive Architecture",
@@ -309,29 +361,29 @@
     {
       "cluster_id": 8,
       "paper_count": 23,
-      "method": "curated_20",
-      "label": "Adversarial Robustness and AI Safety",
-      "vocab_score": 0.8767,
+      "method": "vocab",
+      "label": "Adversarial Robustness in Machine Learning",
+      "vocab_score": 0.8657,
       "vocab_top10": [
         [
-          "Adversarial Robustness and AI Safety",
-          0.8767
+          "Adversarial Robustness in Machine Learning",
+          0.8657
         ],
         [
-          "On-Device and Edge AI",
+          "Advanced Malware Detection Techniques",
+          0.8405
+        ],
+        [
+          "Diverse Interdisciplinary Research Studies",
           0.8372
         ],
         [
-          "Benchmark Design and Evaluation Methodology",
-          0.831
+          "Cybersecurity and Information Systems",
+          0.8318
         ],
         [
-          "Medical and Clinical AI",
-          0.8193
-        ],
-        [
-          "Reinforcement Learning from Human Feedback",
-          0.8184
+          "Hate Speech and Cyberbullying Detection",
+          0.8314
         ]
       ],
       "keybert_top3": [],
@@ -346,32 +398,45 @@
     {
       "cluster_id": 9,
       "paper_count": 12,
-      "method": "curated_20",
-      "label": "Benchmark Design and Evaluation Methodology",
-      "vocab_score": 0.8317,
+      "method": "keybert",
+      "label": "Https Github",
+      "vocab_score": 0.8174,
       "vocab_top10": [
         [
-          "Benchmark Design and Evaluation Methodology",
-          0.8317
+          "Speech and dialogue systems",
+          0.8174
         ],
         [
-          "On-Device and Edge AI",
-          0.8299
+          "Explainable Artificial Intelligence (XAI)",
+          0.8166
         ],
         [
-          "Adversarial Robustness and AI Safety",
-          0.8284
+          "Multi-Agent Systems and Negotiation",
+          0.8161
         ],
         [
-          "Reinforcement Learning from Human Feedback",
-          0.8231
+          "AI-based Problem Solving and Planning",
+          0.816
         ],
         [
-          "Agentic AI and Autonomous Agents",
-          0.8218
+          "Machine Learning and Algorithms",
+          0.8147
         ]
       ],
-      "keybert_top3": [],
+      "keybert_top3": [
+        [
+          "https github",
+          0.8357
+        ],
+        [
+          "embewebagent stack",
+          0.8201
+        ],
+        [
+          "streamlined creation",
+          0.8177
+        ]
+      ],
       "sample_titles": [
         "AD-Bench: A Real-World, Trajectory-Aware Advertising Analytics Benchmark for LLM Agents",
         "Orcheo: A Modular Full-Stack Platform for Conversational Search",
@@ -383,32 +448,45 @@
     {
       "cluster_id": 10,
       "paper_count": 30,
-      "method": "curated_20",
-      "label": "Reinforcement Learning from Human Feedback",
-      "vocab_score": 0.872,
+      "method": "keybert",
+      "label": "Reward Posteriors",
+      "vocab_score": 0.8456,
       "vocab_top10": [
         [
-          "Reinforcement Learning from Human Feedback",
-          0.872
+          "Reinforcement Learning in Robotics",
+          0.8456
         ],
         [
-          "Multi-Agent Reinforcement Learning",
-          0.8647
+          "Stochastic Gradient Optimization Techniques",
+          0.8324
         ],
         [
-          "Self-Supervised and Contrastive Learning",
-          0.8398
+          "Machine Learning and Algorithms",
+          0.8252
         ],
         [
-          "Adversarial Robustness and AI Safety",
-          0.8224
+          "Machine Learning and Data Classification",
+          0.8233
         ],
         [
-          "Efficient Inference and Quantization",
-          0.8209
+          "Adaptive Dynamic Programming Control",
+          0.8199
         ]
       ],
-      "keybert_top3": [],
+      "keybert_top3": [
+        [
+          "reward posteriors",
+          0.8435
+        ],
+        [
+          "deepseek r1",
+          0.8196
+        ],
+        [
+          "amortized variational",
+          0.8159
+        ]
+      ],
       "sample_titles": [
         "Multi-Agent Debate: A Unified Agentic Framework for Tabular Anomaly Detection",
         "MAVRL: Learning Reward Functions from Multiple Feedback Types with Amortized Variational Inference",
@@ -420,29 +498,29 @@
     {
       "cluster_id": 11,
       "paper_count": 15,
-      "method": "curated_20",
-      "label": "Reinforcement Learning from Human Feedback",
-      "vocab_score": 0.8412,
+      "method": "vocab",
+      "label": "Reinforcement Learning in Robotics",
+      "vocab_score": 0.8512,
       "vocab_top10": [
         [
-          "Reinforcement Learning from Human Feedback",
-          0.8412
+          "Reinforcement Learning in Robotics",
+          0.8512
         ],
         [
-          "Adversarial Robustness and AI Safety",
-          0.8389
+          "Robotic Path Planning Algorithms",
+          0.8433
         ],
         [
-          "Multi-Agent Reinforcement Learning",
-          0.8366
+          "Optimization and Search Problems",
+          0.8339
         ],
         [
-          "On-Device and Edge AI",
-          0.8325
+          "AI-based Problem Solving and Planning",
+          0.8292
         ],
         [
-          "State Space Models",
-          0.8217
+          "Constraint Satisfaction and Optimization",
+          0.8278
         ]
       ],
       "keybert_top3": [],
