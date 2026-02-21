@@ -13,3 +13,4 @@ typing_extensions>=4.10.0
 transformers
 torch
 pyalex
+peft
