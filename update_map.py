@@ -819,22 +819,21 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 # Options:
 #   "specter2_base" — allenai/specter2_base (current default)
 #                     Scientific domain, fast, well-tested here.
-#   "specter2"      — allenai/specter2 with proximity adapter
-#                     Slightly better similarity scores, same domain.
-#                     Slower to load; may need adapter install:
-#                     pip install adapters
+#                     768D output. vocab_embeddings.npz was built with this.
 #   "mpnet"         — sentence-transformers/all-mpnet-base-v2
 #                     General-purpose, not science-specific.
 #                     Strong semantic similarity benchmark performance.
-#                     Useful for comparing vs domain-specific models.
+#                     768D output — no downstream dimension changes needed.
 #
-# Recommended range: try "mpnet" vs "specter2_base" to test whether
-# domain specialisation matters for your clustering quality.
-EMBEDDING_MODEL = "specter2"
+# NOTE: allenai/specter2 (adapter version) has a known PEFT compatibility
+# issue with recent sentence-transformers and is excluded.
+#
+# Recommended experiment: try "mpnet" vs "specter2_base" to test whether
+# scientific domain specialisation actually helps your clustering quality.
+EMBEDDING_MODEL = "specter2_base"
 
 _EMBEDDING_MODEL_IDS = {
     "specter2_base": "allenai/specter2_base",
-    "specter2":      "allenai/specter2",
     "mpnet":         "sentence-transformers/all-mpnet-base-v2",
 }
 
