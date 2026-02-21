@@ -1,7 +1,7 @@
 {
   "summary": {
-    "total_clusters": 34,
-    "vocab_labels": 34,
+    "total_clusters": 24,
+    "vocab_labels": 24,
     "keybert_labels": 0,
     "min_confidence": 0.75,
     "vocab_file": "data/vocab_embeddings.npz",
@@ -10,30 +10,30 @@
   "clusters": [
     {
       "cluster_id": 0,
-      "paper_count": 6,
+      "paper_count": 5,
       "method": "vocab",
-      "label": "Cognitive Computing and Networks",
-      "vocab_score": 0.8273,
+      "label": "Logic, Reasoning, and Knowledge",
+      "vocab_score": 0.8211,
       "vocab_top10": [
         [
-          "Cognitive Computing and Networks",
-          0.8273
+          "Logic, Reasoning, and Knowledge",
+          0.8211
         ],
         [
           "Explainable Artificial Intelligence (XAI)",
-          0.8227
+          0.8141
         ],
         [
-          "Computability, Logic, AI Algorithms",
-          0.8222
+          "Cognitive Computing and Networks",
+          0.8137
         ],
         [
-          "Logic, Reasoning, and Knowledge",
-          0.8202
+          "Logic, programming, and type systems",
+          0.8125
         ],
         [
           "Bayesian Modeling and Causal Inference",
-          0.8129
+          0.8103
         ]
       ],
       "keybert_top3": [],
@@ -47,76 +47,76 @@
     },
     {
       "cluster_id": 1,
-      "paper_count": 6,
+      "paper_count": 16,
       "method": "vocab",
-      "label": "Adversarial Robustness in Machine Learning",
-      "vocab_score": 0.8196,
+      "label": "Stochastic Gradient Optimization Techniques",
+      "vocab_score": 0.8631,
       "vocab_top10": [
         [
-          "Adversarial Robustness in Machine Learning",
-          0.8196
+          "Stochastic Gradient Optimization Techniques",
+          0.8631
         ],
         [
-          "Explainable Artificial Intelligence (XAI)",
-          0.8172
+          "Advanced Graph Neural Networks",
+          0.8472
         ],
         [
           "Machine Learning and Data Classification",
-          0.8163
-        ],
-        [
-          "Bayesian Modeling and Causal Inference",
-          0.8132
+          0.844
         ],
         [
           "Machine Learning and Algorithms",
-          0.8128
+          0.8402
+        ],
+        [
+          "Neural Networks and Applications",
+          0.84
         ]
       ],
       "keybert_top3": [],
       "sample_titles": [
-        "Knowing When Not to Answer: Abstention-Aware Scientific Reasoning",
-        "Language Statistics and False Belief Reasoning: Evidence from 41 Open-Weight LMs",
-        "RFEval: Benchmarking Reasoning Faithfulness under Counterfactual Reasoning Intervention in Large Reasoning Models",
-        "All Leaks Count, Some Count More: Interpretable Temporal Contamination Detection in LLM Backtesting",
-        "Fundamental Limits of Black-Box Safety Evaluation: Information-Theoretic and Computational Barriers from Latent Context Conditioning"
+        "Molecular Design beyond Training Data with Novel Extended Objective Functionals of Generative AI Models Driven by Quantum Annealing Computer",
+        "Revisiting the Platonic Representation Hypothesis: An Aristotelian View",
+        "Spectral Convolution on Orbifolds for Geometric Deep Learning",
+        "B-DENSE: Branching For Dense Ensemble Network Learning",
+        "Numerical exploration of the range of shape functionals using neural networks"
       ]
     },
     {
       "cluster_id": 2,
-      "paper_count": 7,
+      "paper_count": 6,
       "method": "vocab",
       "label": "Machine Learning and Algorithms",
-      "vocab_score": 0.8418,
+      "vocab_score": 0.8395,
       "vocab_top10": [
         [
           "Machine Learning and Algorithms",
-          0.8418
+          0.8395
         ],
         [
           "Explainable Artificial Intelligence (XAI)",
-          0.8402
-        ],
-        [
-          "Machine Learning and Data Classification",
-          0.8345
+          0.8389
         ],
         [
           "Computability, Logic, AI Algorithms",
-          0.8344
+          0.8335
         ],
         [
-          "Adversarial Robustness in Machine Learning",
-          0.8241
+          "Machine Learning and Data Classification",
+          0.8328
+        ],
+        [
+          "Neural Networks and Applications",
+          0.8251
         ]
       ],
       "keybert_top3": [],
       "sample_titles": [
-        "On the Learning Dynamics of RLVR at the Edge of Competence",
         "Anatomy of Capability Emergence: Scale-Invariant Representation Collapse and Top-Down Reorganization in Neural Networks",
         "Learning under noisy supervision is governed by a feedback-truth gap",
         "Early-Warning Signals of Grokking via Loss-Landscape Geometry",
-        "The Cascade Equivalence Hypothesis: When Do Speech LLMs Behave Like ASR$\\rightarrow$LLM Pipelines?"
+        "The Cascade Equivalence Hypothesis: When Do Speech LLMs Behave Like ASR$\\rightarrow$LLM Pipelines?",
+        "The Anxiety of Influence: Bloom Filters in Transformer Attention Heads"
       ]
     },
     {
@@ -160,509 +160,250 @@
       "cluster_id": 4,
       "paper_count": 7,
       "method": "vocab",
-      "label": "Machine Learning and Data Classification",
-      "vocab_score": 0.8359,
+      "label": "Time Series Analysis and Forecasting",
+      "vocab_score": 0.8528,
       "vocab_top10": [
         [
-          "Machine Learning and Data Classification",
-          0.8359
+          "Time Series Analysis and Forecasting",
+          0.8528
         ],
         [
-          "Explainable Artificial Intelligence (XAI)",
-          0.83
+          "Data Analysis with R",
+          0.8424
+        ],
+        [
+          "Machine Learning and ELM",
+          0.8401
+        ],
+        [
+          "Neural Networks and Applications",
+          0.8356
+        ],
+        [
+          "Gaussian Processes and Bayesian Inference",
+          0.8354
+        ]
+      ],
+      "keybert_top3": [],
+      "sample_titles": [
+        "Cross-household Transfer Learning Approach with LSTM-based Demand Forecasting",
+        "Position: Why a Dynamical Systems Perspective is Needed to Advance Time Series Modeling",
+        "Reverso: Efficient Time Series Foundation Models for Zero-shot Forecasting",
+        "TimeOmni-VL: Unified Models for Time Series Understanding and Generation",
+        "Forecasting Anomaly Precursors via Uncertainty-Aware Time-Series Ensembles"
+      ]
+    },
+    {
+      "cluster_id": 5,
+      "paper_count": 7,
+      "method": "vocab",
+      "label": "Stochastic Gradient Optimization Techniques",
+      "vocab_score": 0.8449,
+      "vocab_top10": [
+        [
+          "Stochastic Gradient Optimization Techniques",
+          0.8449
+        ],
+        [
+          "Machine Learning and Data Classification",
+          0.8255
+        ],
+        [
+          "Domain Adaptation and Few-Shot Learning",
+          0.8225
         ],
         [
           "Machine Learning and Algorithms",
-          0.8286
+          0.822
+        ],
+        [
+          "Adversarial Robustness in Machine Learning",
+          0.8029
+        ]
+      ],
+      "keybert_top3": [],
+      "sample_titles": [
+        "Parameter-Efficient Fine-Tuning of LLMs with Mixture of Space Experts",
+        "CrispEdit: Low-Curvature Projections for Scalable Non-Destructive LLM Editing",
+        "Silent Inconsistency in Data-Parallel Full Fine-Tuning: Diagnosing Worker-Level Optimization Misalignment",
+        "Narrow fine-tuning erodes safety alignment in vision-language agents",
+        "FLoRG: Federated Fine-tuning with Low-rank Gram Matrices and Procrustes Alignment"
+      ]
+    },
+    {
+      "cluster_id": 6,
+      "paper_count": 11,
+      "method": "vocab",
+      "label": "Machine Learning and Data Classification",
+      "vocab_score": 0.8432,
+      "vocab_top10": [
+        [
+          "Machine Learning and Data Classification",
+          0.8432
+        ],
+        [
+          "Explainable Artificial Intelligence (XAI)",
+          0.8361
+        ],
+        [
+          "Machine Learning and Algorithms",
+          0.8342
         ],
         [
           "Machine Learning in Healthcare",
-          0.8256
+          0.8298
         ],
         [
-          "Reinforcement Learning in Robotics",
-          0.8204
+          "Advanced Technologies in Various Fields",
+          0.8251
         ]
       ],
       "keybert_top3": [],
       "sample_titles": [
         "MAC-AMP: A Closed-Loop Multi-Agent Collaboration System for Multi-Objective Antimicrobial Peptide Design",
         "Optimization Instability in Autonomous Agentic Workflows for Clinical Symptom Detection",
-        "A Multi-Agent Framework for Medical AI: Leveraging Fine-Tuned GPT, LLaMA, and DeepSeek R1 for Evidence-Based and Bias-Aware Clinical Query Processing",
-        "Process-Supervised Multi-Agent Reinforcement Learning for Reliable Clinical Reasoning",
-        "Hunt Globally: Wide Search AI Agents for Drug Asset Scouting in Investing, Business Development, and Competitive Intelligence"
-      ]
-    },
-    {
-      "cluster_id": 5,
-      "paper_count": 5,
-      "method": "vocab",
-      "label": "Machine Learning and Data Classification",
-      "vocab_score": 0.821,
-      "vocab_top10": [
-        [
-          "Machine Learning and Data Classification",
-          0.821
-        ],
-        [
-          "Machine Learning and Algorithms",
-          0.8147
-        ],
-        [
-          "Stochastic Gradient Optimization Techniques",
-          0.8085
-        ],
-        [
-          "Explainable Artificial Intelligence (XAI)",
-          0.808
-        ],
-        [
-          "Reinforcement Learning in Robotics",
-          0.8051
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "Cold-Start Personalization via Training-Free Priors from Structured World Models",
+        "Return of the Schema: Building Complete Datasets for Machine Learning and Reasoning on Knowledge Graphs",
         "Whom to Query for What: Adaptive Group Elicitation via Multi-Turn LLM Interactions",
-        "References Improve LLM Alignment in Non-Verifiable Domains",
-        "Decoding the Human Factor: High Fidelity Behavioral Prediction for Strategic Foresight",
-        "Conv-FinRe: A Conversational and Longitudinal Benchmark for Utility-Grounded Financial Recommendation"
-      ]
-    },
-    {
-      "cluster_id": 6,
-      "paper_count": 5,
-      "method": "vocab",
-      "label": "Explainable Artificial Intelligence (XAI)",
-      "vocab_score": 0.8405,
-      "vocab_top10": [
-        [
-          "Explainable Artificial Intelligence (XAI)",
-          0.8405
-        ],
-        [
-          "Topic Modeling",
-          0.8327
-        ],
-        [
-          "Machine Learning and Data Classification",
-          0.8322
-        ],
-        [
-          "Machine Learning and Algorithms",
-          0.832
-        ],
-        [
-          "Advanced Technologies in Various Fields",
-          0.8305
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "Visual Persuasion: What Influences Decisions of Vision-Language Models?",
-        "Synthetic Reader Panels: Tournament-Based Ideation with LLM Personas for Autonomous Publishing",
-        "InnoEval: On Research Idea Evaluation as a Knowledge-Grounded, Multi-Perspective Reasoning Problem",
-        "High Precision Audience Expansion via Extreme Classification in a Two-Sided Marketplace",
-        "SourceBench: Can AI Answers Reference Quality Web Sources?"
+        "A Multi-Agent Framework for Medical AI: Leveraging Fine-Tuned GPT, LLaMA, and DeepSeek R1 for Evidence-Based and Bias-Aware Clinical Query Processing"
       ]
     },
     {
       "cluster_id": 7,
-      "paper_count": 15,
+      "paper_count": 10,
       "method": "vocab",
-      "label": "Stochastic Gradient Optimization Techniques",
-      "vocab_score": 0.8623,
+      "label": "Software System Performance and Reliability",
+      "vocab_score": 0.8385,
       "vocab_top10": [
         [
-          "Stochastic Gradient Optimization Techniques",
-          0.8623
+          "Software System Performance and Reliability",
+          0.8385
         ],
         [
-          "Advanced Graph Neural Networks",
-          0.8443
-        ],
-        [
-          "Machine Learning and Data Classification",
-          0.8424
-        ],
-        [
-          "Machine Learning and Algorithms",
-          0.8387
-        ],
-        [
-          "Neural Networks and Applications",
-          0.8374
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "Molecular Design beyond Training Data with Novel Extended Objective Functionals of Generative AI Models Driven by Quantum Annealing Computer",
-        "Revisiting the Platonic Representation Hypothesis: An Aristotelian View",
-        "B-DENSE: Branching For Dense Ensemble Network Learning",
-        "Numerical exploration of the range of shape functionals using neural networks",
-        "Random Wavelet Features for Graph Kernel Machines"
-      ]
-    },
-    {
-      "cluster_id": 8,
-      "paper_count": 5,
-      "method": "vocab",
-      "label": "Adversarial Robustness in Machine Learning",
-      "vocab_score": 0.8441,
-      "vocab_top10": [
-        [
-          "Adversarial Robustness in Machine Learning",
-          0.8441
-        ],
-        [
-          "Advanced Malware Detection Techniques",
-          0.8346
+          "Software Testing and Debugging Techniques",
+          0.8313
         ],
         [
           "Security and Verification in Computing",
-          0.8309
-        ],
-        [
-          "Software System Performance and Reliability",
-          0.8295
-        ],
-        [
-          "Software Testing and Debugging Techniques",
-          0.8252
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "Colosseum: Auditing Collusion in Cooperative Multi-Agent Systems",
-        "A Trajectory-Based Safety Audit of Clawdbot (OpenClaw)",
-        "AXE: An Agentic eXploit Engine for Confirming Zero-Day Vulnerability Reports",
-        "SkillJect: Automating Stealthy Skill-Based Prompt Injection for Coding Agents with Trace-Driven Closed-Loop Refinement",
-        "AgentLAB: Benchmarking LLM Agents against Long-Horizon Attacks"
-      ]
-    },
-    {
-      "cluster_id": 9,
-      "paper_count": 8,
-      "method": "vocab",
-      "label": "Software Testing and Debugging Techniques",
-      "vocab_score": 0.8355,
-      "vocab_top10": [
-        [
-          "Software Testing and Debugging Techniques",
-          0.8355
-        ],
-        [
-          "Software System Performance and Reliability",
-          0.8348
+          0.8293
         ],
         [
           "Formal Methods in Verification",
-          0.8318
+          0.8283
         ],
         [
           "Logic, programming, and type systems",
-          0.8218
-        ],
-        [
-          "Security and Verification in Computing",
-          0.8213
+          0.8204
         ]
       ],
       "keybert_top3": [],
       "sample_titles": [
         "Automated Multi-Source Debugging and Natural Language Error Explanation for Dashboard Applications",
+        "A Trajectory-Based Safety Audit of Clawdbot (OpenClaw)",
+        "AXE: An Agentic eXploit Engine for Confirming Zero-Day Vulnerability Reports",
         "AutoWebWorld: Synthesizing Infinite Verifiable Web Environments via Finite State Machines",
-        "Toward Scalable Verifiable Reward: Proxy State-Based Evaluation for Multi-turn Tool-Calling LLM Agents",
-        "Policy Compiler for Secure Agentic Systems",
-        "LLM4Cov: Execution-Aware Agentic Learning for High-coverage Testbench Generation"
+        "Toward Scalable Verifiable Reward: Proxy State-Based Evaluation for Multi-turn Tool-Calling LLM Agents"
+      ]
+    },
+    {
+      "cluster_id": 8,
+      "paper_count": 7,
+      "method": "vocab",
+      "label": "Stochastic Gradient Optimization Techniques",
+      "vocab_score": 0.8471,
+      "vocab_top10": [
+        [
+          "Stochastic Gradient Optimization Techniques",
+          0.8471
+        ],
+        [
+          "Machine Learning and Data Classification",
+          0.8296
+        ],
+        [
+          "Machine Learning and Algorithms",
+          0.8272
+        ],
+        [
+          "Adversarial Robustness in Machine Learning",
+          0.8243
+        ],
+        [
+          "Neural Networks and Applications",
+          0.8083
+        ]
+      ],
+      "keybert_top3": [],
+      "sample_titles": [
+        "S2D: Selective Spectral Decay for Quantization-Friendly Conditioning of Neural Activations",
+        "The geometry of invariant learning: an information-theoretic analysis of data augmentation and generalization",
+        "On the Rate-Distortion-Complexity Tradeoff for Semantic Communication",
+        "Exposing Diversity Bias in Deep Generative Models: Statistical Origins and Correction of Diversity Error",
+        "Conjugate Learning Theory: Uncovering the Mechanisms of Trainability and Generalization in Deep Neural Networks"
+      ]
+    },
+    {
+      "cluster_id": 9,
+      "paper_count": 11,
+      "method": "vocab",
+      "label": "Reinforcement Learning in Robotics",
+      "vocab_score": 0.8628,
+      "vocab_top10": [
+        [
+          "Reinforcement Learning in Robotics",
+          0.8628
+        ],
+        [
+          "Robotic Path Planning Algorithms",
+          0.8477
+        ],
+        [
+          "AI-based Problem Solving and Planning",
+          0.832
+        ],
+        [
+          "Optimization and Search Problems",
+          0.8261
+        ],
+        [
+          "Distributed Control Multi-Agent Systems",
+          0.8182
+        ]
+      ],
+      "keybert_top3": [],
+      "sample_titles": [
+        "Perceptive Humanoid Parkour: Chaining Dynamic Human Skills via Motion Matching",
+        "PhyScensis: Physics-Augmented LLM Agents for Complex Physical Scene Arrangement",
+        "Articulated 3D Scene Graphs for Open-World Mobile Manipulation",
+        "Learning Transferability: A Two-Stage Reinforcement Learning Approach for Enhancing Quadruped Robots' Performance in U-Shaped Stair Climbing",
+        "Lifelong Scalable Multi-Agent Realistic Testbed and A Comprehensive Study on Design Choices in Lifelong AGV Fleet Management Systems"
       ]
     },
     {
       "cluster_id": 10,
       "paper_count": 6,
       "method": "vocab",
-      "label": "Security and Verification in Computing",
-      "vocab_score": 0.8396,
-      "vocab_top10": [
-        [
-          "Security and Verification in Computing",
-          0.8396
-        ],
-        [
-          "Quantum Computing Algorithms and Architecture",
-          0.8377
-        ],
-        [
-          "Logic, programming, and type systems",
-          0.8362
-        ],
-        [
-          "Computability, Logic, AI Algorithms",
-          0.8346
-        ],
-        [
-          "Adversarial Robustness in Machine Learning",
-          0.8341
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "Reverse N-Wise Output-Oriented Testing for AI/ML and Quantum Computing Systems",
-        "Qute: Towards Quantum-Native Database",
-        "NeuDiff Agent: A Governed AI Workflow for Single-Crystal Neutron Crystallography",
-        "Jolt Atlas: Verifiable Inference via Lookup Arguments in Zero Knowledge",
-        "Efficient Parallel Algorithm for Decomposing Hard CircuitSAT Instances"
-      ]
-    },
-    {
-      "cluster_id": 11,
-      "paper_count": 6,
-      "method": "vocab",
-      "label": "Adversarial Robustness in Machine Learning",
-      "vocab_score": 0.8556,
-      "vocab_top10": [
-        [
-          "Adversarial Robustness in Machine Learning",
-          0.8556
-        ],
-        [
-          "Privacy-Preserving Technologies in Data",
-          0.833
-        ],
-        [
-          "Internet Traffic Analysis and Secure E-voting",
-          0.8193
-        ],
-        [
-          "Cryptography and Data Security",
-          0.8134
-        ],
-        [
-          "Machine Learning and Algorithms",
-          0.8095
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "Differentially Private Retrieval-Augmented Generation",
-        "Closing the Distribution Gap in Adversarial Training for LLMs",
-        "Unforgeable Watermarks for Language Models via Robust Signatures",
-        "Exploiting Layer-Specific Vulnerabilities to Backdoor Attack in Federated Learning",
-        "Federated Graph AGI for Cross-Border Insider Threat Intelligence in Government Financial Schemes"
-      ]
-    },
-    {
-      "cluster_id": 12,
-      "paper_count": 11,
-      "method": "vocab",
-      "label": "Time Series Analysis and Forecasting",
-      "vocab_score": 0.8548,
-      "vocab_top10": [
-        [
-          "Time Series Analysis and Forecasting",
-          0.8548
-        ],
-        [
-          "Data Analysis with R",
-          0.8478
-        ],
-        [
-          "Neural Networks and Applications",
-          0.8477
-        ],
-        [
-          "Stochastic Gradient Optimization Techniques",
-          0.8467
-        ],
-        [
-          "Machine Learning and ELM",
-          0.8463
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "Cross-household Transfer Learning Approach with LSTM-based Demand Forecasting",
-        "Graph neural network for colliding particles with an application to sea ice floe modeling",
-        "ASPEN: Spectral-Temporal Fusion for Cross-Subject Brain Decoding",
-        "TokaMind: A Multi-Modal Transformer Foundation Model for Tokamak Plasma Dynamics",
-        "A Systematic Evaluation of Sample-Level Tokenization Strategies for MEG Foundation Models"
-      ]
-    },
-    {
-      "cluster_id": 13,
-      "paper_count": 15,
-      "method": "vocab",
-      "label": "Machine Learning and Data Classification",
-      "vocab_score": 0.8566,
-      "vocab_top10": [
-        [
-          "Machine Learning and Data Classification",
-          0.8566
-        ],
-        [
-          "Neural Networks and Applications",
-          0.8525
-        ],
-        [
-          "AI in cancer detection",
-          0.8518
-        ],
-        [
-          "Machine Learning in Healthcare",
-          0.8496
-        ],
-        [
-          "Advanced Technologies in Various Fields",
-          0.8465
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "Towards Spatial Transcriptomics-driven Pathology Foundation Models",
-        "Feature Recalibration Based Olfactory-Visual Multimodal Model for Fine-Grained Rice Deterioration Detection",
-        "GRAFNet: Multiscale Retinal Processing via Guided Cortical Attention Feedback for Enhancing Medical Image Polyp Segmentation",
-        "Foundation Models for Medical Imaging: Status, Challenges, and Directions",
-        "Resp-Agent: An Agent-Based System for Multimodal Respiratory Sound Generation and Disease Diagnosis"
-      ]
-    },
-    {
-      "cluster_id": 14,
-      "paper_count": 9,
-      "method": "vocab",
-      "label": "Persona Design and Applications",
-      "vocab_score": 0.8445,
-      "vocab_top10": [
-        [
-          "Persona Design and Applications",
-          0.8445
-        ],
-        [
-          "Usability and User Interface Design",
-          0.8364
-        ],
-        [
-          "Edcuational Technology Systems",
-          0.8302
-        ],
-        [
-          "Intelligent Tutoring Systems and Adaptive Learning",
-          0.8279
-        ],
-        [
-          "Multi-Agent Systems and Negotiation",
-          0.8278
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "How Uncertain Is the Grade? A Benchmark of Uncertainty Metrics for LLM-Based Automatic Assessment",
-        "Key Considerations for Domain Expert Involvement in LLM Design and Evaluation: An Ethnographic Study",
-        "Transforming GenAI Policy to Prompting Instruction: An RCT of Scalable Prompting Interventions in a CS1 Course",
-        "From Reflection to Repair: A Scoping Review of Dataset Documentation Tools",
-        "When OpenClaw AI Agents Teach Each Other: Peer Learning Patterns in the Moltbook Community"
-      ]
-    },
-    {
-      "cluster_id": 15,
-      "paper_count": 12,
-      "method": "vocab",
-      "label": "Reinforcement Learning in Robotics",
-      "vocab_score": 0.8585,
-      "vocab_top10": [
-        [
-          "Reinforcement Learning in Robotics",
-          0.8585
-        ],
-        [
-          "Robotic Path Planning Algorithms",
-          0.8483
-        ],
-        [
-          "Optimization and Search Problems",
-          0.8283
-        ],
-        [
-          "AI-based Problem Solving and Planning",
-          0.8279
-        ],
-        [
-          "Distributed Control Multi-Agent Systems",
-          0.8156
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "Perceptive Humanoid Parkour: Chaining Dynamic Human Skills via Motion Matching",
-        "When Remembering and Planning are Worth it: Navigating under Change",
-        "PhyScensis: Physics-Augmented LLM Agents for Complex Physical Scene Arrangement",
-        "Articulated 3D Scene Graphs for Open-World Mobile Manipulation",
-        "GREAT-EER: Graph Edge Attention Network for Emergency Evacuation Responses"
-      ]
-    },
-    {
-      "cluster_id": 16,
-      "paper_count": 7,
-      "method": "vocab",
-      "label": "Adversarial Robustness in Machine Learning",
-      "vocab_score": 0.8475,
-      "vocab_top10": [
-        [
-          "Adversarial Robustness in Machine Learning",
-          0.8475
-        ],
-        [
-          "Hate Speech and Cyberbullying Detection",
-          0.841
-        ],
-        [
-          "Advanced Malware Detection Techniques",
-          0.8353
-        ],
-        [
-          "Internet Traffic Analysis and Secure E-voting",
-          0.8193
-        ],
-        [
-          "Machine Learning and Data Classification",
-          0.8191
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "Weight space Detection of Backdoors in LoRA Adapters",
-        "Intent Laundering: AI Safety Datasets Are Not What They Seem",
-        "Mind the GAP: Text Safety Does Not Transfer to Tool-Call Safety in LLM Agents",
-        "Automating Agent Hijacking via Structural Template Injection",
-        "DeepContext: Stateful Real-Time Detection of Multi-Turn Adversarial Intent Drift in LLMs"
-      ]
-    },
-    {
-      "cluster_id": 17,
-      "paper_count": 5,
-      "method": "vocab",
       "label": "Diverse Interdisciplinary Research Studies",
-      "vocab_score": 0.8665,
+      "vocab_score": 0.8623,
       "vocab_top10": [
         [
           "Diverse Interdisciplinary Research Studies",
-          0.8665
+          0.8623
         ],
         [
           "Explainable Artificial Intelligence (XAI)",
-          0.8562
+          0.8514
         ],
         [
           "Adversarial Robustness in Machine Learning",
-          0.8527
-        ],
-        [
-          "Cybersecurity and Information Systems",
-          0.8513
+          0.85
         ],
         [
           "Law, AI, and Intellectual Property",
-          0.8509
+          0.8485
+        ],
+        [
+          "Cybersecurity and Information Systems",
+          0.8471
         ]
       ],
       "keybert_top3": [],
@@ -671,48 +412,122 @@
         "Towards Selection as Power: Bounding Decision Authority in Autonomous Agents",
         "Competition for attention predicts good-to-bad tipping in AI",
         "AI Arms and Influence: Frontier Models Exhibit Sophisticated Reasoning in Simulated Nuclear Crises",
-        "What Breaks Embodied AI Security:LLM Vulnerabilities, CPS Flaws,or Something Else?"
+        "Mind the GAP: Text Safety Does Not Transfer to Tool-Call Safety in LLM Agents"
       ]
     },
     {
-      "cluster_id": 18,
-      "paper_count": 5,
+      "cluster_id": 11,
+      "paper_count": 11,
       "method": "vocab",
-      "label": "Text Readability and Simplification",
-      "vocab_score": 0.8325,
+      "label": "Adversarial Robustness in Machine Learning",
+      "vocab_score": 0.8463,
       "vocab_top10": [
         [
-          "Text Readability and Simplification",
-          0.8325
+          "Adversarial Robustness in Machine Learning",
+          0.8463
         ],
         [
-          "Natural Language Processing Techniques",
-          0.8321
+          "Advanced Malware Detection Techniques",
+          0.8224
         ],
         [
-          "Machine Learning and Data Classification",
-          0.8311
+          "Internet Traffic Analysis and Secure E-voting",
+          0.8204
         ],
         [
-          "Topic Modeling",
-          0.8278
+          "Hate Speech and Cyberbullying Detection",
+          0.8188
         ],
         [
-          "Speech and dialogue systems",
-          0.8182
+          "Machine Learning and Algorithms",
+          0.818
         ]
       ],
       "keybert_top3": [],
       "sample_titles": [
-        "Evaluating Monolingual and Multilingual Large Language Models for Greek Question Answering: The DemosQA Benchmark",
-        "Who can we trust? LLM-as-a-jury for Comparative Assessment",
-        "Fine-Grained Uncertainty Quantification for Long-Form Language Model Outputs: A Comparative Study",
-        "ALPS: A Diagnostic Challenge Set for Arabic Linguistic & Pragmatic Reasoning",
-        "Same Meaning, Different Scores: Lexical and Syntactic Sensitivity in LLM Evaluation"
+        "Differentially Private Retrieval-Augmented Generation",
+        "Closing the Distribution Gap in Adversarial Training for LLMs",
+        "Unforgeable Watermarks for Language Models via Robust Signatures",
+        "Long Context, Less Focus: A Scaling Gap in LLMs Revealed through Privacy and Personalization",
+        "Surrogate-Based Prevalence Measurement for Large-Scale A/B Testing"
       ]
     },
     {
-      "cluster_id": 19,
+      "cluster_id": 12,
+      "paper_count": 7,
+      "method": "vocab",
+      "label": "Stochastic Gradient Optimization Techniques",
+      "vocab_score": 0.824,
+      "vocab_top10": [
+        [
+          "Stochastic Gradient Optimization Techniques",
+          0.824
+        ],
+        [
+          "Machine Learning and Algorithms",
+          0.8239
+        ],
+        [
+          "Domain Adaptation and Few-Shot Learning",
+          0.8217
+        ],
+        [
+          "Machine Learning and Data Classification",
+          0.8216
+        ],
+        [
+          "Speech Recognition and Synthesis",
+          0.8193
+        ]
+      ],
+      "keybert_top3": [],
+      "sample_titles": [
+        "UniWeTok: An Unified Binary Tokenizer with Codebook Size $\\mathit{2^{128}}$ for Unified Multimodal Large Language Model",
+        "Inner Loop Inference for Pretrained Transformers: Unlocking Latent Capabilities Without Training",
+        "Designing Production-Scale OCR for India: Multilingual and Domain-Specific Systems",
+        "Avey-B",
+        "Beyond Learning: A Training-Free Alternative to Model Adaptation"
+      ]
+    },
+    {
+      "cluster_id": 13,
+      "paper_count": 6,
+      "method": "vocab",
+      "label": "Stochastic Gradient Optimization Techniques",
+      "vocab_score": 0.828,
+      "vocab_top10": [
+        [
+          "Stochastic Gradient Optimization Techniques",
+          0.828
+        ],
+        [
+          "Generative Adversarial Networks and Image Synthesis",
+          0.8242
+        ],
+        [
+          "Speech Recognition and Synthesis",
+          0.8183
+        ],
+        [
+          "Speech and Audio Processing",
+          0.818
+        ],
+        [
+          "Domain Adaptation and Few-Shot Learning",
+          0.8073
+        ]
+      ],
+      "keybert_top3": [],
+      "sample_titles": [
+        "Dynamic Training-Free Fusion of Subject and Style LoRAs",
+        "The Equalizer: Introducing Shape-Gain Decomposition in Neural Audio Codecs",
+        "S-PRESSO: Ultra Low Bitrate Sound Effect Compression With Diffusion Autoencoders And Offline Quantization",
+        "One-step Language Modeling via Continuous Denoising",
+        "VP-VAE: Rethinking Vector Quantization via Adaptive Vector Perturbation"
+      ]
+    },
+    {
+      "cluster_id": 14,
       "paper_count": 9,
       "method": "vocab",
       "label": "Authorship Attribution and Profiling",
@@ -749,303 +564,303 @@
       ]
     },
     {
-      "cluster_id": 20,
-      "paper_count": 7,
+      "cluster_id": 15,
+      "paper_count": 11,
       "method": "vocab",
-      "label": "Cognitive Science and Mapping",
-      "vocab_score": 0.8502,
+      "label": "Machine Learning in Healthcare",
+      "vocab_score": 0.8523,
       "vocab_top10": [
         [
-          "Cognitive Science and Mapping",
-          0.8502
+          "Machine Learning in Healthcare",
+          0.8523
         ],
+        [
+          "Machine Learning and Data Classification",
+          0.8516
+        ],
+        [
+          "AI in cancer detection",
+          0.8509
+        ],
+        [
+          "Neural Networks and Applications",
+          0.8472
+        ],
+        [
+          "Advanced Technologies in Various Fields",
+          0.8435
+        ]
+      ],
+      "keybert_top3": [],
+      "sample_titles": [
+        "GRAFNet: Multiscale Retinal Processing via Guided Cortical Attention Feedback for Enhancing Medical Image Polyp Segmentation",
+        "Foundation Models for Medical Imaging: Status, Challenges, and Directions",
+        "Intracoronary Optical Coherence Tomography Image Processing and Vessel Classification Using Machine Learning",
+        "Breaking Data Efficiency Dilemma: A Federated and Augmented Learning Framework For Alzheimer's Disease Detection via Speech",
+        "MRC-GAT: A Meta-Relational Copula-Based Graph Attention Network for Interpretable Multimodal Alzheimer's Disease Diagnosis"
+      ]
+    },
+    {
+      "cluster_id": 16,
+      "paper_count": 13,
+      "method": "vocab",
+      "label": "Domain Adaptation and Few-Shot Learning",
+      "vocab_score": 0.8364,
+      "vocab_top10": [
+        [
+          "Domain Adaptation and Few-Shot Learning",
+          0.8364
+        ],
+        [
+          "Advanced Image Processing Techniques",
+          0.8347
+        ],
+        [
+          "Image and Video Quality Assessment",
+          0.8305
+        ],
+        [
+          "Advanced Neural Network Applications",
+          0.8302
+        ],
+        [
+          "Generative Adversarial Networks and Image Synthesis",
+          0.8292
+        ]
+      ],
+      "keybert_top3": [],
+      "sample_titles": [
+        "Dual-Signal Adaptive KV-Cache Optimization for Long-Form Video Understanding in Vision-Language Models",
+        "GOT-JEPA: Generic Object Tracking with Model Adaptation and Occlusion Handling using Joint-Embedding Predictive Architecture",
+        "AnchorWeave: World-Consistent Video Generation with Retrieved Local Spatial Memories",
+        "VariViT: A Vision Transformer for Variable Image Sizes",
+        "Adapting VACE for Real-Time Autoregressive Video Diffusion"
+      ]
+    },
+    {
+      "cluster_id": 17,
+      "paper_count": 5,
+      "method": "vocab",
+      "label": "Text Readability and Simplification",
+      "vocab_score": 0.8362,
+      "vocab_top10": [
+        [
+          "Text Readability and Simplification",
+          0.8362
+        ],
+        [
+          "Machine Learning and Data Classification",
+          0.8362
+        ],
+        [
+          "Natural Language Processing Techniques",
+          0.8276
+        ],
+        [
+          "Topic Modeling",
+          0.8246
+        ],
+        [
+          "Speech and dialogue systems",
+          0.8226
+        ]
+      ],
+      "keybert_top3": [],
+      "sample_titles": [
+        "How Uncertain Is the Grade? A Benchmark of Uncertainty Metrics for LLM-Based Automatic Assessment",
+        "Who can we trust? LLM-as-a-jury for Comparative Assessment",
+        "Fine-Grained Uncertainty Quantification for Long-Form Language Model Outputs: A Comparative Study",
+        "ALPS: A Diagnostic Challenge Set for Arabic Linguistic & Pragmatic Reasoning",
+        "Same Meaning, Different Scores: Lexical and Syntactic Sensitivity in LLM Evaluation"
+      ]
+    },
+    {
+      "cluster_id": 18,
+      "paper_count": 6,
+      "method": "vocab",
+      "label": "Age of Information Optimization",
+      "vocab_score": 0.8446,
+      "vocab_top10": [
+        [
+          "Age of Information Optimization",
+          0.8446
+        ],
+        [
+          "Energy Efficiency in Computing",
+          0.8403
+        ],
+        [
+          "Distributed and Parallel Computing Systems",
+          0.8317
+        ],
+        [
+          "Software System Performance and Reliability",
+          0.8317
+        ],
+        [
+          "Parallel Computing and Optimization Techniques",
+          0.8297
+        ]
+      ],
+      "keybert_top3": [],
+      "sample_titles": [
+        "AI-Paging: Lease-Based Execution Anchoring for Network-Exposed AI-as-a-Service",
+        "AdaptOrch: Task-Adaptive Multi-Agent Orchestration in the Era of LLM Performance Convergence",
+        "FlowPrefill: Decoupling Preemption from Prefill Scheduling Granularity to Mitigate Head-of-Line Blocking in LLM Serving",
+        "Agentic Wireless Communication for 6G: Intent-Aware and Continuously Evolving Physical-Layer Intelligence",
+        "WarpRec: Unifying Academic Rigor and Industrial Scale for Responsible, Reproducible, and Efficient Recommendation"
+      ]
+    },
+    {
+      "cluster_id": 19,
+      "paper_count": 10,
+      "method": "vocab",
+      "label": "Speech and dialogue systems",
+      "vocab_score": 0.8194,
+      "vocab_top10": [
+        [
+          "Speech and dialogue systems",
+          0.8194
+        ],
+        [
+          "Machine Learning and Algorithms",
+          0.8157
+        ],
+        [
+          "AI-based Problem Solving and Planning",
+          0.8141
+        ],
+        [
+          "Explainable Artificial Intelligence (XAI)",
+          0.8127
+        ],
+        [
+          "Multi-Agent Systems and Negotiation",
+          0.8112
+        ]
+      ],
+      "keybert_top3": [],
+      "sample_titles": [
+        "AD-Bench: A Real-World, Trajectory-Aware Advertising Analytics Benchmark for LLM Agents",
+        "Orcheo: A Modular Full-Stack Platform for Conversational Search",
+        "EmbeWebAgent: Embedding Web Agents into Any Customized UI",
+        "Framework of Thoughts: A Foundation Framework for Dynamic and Optimized Reasoning based on Chains, Trees, and Graphs",
+        "Arbor: A Framework for Reliable Navigation of Critical Conversation Flows"
+      ]
+    },
+    {
+      "cluster_id": 20,
+      "paper_count": 14,
+      "method": "vocab",
+      "label": "Persona Design and Applications",
+      "vocab_score": 0.8526,
+      "vocab_top10": [
         [
           "Persona Design and Applications",
-          0.8501
+          0.8526
         ],
         [
-          "Diverse Interdisciplinary Research Studies",
-          0.847
+          "Cognitive Science and Mapping",
+          0.8378
+        ],
+        [
+          "Usability and User Interface Design",
+          0.8376
+        ],
+        [
+          "Multi-Agent Systems and Negotiation",
+          0.835
         ],
         [
           "Organizational and Employee Performance",
-          0.8441
-        ],
+          0.8346
+        ]
+      ],
+      "keybert_top3": [],
+      "sample_titles": [
+        "Evaluating LLMs in Finance Requires Explicit Bias Consideration",
+        "Key Considerations for Domain Expert Involvement in LLM Design and Evaluation: An Ethnographic Study",
+        "Transforming GenAI Policy to Prompting Instruction: An RCT of Scalable Prompting Interventions in a CS1 Course",
+        "Quantifying construct validity in large language model evaluations",
+        "From Reflection to Repair: A Scoping Review of Dataset Documentation Tools"
+      ]
+    },
+    {
+      "cluster_id": 21,
+      "paper_count": 6,
+      "method": "vocab",
+      "label": "Bayesian Modeling and Causal Inference",
+      "vocab_score": 0.8622,
+      "vocab_top10": [
         [
           "Bayesian Modeling and Causal Inference",
-          0.8396
+          0.8622
+        ],
+        [
+          "Bayesian Methods and Mixture Models",
+          0.8355
+        ],
+        [
+          "Cognitive Science and Mapping",
+          0.8349
+        ],
+        [
+          "Data Analysis with R",
+          0.8254
+        ],
+        [
+          "Diverse Interdisciplinary Research Studies",
+          0.8233
         ]
       ],
       "keybert_top3": [],
       "sample_titles": [
         "Reasoning Language Models for complex assessments tasks: Evaluating parental cooperation from child protection case reports",
-        "Evaluating LLMs in Finance Requires Explicit Bias Consideration",
-        "Decision Quality Evaluation Framework at Pinterest",
-        "How to Disclose? Strategic AI Disclosure in Crowdfunding",
-        "The Bots of Persuasion: Examining How Conversational Agents' Linguistic Expressions of Personality Affect User Perceptions and Decisions"
-      ]
-    },
-    {
-      "cluster_id": 21,
-      "paper_count": 5,
-      "method": "vocab",
-      "label": "Bayesian Modeling and Causal Inference",
-      "vocab_score": 0.8602,
-      "vocab_top10": [
-        [
-          "Bayesian Modeling and Causal Inference",
-          0.8602
-        ],
-        [
-          "Bayesian Methods and Mixture Models",
-          0.8304
-        ],
-        [
-          "Cognitive Science and Mapping",
-          0.8267
-        ],
-        [
-          "Data Analysis with R",
-          0.8233
-        ],
-        [
-          "Diverse Interdisciplinary Research Studies",
-          0.8208
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
         "Bounding Probabilities of Causation with Partial Causal Diagrams",
         "This human study did not involve human subjects: Validating LLM simulations as behavioral evidence",
         "Integrating Unstructured Text into Causal Inference: Empirical Evidence from Real Data",
-        "Measuring Mid-2025 LLM-Assistance on Novice Performance in Biology",
-        "General sample size analysis for probabilities of causation: a delta method approach"
+        "Measuring Mid-2025 LLM-Assistance on Novice Performance in Biology"
       ]
     },
     {
       "cluster_id": 22,
-      "paper_count": 5,
+      "paper_count": 10,
       "method": "vocab",
-      "label": "Stochastic Gradient Optimization Techniques",
-      "vocab_score": 0.8308,
+      "label": "Reinforcement Learning in Robotics",
+      "vocab_score": 0.8396,
       "vocab_top10": [
         [
+          "Reinforcement Learning in Robotics",
+          0.8396
+        ],
+        [
+          "Optimization and Search Problems",
+          0.8225
+        ],
+        [
+          "Adaptive Dynamic Programming Control",
+          0.8223
+        ],
+        [
           "Stochastic Gradient Optimization Techniques",
-          0.8308
+          0.8209
         ],
         [
-          "Domain Adaptation and Few-Shot Learning",
-          0.8121
-        ],
-        [
-          "Machine Learning and Data Classification",
-          0.8074
-        ],
-        [
-          "Machine Learning and Algorithms",
-          0.8029
-        ],
-        [
-          "Adversarial Robustness in Machine Learning",
-          0.7897
+          "Machine Learning and ELM",
+          0.8082
         ]
       ],
       "keybert_top3": [],
       "sample_titles": [
-        "Parameter-Efficient Fine-Tuning of LLMs with Mixture of Space Experts",
-        "FLoRG: Federated Fine-tuning with Low-rank Gram Matrices and Procrustes Alignment",
-        "Pushing the Frontier of Black-Box LVLM Attacks via Fine-Grained Detail Targeting",
-        "LORA-CRAFT: Cross-layer Rank Adaptation via Frozen Tucker Decomposition of Pre-trained Attention Weights",
-        "Dataless Weight Disentanglement in Task Arithmetic via Kronecker-Factored Approximate Curvature"
+        "Multi-agent cooperation through in-context co-player inference",
+        "Graphon Mean-Field Subsampling for Cooperative Heterogeneous Multi-Agent Reinforcement Learning",
+        "Fluid-Agent Reinforcement Learning",
+        "Almost Sure Convergence of Differential Temporal Difference Learning for Average Reward Markov Decision Processes",
+        "A Unified Framework for Locality in Scalable MARL"
       ]
     },
     {
       "cluster_id": 23,
-      "paper_count": 11,
-      "method": "vocab",
-      "label": "Machine Learning and Data Classification",
-      "vocab_score": 0.8365,
-      "vocab_top10": [
-        [
-          "Machine Learning and Data Classification",
-          0.8365
-        ],
-        [
-          "Stochastic Gradient Optimization Techniques",
-          0.8336
-        ],
-        [
-          "Machine Learning and Algorithms",
-          0.8334
-        ],
-        [
-          "Domain Adaptation and Few-Shot Learning",
-          0.8317
-        ],
-        [
-          "Topic Modeling",
-          0.8237
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "Explainable Token-level Noise Filtering for LLM Fine-tuning Datasets",
-        "Inner Loop Inference for Pretrained Transformers: Unlocking Latent Capabilities Without Training",
-        "Avey-B",
-        "Selective Synchronization Attention",
-        "Beyond Learning: A Training-Free Alternative to Model Adaptation"
-      ]
-    },
-    {
-      "cluster_id": 24,
-      "paper_count": 15,
-      "method": "vocab",
-      "label": "Reinforcement Learning in Robotics",
-      "vocab_score": 0.8466,
-      "vocab_top10": [
-        [
-          "Reinforcement Learning in Robotics",
-          0.8466
-        ],
-        [
-          "Adaptive Dynamic Programming Control",
-          0.8324
-        ],
-        [
-          "Stochastic Gradient Optimization Techniques",
-          0.8303
-        ],
-        [
-          "Optimization and Search Problems",
-          0.8195
-        ],
-        [
-          "Machine Learning and ELM",
-          0.8156
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "HiPER: Hierarchical Reinforcement Learning with Explicit Credit Assignment for Large Language Model Agents",
-        "SIT-LMPC: Safe Information-Theoretic Learning Model Predictive Control for Iterative Tasks",
-        "Multi-agent cooperation through in-context co-player inference",
-        "Graphon Mean-Field Subsampling for Cooperative Heterogeneous Multi-Agent Reinforcement Learning",
-        "GlobeDiff: State Diffusion Process for Partial Observability in Multi-Agent Systems"
-      ]
-    },
-    {
-      "cluster_id": 25,
-      "paper_count": 7,
-      "method": "vocab",
-      "label": "Stochastic Gradient Optimization Techniques",
-      "vocab_score": 0.8237,
-      "vocab_top10": [
-        [
-          "Stochastic Gradient Optimization Techniques",
-          0.8237
-        ],
-        [
-          "Generative Adversarial Networks and Image Synthesis",
-          0.813
-        ],
-        [
-          "Speech and Audio Processing",
-          0.8075
-        ],
-        [
-          "Image and Video Quality Assessment",
-          0.8063
-        ],
-        [
-          "Speech Recognition and Synthesis",
-          0.806
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "Dynamic Training-Free Fusion of Subject and Style LoRAs",
-        "On the Rate-Distortion-Complexity Tradeoff for Semantic Communication",
-        "Fast and Scalable Analytical Diffusion",
-        "The Equalizer: Introducing Shape-Gain Decomposition in Neural Audio Codecs",
-        "S-PRESSO: Ultra Low Bitrate Sound Effect Compression With Diffusion Autoencoders And Offline Quantization"
-      ]
-    },
-    {
-      "cluster_id": 26,
-      "paper_count": 7,
-      "method": "vocab",
-      "label": "Stochastic Gradient Optimization Techniques",
-      "vocab_score": 0.8576,
-      "vocab_top10": [
-        [
-          "Stochastic Gradient Optimization Techniques",
-          0.8576
-        ],
-        [
-          "Machine Learning and Data Classification",
-          0.8423
-        ],
-        [
-          "Machine Learning and Algorithms",
-          0.84
-        ],
-        [
-          "Adversarial Robustness in Machine Learning",
-          0.839
-        ],
-        [
-          "Machine Learning and ELM",
-          0.8225
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "S2D: Selective Spectral Decay for Quantization-Friendly Conditioning of Neural Activations",
-        "The geometry of invariant learning: an information-theoretic analysis of data augmentation and generalization",
-        "Exposing Diversity Bias in Deep Generative Models: Statistical Origins and Correction of Diversity Error",
-        "Conjugate Learning Theory: Uncovering the Mechanisms of Trainability and Generalization in Deep Neural Networks",
-        "SynthSAEBench: Evaluating Sparse Autoencoders on Scalable Realistic Synthetic Data"
-      ]
-    },
-    {
-      "cluster_id": 27,
-      "paper_count": 7,
-      "method": "vocab",
-      "label": "Reinforcement Learning in Robotics",
-      "vocab_score": 0.8306,
-      "vocab_top10": [
-        [
-          "Reinforcement Learning in Robotics",
-          0.8306
-        ],
-        [
-          "Machine Learning and Data Classification",
-          0.8156
-        ],
-        [
-          "Machine Learning and Algorithms",
-          0.8147
-        ],
-        [
-          "Domain Adaptation and Few-Shot Learning",
-          0.8133
-        ],
-        [
-          "Stochastic Gradient Optimization Techniques",
-          0.8065
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "TikArt: Aperture-Guided Observation for Fine-Grained Visual Reasoning via Reinforcement Learning",
-        "Goldilocks RL: Tuning Task Difficulty to Escape Sparse Rewards for Reasoning",
-        "Improving MLLMs in Embodied Exploration and Question Answering with Human-Inspired Memory Modeling",
-        "Train Less, Learn More: Adaptive Efficient Rollout Optimization for Group-Based Reinforcement Learning",
-        "BFS-PO: Best-First Search for Large Reasoning Models"
-      ]
-    },
-    {
-      "cluster_id": 28,
       "paper_count": 6,
       "method": "vocab",
       "label": "Machine Learning and Data Classification",
@@ -1079,191 +894,6 @@
         "A Scalable Curiosity-Driven Game-Theoretic Framework for Long-Tail Multi-Label Learning in Data Mining",
         "MASPO: Unifying Gradient Utilization, Probability Mass, and Signal Reliability for Robust and Sample-Efficient LLM Reasoning",
         "MARS: Margin-Aware Reward-Modeling with Self-Refinement"
-      ]
-    },
-    {
-      "cluster_id": 29,
-      "paper_count": 8,
-      "method": "vocab",
-      "label": "Age of Information Optimization",
-      "vocab_score": 0.8416,
-      "vocab_top10": [
-        [
-          "Age of Information Optimization",
-          0.8416
-        ],
-        [
-          "Energy Efficiency in Computing",
-          0.8356
-        ],
-        [
-          "Distributed and Parallel Computing Systems",
-          0.8314
-        ],
-        [
-          "Software System Performance and Reliability",
-          0.8302
-        ],
-        [
-          "Constraint Satisfaction and Optimization",
-          0.8287
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "CORPGEN: Simulating Corporate Environments with Autonomous Digital Employees in Multi-Horizon Task Environments",
-        "AI-Paging: Lease-Based Execution Anchoring for Network-Exposed AI-as-a-Service",
-        "Arbor: A Framework for Reliable Navigation of Critical Conversation Flows",
-        "World-Model-Augmented Web Agents with Action Correction",
-        "AdaptOrch: Task-Adaptive Multi-Agent Orchestration in the Era of LLM Performance Convergence"
-      ]
-    },
-    {
-      "cluster_id": 30,
-      "paper_count": 5,
-      "method": "vocab",
-      "label": "Domain Adaptation and Few-Shot Learning",
-      "vocab_score": 0.8329,
-      "vocab_top10": [
-        [
-          "Domain Adaptation and Few-Shot Learning",
-          0.8329
-        ],
-        [
-          "Advanced Neural Network Applications",
-          0.8327
-        ],
-        [
-          "Machine Learning and Data Classification",
-          0.8278
-        ],
-        [
-          "Machine Learning and Algorithms",
-          0.8253
-        ],
-        [
-          "Advanced Image and Video Retrieval Techniques",
-          0.8221
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "UniWeTok: An Unified Binary Tokenizer with Codebook Size $\\mathit{2^{128}}$ for Unified Multimodal Large Language Model",
-        "Automated Histopathology Report Generation via Pyramidal Feature Extraction and the UNI Foundation Model",
-        "VariViT: A Vision Transformer for Variable Image Sizes",
-        "A Self-Supervised Approach for Enhanced Feature Representations in Object Detection Tasks",
-        "Designing Production-Scale OCR for India: Multilingual and Domain-Specific Systems"
-      ]
-    },
-    {
-      "cluster_id": 31,
-      "paper_count": 11,
-      "method": "vocab",
-      "label": "Image and Video Quality Assessment",
-      "vocab_score": 0.8341,
-      "vocab_top10": [
-        [
-          "Image and Video Quality Assessment",
-          0.8341
-        ],
-        [
-          "Advanced Image Processing Techniques",
-          0.8337
-        ],
-        [
-          "Domain Adaptation and Few-Shot Learning",
-          0.8327
-        ],
-        [
-          "Generative Adversarial Networks and Image Synthesis",
-          0.8313
-        ],
-        [
-          "Advanced Image and Video Retrieval Techniques",
-          0.8253
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "Dual-Signal Adaptive KV-Cache Optimization for Long-Form Video Understanding in Vision-Language Models",
-        "GOT-JEPA: Generic Object Tracking with Model Adaptation and Occlusion Handling using Joint-Embedding Predictive Architecture",
-        "AnchorWeave: World-Consistent Video Generation with Retrieved Local Spatial Memories",
-        "Adapting VACE for Real-Time Autoregressive Video Diffusion",
-        "RPT-SR: Regional Prior attention Transformer for infrared image Super-Resolution"
-      ]
-    },
-    {
-      "cluster_id": 32,
-      "paper_count": 5,
-      "method": "vocab",
-      "label": "Distributed and Parallel Computing Systems",
-      "vocab_score": 0.8172,
-      "vocab_top10": [
-        [
-          "Distributed and Parallel Computing Systems",
-          0.8172
-        ],
-        [
-          "Multi-Agent Systems and Negotiation",
-          0.8166
-        ],
-        [
-          "Advanced Software Engineering Methodologies",
-          0.8145
-        ],
-        [
-          "Logic, programming, and type systems",
-          0.8118
-        ],
-        [
-          "Data Visualization and Analytics",
-          0.8103
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "EmbeWebAgent: Embedding Web Agents into Any Customized UI",
-        "AgriWorld:A World Tools Protocol Framework for Verifiable Agricultural Reasoning with Code-Executing LLM Agents",
-        "EAA: Automating materials characterization with vision language model agents",
-        "OpenSage: Self-programming Agent Generation Engine",
-        "Web Verbs: Typed Abstractions for Reliable Task Composition on the Agentic Web"
-      ]
-    },
-    {
-      "cluster_id": 33,
-      "paper_count": 5,
-      "method": "vocab",
-      "label": "Machine Learning and Algorithms",
-      "vocab_score": 0.8112,
-      "vocab_top10": [
-        [
-          "Machine Learning and Algorithms",
-          0.8112
-        ],
-        [
-          "Machine Learning and Data Classification",
-          0.8092
-        ],
-        [
-          "Topic Modeling",
-          0.8055
-        ],
-        [
-          "Speech and dialogue systems",
-          0.8025
-        ],
-        [
-          "Advanced Technologies in Various Fields",
-          0.8003
-        ]
-      ],
-      "keybert_top3": [],
-      "sample_titles": [
-        "AD-Bench: A Real-World, Trajectory-Aware Advertising Analytics Benchmark for LLM Agents",
-        "Orcheo: A Modular Full-Stack Platform for Conversational Search",
-        "Framework of Thoughts: A Foundation Framework for Dynamic and Optimized Reasoning based on Chains, Trees, and Graphs",
-        "Machine Learning as a Tool (MLAT): A Framework for Integrating Statistical ML Models as Callable Tools within LLM Agent Workflows",
-        "Persona2Web: Benchmarking Personalized Web Agents for Contextual Reasoning with User History"
       ]
     }
   ]
