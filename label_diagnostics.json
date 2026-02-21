@@ -1,8 +1,8 @@
 {
   "summary": {
-    "total_clusters": 7,
+    "total_clusters": 18,
     "vocab_labels": 0,
-    "keybert_labels": 7,
+    "keybert_labels": 18,
     "min_confidence": 0.75,
     "vocab_file": "data/vocab_embeddings.npz",
     "vocab_loaded": false
@@ -10,7 +10,268 @@
   "clusters": [
     {
       "cluster_id": 0,
-      "paper_count": 121,
+      "paper_count": 5,
+      "method": "keybert",
+      "label": "Formalizes Causation",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "formalizes causation",
+          0.8233
+        ],
+        [
+          "rigor dialogues",
+          0.8135
+        ],
+        [
+          "interpretable ai",
+          0.8039
+        ]
+      ],
+      "sample_titles": [
+        "Position: Introspective Experience from Conversational Environments as a Path to Better Learning",
+        "On the Semantics of Primary Cause in Hybrid Dynamic Domains",
+        "Causal and Compositional Abstraction",
+        "A Reversible Semantics for Janus",
+        "TAPO-Structured Description Logic for Information Behavior: Procedural and Oracle-Based Extensions"
+      ]
+    },
+    {
+      "cluster_id": 1,
+      "paper_count": 5,
+      "method": "keybert",
+      "label": "Discovery Tabular",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "discovery tabular",
+          0.8207
+        ],
+        [
+          "aware backfitting",
+          0.818
+        ],
+        [
+          "conditionally additive",
+          0.8164
+        ]
+      ],
+      "sample_titles": [
+        "Interpretability-by-Design with Accurate Locally Additive Models and Conditional Feature Effects",
+        "Tabular Foundation Models Can Learn Association Rules",
+        "Transforming Behavioral Neuroscience Discovery with In-Context Learning and AI-Enhanced Tensor Methods",
+        "A feature-stable and explainable machine learning framework for trustworthy decision-making under incomplete clinical data",
+        "Systematic Evaluation of Single-Cell Foundation Model Interpretability Reveals Attention Captures Co-Expression Rather Than Unique Regulatory Signal"
+      ]
+    },
+    {
+      "cluster_id": 2,
+      "paper_count": 21,
+      "method": "keybert",
+      "label": "Representational Similarity",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "representational similarity",
+          0.8384
+        ],
+        [
+          "reclassification l3h0",
+          0.8365
+        ],
+        [
+          "uncharted materials",
+          0.8303
+        ]
+      ],
+      "sample_titles": [
+        "Molecular Design beyond Training Data with Novel Extended Objective Functionals of Generative AI Models Driven by Quantum Annealing Computer",
+        "Revisiting the Platonic Representation Hypothesis: An Aristotelian View",
+        "Spectral Convolution on Orbifolds for Geometric Deep Learning",
+        "B-DENSE: Branching For Dense Ensemble Network Learning",
+        "Numerical exploration of the range of shape functionals using neural networks"
+      ]
+    },
+    {
+      "cluster_id": 3,
+      "paper_count": 8,
+      "method": "keybert",
+      "label": "Underexplored Medclarify",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "underexplored medclarify",
+          0.8593
+        ],
+        [
+          "amplifying overfitting",
+          0.8505
+        ],
+        [
+          "finetuned reward",
+          0.8452
+        ]
+      ],
+      "sample_titles": [
+        "MAC-AMP: A Closed-Loop Multi-Agent Collaboration System for Multi-Objective Antimicrobial Peptide Design",
+        "Optimization Instability in Autonomous Agentic Workflows for Clinical Symptom Detection",
+        "A Multi-Agent Framework for Medical AI: Leveraging Fine-Tuned GPT, LLaMA, and DeepSeek R1 for Evidence-Based and Bias-Aware Clinical Query Processing",
+        "Process-Supervised Multi-Agent Reinforcement Learning for Reliable Clinical Reasoning",
+        "References Improve LLM Alignment in Non-Verifiable Domains"
+      ]
+    },
+    {
+      "cluster_id": 4,
+      "paper_count": 11,
+      "method": "keybert",
+      "label": "Autoencoders Saes",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "autoencoders saes",
+          0.824
+        ],
+        [
+          "analysis cho2026_tokenizer",
+          0.8146
+        ],
+        [
+          "https github",
+          0.814
+        ]
+      ],
+      "sample_titles": [
+        "Cross-household Transfer Learning Approach with LSTM-based Demand Forecasting",
+        "ASPEN: Spectral-Temporal Fusion for Cross-Subject Brain Decoding",
+        "TokaMind: A Multi-Modal Transformer Foundation Model for Tokamak Plasma Dynamics",
+        "SynthSAEBench: Evaluating Sparse Autoencoders on Scalable Realistic Synthetic Data",
+        "A Systematic Evaluation of Sample-Level Tokenization Strategies for MEG Foundation Models"
+      ]
+    },
+    {
+      "cluster_id": 5,
+      "paper_count": 9,
+      "method": "keybert",
+      "label": "Submissions Innoeval",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "submissions innoeval",
+          0.8511
+        ],
+        [
+          "evaluators ai",
+          0.8391
+        ],
+        [
+          "visual preferences",
+          0.8267
+        ]
+      ],
+      "sample_titles": [
+        "Visual Persuasion: What Influences Decisions of Vision-Language Models?",
+        "Synthetic Reader Panels: Tournament-Based Ideation with LLM Personas for Autonomous Publishing",
+        "InnoEval: On Research Idea Evaluation as a Knowledge-Grounded, Multi-Perspective Reasoning Problem",
+        "EduEVAL-DB: A Role-Based Dataset for Pedagogical Risk Evaluation in Educational Explanations",
+        "High Precision Audience Expansion via Extreme Classification in a Two-Sided Marketplace"
+      ]
+    },
+    {
+      "cluster_id": 6,
+      "paper_count": 23,
+      "method": "keybert",
+      "label": "Evaluating Llms",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "evaluating llms",
+          0.8303
+        ],
+        [
+          "clarifying rubrics",
+          0.8226
+        ],
+        [
+          "remain underexplored",
+          0.8119
+        ]
+      ],
+      "sample_titles": [
+        "Reasoning Language Models for complex assessments tasks: Evaluating parental cooperation from child protection case reports",
+        "How Uncertain Is the Grade? A Benchmark of Uncertainty Metrics for LLM-Based Automatic Assessment",
+        "Long-Tail Knowledge in Large Language Models: Taxonomy, Mechanisms, Interventions and Implications",
+        "Evaluating LLMs in Finance Requires Explicit Bias Consideration",
+        "Bounding Probabilities of Causation with Partial Causal Diagrams"
+      ]
+    },
+    {
+      "cluster_id": 7,
+      "paper_count": 13,
+      "method": "keybert",
+      "label": "Uncovers Annotator",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "uncovers annotator",
+          0.8637
+        ],
+        [
+          "genres comedy",
+          0.8402
+        ],
+        [
+          "conversational structure",
+          0.8353
+        ]
+      ],
+      "sample_titles": [
+        "TruthStance: An Annotated Dataset of Conversations on Truth Social",
+        "Are LLMs Ready to Replace Bangla Annotators?",
+        "Revisiting Northrop Frye's Four Myths Theory with Large Language Models",
+        "Beyond Binary Classification: Detecting Fine-Grained Sexism in Social Media Videos",
+        "Evaluating Monolingual and Multilingual Large Language Models for Greek Question Answering: The DemosQA Benchmark"
+      ]
+    },
+    {
+      "cluster_id": 8,
+      "paper_count": 10,
+      "method": "keybert",
+      "label": "Pretrained Bidirectional",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "pretrained bidirectional",
+          0.8408
+        ],
+        [
+          "llms retraining",
+          0.8291
+        ],
+        [
+          "consistently outperforming",
+          0.8258
+        ]
+      ],
+      "sample_titles": [
+        "Explainable Token-level Noise Filtering for LLM Fine-tuning Datasets",
+        "Inner Loop Inference for Pretrained Transformers: Unlocking Latent Capabilities Without Training",
+        "Avey-B",
+        "Beyond Learning: A Training-Free Alternative to Model Adaptation",
+        "Explainable AI: Context-Aware Layer-Wise Integrated Gradients for Explaining Transformer Models"
+      ]
+    },
+    {
+      "cluster_id": 9,
+      "paper_count": 27,
       "method": "keybert",
       "label": "Densenet201 Inception",
       "vocab_score": null,
@@ -18,144 +279,86 @@
       "keybert_top3": [
         [
           "densenet201 inception",
-          0.843
+          0.8255
         ],
         [
-          "multifaceted learnable",
-          0.8389
+          "leveraging saliency",
+          0.8202
         ],
         [
-          "mitigating forgetting",
-          0.8228
+          "tracking occlusions",
+          0.8071
         ]
       ],
       "sample_titles": [
-        "Cross-household Transfer Learning Approach with LSTM-based Demand Forecasting",
         "Dual-Signal Adaptive KV-Cache Optimization for Long-Form Video Understanding in Vision-Language Models",
-        "Towards Spatial Transcriptomics-driven Pathology Foundation Models",
+        "GOT-JEPA: Generic Object Tracking with Model Adaptation and Occlusion Handling using Joint-Embedding Predictive Architecture",
+        "AnchorWeave: World-Consistent Video Generation with Retrieved Local Spatial Memories",
+        "VariViT: A Vision Transformer for Variable Image Sizes",
+        "Feature Recalibration Based Olfactory-Visual Multimodal Model for Fine-Grained Rice Deterioration Detection"
+      ]
+    },
+    {
+      "cluster_id": 10,
+      "paper_count": 11,
+      "method": "keybert",
+      "label": "Pretrained Latent",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "pretrained latent",
+          0.8327
+        ],
+        [
+          "drift regularizer",
+          0.8217
+        ],
+        [
+          "w4a4 quantization",
+          0.814
+        ]
+      ],
+      "sample_titles": [
         "Dynamic Training-Free Fusion of Subject and Style LoRAs",
-        "Molecular Design beyond Training Data with Novel Extended Objective Functionals of Generative AI Models Driven by Quantum Annealing Computer"
+        "S2D: Selective Spectral Decay for Quantization-Friendly Conditioning of Neural Activations",
+        "The geometry of invariant learning: an information-theoretic analysis of data augmentation and generalization",
+        "On the Rate-Distortion-Complexity Tradeoff for Semantic Communication",
+        "Exposing Diversity Bias in Deep Generative Models: Statistical Origins and Correction of Diversity Error"
       ]
     },
     {
-      "cluster_id": 1,
-      "paper_count": 41,
+      "cluster_id": 11,
+      "paper_count": 6,
       "method": "keybert",
-      "label": "Llms Conversational",
+      "label": "Parameters Learnable",
       "vocab_score": null,
       "vocab_top10": [],
       "keybert_top3": [
         [
-          "llms conversational",
-          0.8453
+          "parameters learnable",
+          0.8191
         ],
         [
-          "uncovers annotator",
-          0.8409
+          "optimization enforces",
+          0.8076
         ],
         [
-          "revise drafts",
-          0.8238
+          "projecting edit",
+          0.8056
         ]
       ],
       "sample_titles": [
-        "Multi-Agent Comedy Club: Investigating Community Discussion Effects on LLM Humor Generation",
-        "TruthStance: An Annotated Dataset of Conversations on Truth Social",
-        "Reasoning Language Models for complex assessments tasks: Evaluating parental cooperation from child protection case reports",
-        "Intra-Fairness Dynamics: The Bias Spillover Effect in Targeted LLM Alignment",
-        "How Uncertain Is the Grade? A Benchmark of Uncertainty Metrics for LLM-Based Automatic Assessment"
+        "Parameter-Efficient Fine-Tuning of LLMs with Mixture of Space Experts",
+        "CrispEdit: Low-Curvature Projections for Scalable Non-Destructive LLM Editing",
+        "Silent Inconsistency in Data-Parallel Full Fine-Tuning: Diagnosing Worker-Level Optimization Misalignment",
+        "FLoRG: Federated Fine-tuning with Low-rank Gram Matrices and Procrustes Alignment",
+        "LORA-CRAFT: Cross-layer Rank Adaptation via Frozen Tucker Decomposition of Pre-trained Attention Weights"
       ]
     },
     {
-      "cluster_id": 2,
-      "paper_count": 13,
-      "method": "keybert",
-      "label": "Evaluators Llm",
-      "vocab_score": null,
-      "vocab_top10": [],
-      "keybert_top3": [
-        [
-          "evaluators llm",
-          0.848
-        ],
-        [
-          "competitions persona",
-          0.841
-        ],
-        [
-          "finetuned reward",
-          0.8278
-        ]
-      ],
-      "sample_titles": [
-        "Visual Persuasion: What Influences Decisions of Vision-Language Models?",
-        "Synthetic Reader Panels: Tournament-Based Ideation with LLM Personas for Autonomous Publishing",
-        "MAC-AMP: A Closed-Loop Multi-Agent Collaboration System for Multi-Objective Antimicrobial Peptide Design",
-        "Optimization Instability in Autonomous Agentic Workflows for Clinical Symptom Detection",
-        "Return of the Schema: Building Complete Datasets for Machine Learning and Reasoning on Knowledge Graphs"
-      ]
-    },
-    {
-      "cluster_id": 3,
-      "paper_count": 23,
-      "method": "keybert",
-      "label": "Adversaries Behave",
-      "vocab_score": null,
-      "vocab_top10": [],
-      "keybert_top3": [
-        [
-          "adversaries behave",
-          0.8363
-        ],
-        [
-          "collusion regret",
-          0.8284
-        ],
-        [
-          "understudied textbf",
-          0.8251
-        ]
-      ],
-      "sample_titles": [
-        "Colosseum: Auditing Collusion in Cooperative Multi-Agent Systems",
-        "Differentially Private Retrieval-Augmented Generation",
-        "A Trajectory-Based Safety Audit of Clawdbot (OpenClaw)",
-        "AXE: An Agentic eXploit Engine for Confirming Zero-Day Vulnerability Reports",
-        "What hackers talk about when they talk about AI: Early-stage diffusion of a cybercrime innovation"
-      ]
-    },
-    {
-      "cluster_id": 4,
-      "paper_count": 12,
-      "method": "keybert",
-      "label": "Https Github",
-      "vocab_score": null,
-      "vocab_top10": [],
-      "keybert_top3": [
-        [
-          "https github",
-          0.8357
-        ],
-        [
-          "embewebagent stack",
-          0.8201
-        ],
-        [
-          "streamlined creation",
-          0.8177
-        ]
-      ],
-      "sample_titles": [
-        "AD-Bench: A Real-World, Trajectory-Aware Advertising Analytics Benchmark for LLM Agents",
-        "Orcheo: A Modular Full-Stack Platform for Conversational Search",
-        "EmbeWebAgent: Embedding Web Agents into Any Customized UI",
-        "Framework of Thoughts: A Foundation Framework for Dynamic and Optimized Reasoning based on Chains, Trees, and Graphs",
-        "EAA: Automating materials characterization with vision language model agents"
-      ]
-    },
-    {
-      "cluster_id": 5,
-      "paper_count": 30,
+      "cluster_id": 12,
+      "paper_count": 27,
       "method": "keybert",
       "label": "Reward Posteriors",
       "vocab_score": null,
@@ -179,36 +382,152 @@
         "MAVRL: Learning Reward Functions from Multiple Feedback Types with Amortized Variational Inference",
         "HiPER: Hierarchical Reinforcement Learning with Explicit Credit Assignment for Large Language Model Agents",
         "TikArt: Aperture-Guided Observation for Fine-Grained Visual Reasoning via Reinforcement Learning",
-        "SIT-LMPC: Safe Information-Theoretic Learning Model Predictive Control for Iterative Tasks"
+        "Multi-agent cooperation through in-context co-player inference"
       ]
     },
     {
-      "cluster_id": 6,
-      "paper_count": 15,
+      "cluster_id": 13,
+      "paper_count": 12,
       "method": "keybert",
-      "label": "Planners Varying",
+      "label": "Autonomously Climb",
       "vocab_score": null,
       "vocab_top10": [],
       "keybert_top3": [
         [
-          "planners varying",
-          0.857
+          "autonomously climb",
+          0.8334
         ],
         [
-          "grained execution",
-          0.8406
+          "planners trajectory",
+          0.8309
         ],
         [
-          "chunked prefill",
+          "affordance driven",
+          0.8161
+        ]
+      ],
+      "sample_titles": [
+        "Perceptive Humanoid Parkour: Chaining Dynamic Human Skills via Motion Matching",
+        "PhyScensis: Physics-Augmented LLM Agents for Complex Physical Scene Arrangement",
+        "Articulated 3D Scene Graphs for Open-World Mobile Manipulation",
+        "GREAT-EER: Graph Edge Attention Network for Emergency Evacuation Responses",
+        "Learning Transferability: A Two-Stage Reinforcement Learning Approach for Enhancing Quadruped Robots' Performance in U-Shaped Stair Climbing"
+      ]
+    },
+    {
+      "cluster_id": 14,
+      "paper_count": 17,
+      "method": "keybert",
+      "label": "Understudied Textbf",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "understudied textbf",
+          0.8477
+        ],
+        [
+          "seasoned cybercriminals",
+          0.8271
+        ],
+        [
+          "adversaries behave",
+          0.8252
+        ]
+      ],
+      "sample_titles": [
+        "Differentially Private Retrieval-Augmented Generation",
+        "What hackers talk about when they talk about AI: Early-stage diffusion of a cybercrime innovation",
+        "Closing the Distribution Gap in Adversarial Training for LLMs",
+        "Unforgeable Watermarks for Language Models via Robust Signatures",
+        "Long Context, Less Focus: A Scaling Gap in LLMs Revealed through Privacy and Personalization"
+      ]
+    },
+    {
+      "cluster_id": 15,
+      "paper_count": 6,
+      "method": "keybert",
+      "label": "Leveraging Agentlab",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "leveraging agentlab",
+          0.8421
+        ],
+        [
+          "clawdbot risk",
+          0.8415
+        ],
+        [
+          "misinterpreted vulnerability",
           0.8397
         ]
       ],
       "sample_titles": [
-        "CORPGEN: Simulating Corporate Environments with Autonomous Digital Employees in Multi-Horizon Task Environments",
-        "Perceptive Humanoid Parkour: Chaining Dynamic Human Skills via Motion Matching",
-        "PhyScensis: Physics-Augmented LLM Agents for Complex Physical Scene Arrangement",
+        "A Trajectory-Based Safety Audit of Clawdbot (OpenClaw)",
+        "AXE: An Agentic eXploit Engine for Confirming Zero-Day Vulnerability Reports",
+        "Policy Compiler for Secure Agentic Systems",
+        "AgentLAB: Benchmarking LLM Agents against Long-Horizon Attacks",
+        "ReIn: Conversational Error Recovery with Reasoning Inception"
+      ]
+    },
+    {
+      "cluster_id": 16,
+      "paper_count": 5,
+      "method": "keybert",
+      "label": "Establish Orchestration",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "establish orchestration",
+          0.8283
+        ],
+        [
+          "paging enforces",
+          0.8189
+        ],
+        [
+          "aexf qos",
+          0.8099
+        ]
+      ],
+      "sample_titles": [
         "AI-Paging: Lease-Based Execution Anchoring for Network-Exposed AI-as-a-Service",
-        "Articulated 3D Scene Graphs for Open-World Mobile Manipulation"
+        "Arbor: A Framework for Reliable Navigation of Critical Conversation Flows",
+        "AdaptOrch: Task-Adaptive Multi-Agent Orchestration in the Era of LLM Performance Convergence",
+        "FlowPrefill: Decoupling Preemption from Prefill Scheduling Granularity to Mitigate Head-of-Line Blocking in LLM Serving",
+        "WarpRec: Unifying Academic Rigor and Industrial Scale for Responsible, Reproducible, and Efficient Recommendation"
+      ]
+    },
+    {
+      "cluster_id": 17,
+      "paper_count": 8,
+      "method": "keybert",
+      "label": "Https Github",
+      "vocab_score": null,
+      "vocab_top10": [],
+      "keybert_top3": [
+        [
+          "https github",
+          0.8357
+        ],
+        [
+          "embewebagent stack",
+          0.8201
+        ],
+        [
+          "curated aria",
+          0.8164
+        ]
+      ],
+      "sample_titles": [
+        "AD-Bench: A Real-World, Trajectory-Aware Advertising Analytics Benchmark for LLM Agents",
+        "Orcheo: A Modular Full-Stack Platform for Conversational Search",
+        "EmbeWebAgent: Embedding Web Agents into Any Customized UI",
+        "Framework of Thoughts: A Foundation Framework for Dynamic and Optimized Reasoning based on Chains, Trees, and Graphs",
+        "EAA: Automating materials characterization with vision language model agents"
       ]
     }
   ]
