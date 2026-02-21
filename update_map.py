@@ -791,7 +791,7 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 #   niche or emerging topics not well-covered by the OpenAlex taxonomy.
 #
 # PREVIOUS APPROACH: KeyBERT with abstracts as input
-#   Re-enable by setting USE_VOCAB_LABELS = False below, or by removing
+#   Re-enable by setting LABEL_MODE = "keybert" below, or by removing
 #   vocab_embeddings.npz from the repo (the code gracefully falls back).
 #
 # VOCAB FILE: data/vocab_embeddings.npz
@@ -812,7 +812,7 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 # IMPORTANT: vocab_embeddings.npz was built with specter2_base.
 # If you switch to mpnet, the vocab centroid matching will be less
 # accurate (different embedding space). Either:
-#   a) Set USE_VOCAB_LABELS = False when using mpnet, or
+#   a) Set LABEL_MODE = "keybert" when using mpnet, or
 #   b) Regenerate vocab_embeddings.npz with the new model via
 #      the label-vocabulary-builder repo.
 #
@@ -830,7 +830,7 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 #
 # Recommended experiment: try "mpnet" vs "specter2_base" to test whether
 # scientific domain specialisation actually helps your clustering quality.
-EMBEDDING_MODEL = "mpnet"
+EMBEDDING_MODEL = "specter2_base"
 
 _EMBEDDING_MODEL_IDS = {
     "specter2_base": "allenai/specter2_base",
@@ -850,23 +850,84 @@ print(f"▶  Embedding model: {EMBEDDING_MODEL_ID}")
 # LABELING SETTINGS
 # ════════════════════════════════════════════════════════════════════
 #
-# ── USE_VOCAB_LABELS (bool, default: True) ───────────────────────────
-# Master switch for vocabulary-based labeling.
-# True  → use OpenAlex vocabulary, fall back to KeyBERT on low confidence.
-# False → use KeyBERT for all clusters (previous behaviour).
-USE_VOCAB_LABELS = True
+# ── LABEL_MODE (str) ─────────────────────────────────────────────────
+# Controls how cluster labels are generated.
+#
+# "vocab"      — OpenAlex ~300-topic vocabulary loaded from vocab_embeddings.npz.
+#                Falls back to KeyBERT when cosine similarity < MIN_VOCAB_CONFIDENCE.
+#                Produces specific, granular labels. Requires the .npz file.
+#
+# "curated_20" — 20 hand-curated categories covering modern arXiv/cs.AI research.
+#                Embeddings are computed at runtime from CURATED_20_LABELS below
+#                (takes ~1s for 20 strings; no .npz file needed).
+#                Always assigns the best-matching category — no KeyBERT fallback.
+#                The threshold (MIN_CURATED_CONFIDENCE) is intentionally low (0.3)
+#                since every cluster should map to one of the 20 categories.
+#                Use this to see broad thematic structure across the corpus.
+#
+# "keybert"    — KeyBERT extraction on cluster abstracts for all clusters.
+#                Produces phrase-level labels ("reward shaping policy") rather
+#                than topic names. No vocab file required. Original approach.
+#
+# Parallel comparison: run with "curated_20" and "vocab" on alternate days
+# (or use EMBEDDING_MODE=full to force a fresh run) and compare label quality
+# in the diagnostics JSON.
+LABEL_MODE = "curated_20"
+
+# ── CURATED_20_LABELS ─────────────────────────────────────────────────
+# 20 hand-curated categories for modern arXiv cs.AI research (Feb 2026).
+# Used only when LABEL_MODE = "curated_20".
+# Edit freely — these are embedded at runtime with the active EMBEDDING_MODEL,
+# so no .npz regeneration is needed after changes.
+#
+# Grouped by theme for readability; order does not affect matching.
+CURATED_20_LABELS = [
+    # Core Model Architectures & Training
+    "Foundation Models and Scaling Laws",
+    "State Space Models",
+    "Mixture of Experts",
+    "Neural ODEs and Continuous-Time Models",
+    # Learning Paradigms
+    "Agentic AI and Autonomous Agents",
+    "Reinforcement Learning from Human Feedback",
+    "Multi-Agent Reinforcement Learning",
+    "Self-Supervised and Contrastive Learning",
+    # Specialized AI Capabilities
+    "Multimodal Fusion",
+    "Retrieval-Augmented Generation",
+    "Mathematical Reasoning and Theorem Proving",
+    "AI for Code and Software Engineering",
+    # Ethics, Safety & Evaluation
+    "Benchmark Design and Evaluation Methodology",
+    "Explainability and Interpretability",
+    "Adversarial Robustness and AI Safety",
+    "AI Governance and Policy",
+    # Hardware & Deployment
+    "On-Device and Edge AI",
+    "Efficient Inference and Quantization",
+    # Domain-Specific Applications
+    "AI for Science",
+    "Medical and Clinical AI",
+]
 
 # ── MIN_VOCAB_CONFIDENCE (float, default: 0.75) ──────────────────────
-# Minimum cosine similarity to accept a vocabulary match.
+# Minimum cosine similarity to accept a vocabulary match (LABEL_MODE="vocab").
 # Higher → fewer vocab labels, more KeyBERT fallbacks (more conservative).
 # Lower  → more vocab labels, accepts weaker matches.
 # Recommended range: 0.65–0.85.
 MIN_VOCAB_CONFIDENCE = 0.75
 
+# ── MIN_CURATED_CONFIDENCE (float, default: 0.30) ────────────────────
+# Minimum cosine similarity to accept a curated-20 match (LABEL_MODE="curated_20").
+# Intentionally low — with only 20 categories every cluster should match one.
+# Raise above 0.5 only if you want genuine mismatches to fall back to KeyBERT.
+# Range: 0.20–0.50.
+MIN_CURATED_CONFIDENCE = 0.30
+
 # ── VOCAB_EMBEDDINGS_PATH (str) ──────────────────────────────────────
-# Path to the pre-built vocabulary embeddings file.
-# Generated by the label-vocabulary-builder repo and downloaded by the
-# workflow before this script runs.
+# Path to the pre-built OpenAlex vocabulary embeddings file.
+# Used only when LABEL_MODE = "vocab".
+# Generated by the label-vocabulary-builder repo.
 VOCAB_EMBEDDINGS_PATH = "data/vocab_embeddings.npz"
 # ════════════════════════════════════════════════════════════════════
 
@@ -876,6 +937,7 @@ def _load_vocab_embeddings(path: str):
     Load pre-computed vocabulary embeddings from disk.
     Returns (embeddings, labels) or (None, None) if file not found or invalid.
     Embeddings are L2-normalised 768-dim SPECTER2 vectors, shape (N, 768).
+    Used only when LABEL_MODE = "vocab".
     """
     if not os.path.exists(path):
         print(f"  [vocab] {path} not found — will use KeyBERT for all clusters.")
@@ -890,6 +952,23 @@ def _load_vocab_embeddings(path: str):
         print(f"  [vocab] Failed to load {path} ({e}) — will use KeyBERT for all clusters.")
         print(f"  [vocab] Run the label-vocabulary-builder workflow to regenerate vocab_embeddings.npz.")
         return None, None
+
+
+def _build_curated_embeddings(labels: list, model) -> np.ndarray:
+    """
+    Embed CURATED_20_LABELS at runtime using the active SentenceTransformer model.
+    Returns an L2-normalised (N, D) float32 matrix ready for cosine similarity.
+    Called once per run when LABEL_MODE = "curated_20"; takes ~1s for 20 strings.
+    """
+    print(f"  [curated_20] Embedding {len(labels)} curated category labels at runtime...")
+    vectors = model.encode(labels, show_progress_bar=False, convert_to_numpy=True)
+    vectors = vectors.astype(np.float32)
+    # L2-normalise each row so dot product == cosine similarity
+    norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+    norms = np.where(norms > 0, norms, 1.0)
+    vectors = vectors / norms
+    print(f"  [curated_20] Done. Embedding shape: {vectors.shape}")
+    return vectors
 
 
 def _vocab_label_for_centroid(
@@ -930,7 +1009,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> tuple:
     """
     Cluster papers with HDBSCAN, then label each cluster.
 
-    Labeling strategy (controlled by USE_VOCAB_LABELS above):
+    Labeling strategy (controlled by LABEL_MODE above):
       1. Compute the cluster centroid from raw 768D SPECTER2 embeddings.
       2. Find the closest OpenAlex topic via cosine similarity.
       3. If confidence ≥ MIN_VOCAB_CONFIDENCE → use vocab label.
@@ -1011,8 +1090,8 @@ def generate_keybert_labels(df: pd.DataFrame) -> tuple:
     # Range:    0.5–2.0 typical.
     # ════════════════════════════════════════════════════════════════════
     clusterer = HDBSCAN(
-        min_cluster_size=max(5, len(df) // 80),
-        min_samples=3,
+        min_cluster_size=max(5, len(df) // 40),
+        min_samples=4,
         metric=cluster_metric,
         cluster_selection_method="leaf",
     )
@@ -1020,18 +1099,34 @@ def generate_keybert_labels(df: pd.DataFrame) -> tuple:
 
     n_clusters = len(set(cluster_ids)) - (1 if -1 in cluster_ids else 0)
     print(f"  Found {n_clusters} clusters (noise points excluded).")
+    print(f"  Label mode: {LABEL_MODE}")
 
-    # ── Load vocabulary embeddings (for centroid matching) ───────────────
-    # Raw 768D embeddings are used for centroid computation — these preserve
-    # the full semantic structure that UMAP compresses away in 50D/2D.
-    vocab_embeddings, vocab_labels = None, None
+    # ── Raw 768D vectors — needed for centroid matching in all vocab modes ──
+    # These preserve the full semantic structure that UMAP compresses away.
     all_768d = None
-    if USE_VOCAB_LABELS:
-        vocab_embeddings, vocab_labels = _load_vocab_embeddings(VOCAB_EMBEDDINGS_PATH)
-        if vocab_embeddings is not None and "embedding" in df.columns:
-            all_768d = np.array(df["embedding"].tolist(), dtype=np.float32)
+    if "embedding" in df.columns and LABEL_MODE in ("vocab", "curated_20"):
+        all_768d = np.array(df["embedding"].tolist(), dtype=np.float32)
 
-    # ── KeyBERT (initialised once; only used for fallback clusters) ──────
+    # ── Load / build vocab embeddings based on LABEL_MODE ───────────────────
+    vocab_embeddings, vocab_labels = None, None
+    curated_confidence = MIN_CURATED_CONFIDENCE
+
+    if LABEL_MODE == "vocab":
+        # Load pre-built OpenAlex ~300-topic vocabulary from disk.
+        vocab_embeddings, vocab_labels = _load_vocab_embeddings(VOCAB_EMBEDDINGS_PATH)
+
+    elif LABEL_MODE == "curated_20":
+        # Embed the 20 hand-curated category strings at runtime.
+        # Uses the same model as paper embeddings so the spaces are aligned.
+        from sentence_transformers import SentenceTransformer as _ST
+        _model = _ST(EMBEDDING_MODEL_ID)
+        vocab_embeddings = _build_curated_embeddings(CURATED_20_LABELS, _model)
+        vocab_labels = CURATED_20_LABELS
+        del _model   # free VRAM before KeyBERT loads (KeyBERT reloads it internally)
+
+    # ── KeyBERT — initialised once; used as fallback for "vocab" and "keybert" mode
+    # In "curated_20" mode it is only used when a cluster scores below
+    # MIN_CURATED_CONFIDENCE (rare given only 20 broad categories).
     kw_model = KeyBERT(model=EMBEDDING_MODEL_ID)
 
     from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
@@ -1054,9 +1149,16 @@ def generate_keybert_labels(df: pd.DataFrame) -> tuple:
     ]
 
     vocab_count = 0
+    curated_count = 0
     keybert_count = 0
     label_rows = []
     diagnostics = []   # written to label_diagnostics.json for inspection
+
+    # Confidence threshold varies by mode
+    active_confidence = (
+        MIN_CURATED_CONFIDENCE if LABEL_MODE == "curated_20"
+        else MIN_VOCAB_CONFIDENCE
+    )
 
     for cid in sorted(set(cluster_ids)):
         if cid == -1:
@@ -1075,29 +1177,35 @@ def generate_keybert_labels(df: pd.DataFrame) -> tuple:
             "sample_titles": df.loc[mask, "title"].tolist()[:5],
         }
 
-        # ── Step 1: Try vocabulary centroid matching ─────────────────────
+        # ── Step 1: Centroid matching (vocab or curated_20 modes) ────────────
         if vocab_embeddings is not None and all_768d is not None:
             centroid = all_768d[mask].mean(axis=0)
             label_text, score, candidates = _vocab_label_for_centroid(
-                centroid, vocab_embeddings, vocab_labels, MIN_VOCAB_CONFIDENCE
+                centroid, vocab_embeddings, vocab_labels, active_confidence
             )
             diag["vocab_score"] = round(float(score), 4)
             diag["vocab_top10"] = [(t, round(float(s), 4)) for t, s in candidates[:10]]
             if label_text:
-                diag["method"] = "vocab"
-                print(f"  Cluster {cid} ({mask.sum()} papers) → vocab: '{label_text}' "
+                method_tag = "curated_20" if LABEL_MODE == "curated_20" else "vocab"
+                diag["method"] = method_tag
+                print(f"  Cluster {cid} ({mask.sum()} papers) → {method_tag}: '{label_text}' "
                       f"(score={score:.3f})")
                 print(f"    top5: {[(t, f'{s:.3f}') for t,s in candidates[:5]]}")
-                vocab_count += 1
+                if LABEL_MODE == "curated_20":
+                    curated_count += 1
+                else:
+                    vocab_count += 1
             else:
-                print(f"  Cluster {cid} ({mask.sum()} papers) → vocab too low "
+                print(f"  Cluster {cid} ({mask.sum()} papers) → centroid too low "
                       f"(best={score:.3f}: '{candidates[0][0]}') → KeyBERT fallback")
 
-        # ── Step 2: KeyBERT fallback ─────────────────────────────────────
+        # ── Step 2: KeyBERT fallback ─────────────────────────────────────────
+        # Always used when LABEL_MODE = "keybert".
+        # Used as fallback when centroid score is too low in "vocab" / "curated_20".
         if label_text is None:
             abstracts = df.loc[mask, "abstract"].tolist()
             combined  = " ".join(abstracts)
-            # ── KeyBERT keyword extraction settings ─────────────────────
+            # ── KeyBERT keyword extraction settings ─────────────────────────
             # keyphrase_ngram_range: (min, max) words per phrase.
             #   (1, 2) → single words and bigrams (recommended).
             #   (2, 2) → bigrams only — specific but can produce odd pairings.
@@ -1135,24 +1243,27 @@ def generate_keybert_labels(df: pd.DataFrame) -> tuple:
         cy = float(coords_2d[mask, 1].mean())
         label_rows.append({"x": cx, "y": cy, "text": label_text})
 
-    print(f"  Labeling summary: {vocab_count} vocabulary, {keybert_count} KeyBERT fallback.")
+    print(f"  Labeling summary: {vocab_count} vocab | {curated_count} curated_20 | "
+          f"{keybert_count} KeyBERT fallback.")
 
-    # ── Write diagnostics report ─────────────────────────────────────────
+    # ── Write diagnostics report ─────────────────────────────────────────────
     # label_diagnostics.json shows exactly what happened for every cluster:
-    #   - which label was chosen and why (vocab vs keybert)
-    #   - the top 10 vocab candidates with cosine scores
+    #   - which label was chosen and why (vocab / curated_20 / keybert)
+    #   - the top 10 candidates with cosine scores
     #   - the top 3 KeyBERT keywords (when used as fallback)
     #   - 5 sample paper titles from the cluster
-    # Use this to tune MIN_VOCAB_CONFIDENCE and spot mismatches.
+    # Use this to compare LABEL_MODE options and tune confidence thresholds.
     diag_path = "label_diagnostics.json"
     with open(diag_path, "w") as f:
         json.dump({
             "summary": {
+                "label_mode":      LABEL_MODE,
                 "total_clusters":  len(diagnostics),
                 "vocab_labels":    vocab_count,
+                "curated_labels":  curated_count,
                 "keybert_labels":  keybert_count,
-                "min_confidence":  MIN_VOCAB_CONFIDENCE,
-                "vocab_file":      VOCAB_EMBEDDINGS_PATH,
+                "min_confidence":  active_confidence,
+                "vocab_file":      VOCAB_EMBEDDINGS_PATH if LABEL_MODE == "vocab" else "n/a",
                 "vocab_loaded":    vocab_embeddings is not None,
             },
             "clusters": diagnostics,
