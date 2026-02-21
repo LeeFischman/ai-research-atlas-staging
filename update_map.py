@@ -728,7 +728,7 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
     from sentence_transformers import SentenceTransformer
     import umap as umap_lib
 
-    model = SentenceTransformer("allenai/specter2_base")
+    model = SentenceTransformer(EMBEDDING_MODEL_ID)
 
     if "embedding" in df.columns:
         needs_embed = df["embedding"].isna()
@@ -801,6 +801,53 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 # ──────────────────────────────────────────────
 
 # ════════════════════════════════════════════════════════════════════
+# EMBEDDING MODEL SETTINGS
+# ════════════════════════════════════════════════════════════════════
+#
+# ── EMBEDDING_MODEL (str) ────────────────────────────────────────────
+# Which SentenceTransformer model to use for SPECTER2 embeddings.
+# All three options output 768D vectors, so no downstream changes are
+# needed — vocab_embeddings.npz, UMAP, and HDBSCAN all remain the same.
+#
+# IMPORTANT: vocab_embeddings.npz was built with specter2_base.
+# If you switch to mpnet, the vocab centroid matching will be less
+# accurate (different embedding space). Either:
+#   a) Set USE_VOCAB_LABELS = False when using mpnet, or
+#   b) Regenerate vocab_embeddings.npz with the new model via
+#      the label-vocabulary-builder repo.
+#
+# Options:
+#   "specter2_base" — allenai/specter2_base (current default)
+#                     Scientific domain, fast, well-tested here.
+#   "specter2"      — allenai/specter2 with proximity adapter
+#                     Slightly better similarity scores, same domain.
+#                     Slower to load; may need adapter install:
+#                     pip install adapters
+#   "mpnet"         — sentence-transformers/all-mpnet-base-v2
+#                     General-purpose, not science-specific.
+#                     Strong semantic similarity benchmark performance.
+#                     Useful for comparing vs domain-specific models.
+#
+# Recommended range: try "mpnet" vs "specter2_base" to test whether
+# domain specialisation matters for your clustering quality.
+EMBEDDING_MODEL = "specter2"
+
+_EMBEDDING_MODEL_IDS = {
+    "specter2_base": "allenai/specter2_base",
+    "specter2":      "allenai/specter2",
+    "mpnet":         "sentence-transformers/all-mpnet-base-v2",
+}
+
+if EMBEDDING_MODEL not in _EMBEDDING_MODEL_IDS:
+    raise ValueError(
+        f"Unknown EMBEDDING_MODEL '{EMBEDDING_MODEL}'. "
+        f"Choose from: {list(_EMBEDDING_MODEL_IDS)}"
+    )
+
+EMBEDDING_MODEL_ID = _EMBEDDING_MODEL_IDS[EMBEDDING_MODEL]
+print(f"▶  Embedding model: {EMBEDDING_MODEL_ID}")
+
+# ════════════════════════════════════════════════════════════════════
 # LABELING SETTINGS
 # ════════════════════════════════════════════════════════════════════
 #
@@ -808,7 +855,7 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 # Master switch for vocabulary-based labeling.
 # True  → use OpenAlex vocabulary, fall back to KeyBERT on low confidence.
 # False → use KeyBERT for all clusters (previous behaviour).
-USE_VOCAB_LABELS = False
+USE_VOCAB_LABELS = True
 
 # ── MIN_VOCAB_CONFIDENCE (float, default: 0.75) ──────────────────────
 # Minimum cosine similarity to accept a vocabulary match.
@@ -965,8 +1012,8 @@ def generate_keybert_labels(df: pd.DataFrame) -> tuple:
     # Range:    0.5–2.0 typical.
     # ════════════════════════════════════════════════════════════════════
     clusterer = HDBSCAN(
-        min_cluster_size=max(5, len(df) // 60),
-        min_samples=2,
+        min_cluster_size=max(5, len(df) // 40),
+        min_samples=4,
         metric=cluster_metric,
         cluster_selection_method="leaf",
     )
@@ -986,7 +1033,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> tuple:
             all_768d = np.array(df["embedding"].tolist(), dtype=np.float32)
 
     # ── KeyBERT (initialised once; only used for fallback clusters) ──────
-    kw_model = KeyBERT(model="allenai/specter2_base")
+    kw_model = KeyBERT(model=EMBEDDING_MODEL_ID)
 
     from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
     KEYBERT_STOP_WORDS = list(ENGLISH_STOP_WORDS) + [
@@ -1228,7 +1275,7 @@ def build_panel_html(run_date: str) -> str:
 
     <div class="arm-tip"><span class="arm-tip-icon">&#x1F4A1;</span><span>Set color to <strong>Reputation</strong> to see higher reputation scoring.</span></div>
 
-  <div class="arm-tip"><span class="arm-tip-icon">&#x1F4A1;</span><span>Set color to <strong>author_tier</strong>; more authors tends to be better.</span></div>
+  <div class="arm-tip"><span class="arm-tip-icon">&#x1F4A1;</span><span>Set color to <strong>Author Tier</strong>; more authors tends to be better.</span></div>
 
   <div class="arm-tip"><span class="arm-tip-icon">&#x1F4A1;</span><span>Set color to <strong>author_seniority</strong> to highlight papers with established researchers.</span></div>
 
@@ -1481,7 +1528,7 @@ if __name__ == "__main__":
         atlas_cmd = [
             "embedding-atlas", DB_PATH,
             "--text",       "text",
-            "--model",      "allenai/specter2_base",
+            "--model",      EMBEDDING_MODEL_ID,
             # "--stop-words", STOP_WORDS_PATH,  # omitted: NLTK default stop words are used
             "--export-application", "site.zip",
         ]
