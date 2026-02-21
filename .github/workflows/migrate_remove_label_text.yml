@@ -1,0 +1,39 @@
+name: Migrate remove label_text column
+on:
+  workflow_dispatch: # Run once manually from the Actions tab, then delete this file
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: pip install pandas pyarrow
+
+      - name: Run Migration
+        run: python migrate_remove_label_text.py
+
+      - name: Commit Migrated Parquet
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add database.parquet
+          git status
+          if git diff --cached --quiet; then
+            echo "No changes to commit — already migrated?"
+          else
+            git commit -m "Migrate: remove label_text column from database.parquet"
+            git push
+          fi
