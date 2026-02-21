@@ -846,8 +846,6 @@ def build_panel_html(run_date: str) -> str:
 # 9. MAIN
 # ──────────────────────────────────────────────
 if __name__ == "__main__":
-    clear_docs_contents("docs")
-
     now      = datetime.now(timezone.utc)
     run_date = now.strftime("%B %d, %Y")
 
@@ -883,40 +881,47 @@ if __name__ == "__main__":
 
     results = fetch_arxiv(client, search)
     if not results:
-        print("  No results returned from arXiv. Skipping build.")
-        exit(0)
+        if existing_df.empty:
+            print("  No results from arXiv and no existing DB. Cannot build. Exiting.")
+            exit(0)
+        print(f"  No new papers from arXiv (weekend or dry spell). "
+              f"Rebuilding atlas from {len(existing_df)} existing papers.")
 
-    print(f"  Fetched {len(results)} papers from arXiv.")
+    if results:
+        print(f"  Fetched {len(results)} papers from arXiv.")
 
-    # Build new-papers DataFrame
-    today_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    rows = []
-    for r in results:
-        title    = r.title
-        abstract = r.summary
-        scrubbed = scrub_model_words(f"{title}. {title}. {abstract}")
-        # label_text: title only (repeated for TF-IDF weight), used for cluster
-        # labels in incremental mode where --text doesn't affect embeddings.
-        label_text = scrub_model_words(f"{title}. {title}. {title}.")
-        rows.append({
-            "title":        title,
-            "abstract":     abstract,
-            "text":         scrubbed,
-            "label_text":   label_text,
-            "url":          r.pdf_url,
-            "id":           r.entry_id.split("/")[-1],
-            "author_count": len(r.authors),
-            "author_tier":  categorize_authors(len(r.authors)),
-            "date_added":   today_str,
-        })
+        # Build new-papers DataFrame
+        today_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+        rows = []
+        for r in results:
+            title    = r.title
+            abstract = r.summary
+            scrubbed = scrub_model_words(f"{title}. {title}. {abstract}")
+            # label_text: title only (repeated for TF-IDF weight), used for cluster
+            # labels in incremental mode where --text doesn't affect embeddings.
+            label_text = scrub_model_words(f"{title}. {title}. {title}.")
+            rows.append({
+                "title":        title,
+                "abstract":     abstract,
+                "text":         scrubbed,
+                "label_text":   label_text,
+                "url":          r.pdf_url,
+                "id":           r.entry_id.split("/")[-1],
+                "author_count": len(r.authors),
+                "author_tier":  categorize_authors(len(r.authors)),
+                "date_added":   today_str,
+            })
 
-    new_df = pd.DataFrame(rows)
-    new_df["Reputation"] = new_df.apply(calculate_reputation, axis=1)
+        new_df = pd.DataFrame(rows)
+        new_df["Reputation"] = new_df.apply(calculate_reputation, axis=1)
 
-    # Merge into rolling DB
-    df = merge_papers(existing_df, new_df)
-    df = df.drop(columns=["group"], errors="ignore")  # remove legacy column name
-    print(f"  Rolling DB: {len(df)} papers after merge.")
+        # Merge into rolling DB
+        df = merge_papers(existing_df, new_df)
+        df = df.drop(columns=["group"], errors="ignore")  # remove legacy column name
+        print(f"  Rolling DB: {len(df)} papers after merge.")
+    else:
+        # No new arXiv papers — use existing DB as-is (weekend / dry spell rebuild)
+        df = existing_df.drop(columns=["group"], errors="ignore")
 
     # Backfill Reputation for older rows that predate the column.
     if "Reputation" not in df.columns or df["Reputation"].isna().any():
@@ -948,8 +953,10 @@ if __name__ == "__main__":
     save_df.to_parquet(DB_PATH, index=False)
     print(f"  Saved {len(save_df)} papers to {DB_PATH}.")
 
-    # Build the atlas
+    # Build the atlas — clear docs immediately before so the site is never
+    # left in a broken state if an earlier step fails or exits early.
     print(f"  Building atlas ({EMBEDDING_MODE} mode)...")
+    clear_docs_contents("docs")
 
     if EMBEDDING_MODE == "incremental":
         # Incremental mode: embeddings are pre-computed via --x/--y.
