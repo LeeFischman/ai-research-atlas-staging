@@ -29,10 +29,10 @@ ARXIV_MAX       = 1500    # max papers fetched per arXiv query
 # Embedding mode controls how papers are embedded and projected each run.
 # "full"        — CLI handles SPECTER2 + UMAP internally. Slower but always
 #                 produces a globally coherent layout. --text feeds both
-#                 embeddings and TF-IDF labels so label_text column is unused.
+#                 embeddings and TF-IDF labels.
 # "incremental" — Python embeds only NEW papers; UMAP re-projects all stored
-#                 vectors. Faster. --text only feeds TF-IDF so label_text
-#                 (title-only) is used for sharper cluster labels.
+#                 vectors. Faster. cluster_label is used for TF-IDF labels
+#                 via --text, producing consistent per-cluster topic names.
 EMBEDDING_MODE = os.environ.get("EMBEDDING_MODE", "incremental").strip().lower()
 
 print(f"▶  Embedding mode : {EMBEDDING_MODE.upper()}")
@@ -1555,14 +1555,10 @@ if __name__ == "__main__":
             title    = r.title
             abstract = r.summary
             scrubbed = scrub_model_words(f"{title}. {title}. {abstract}")
-            # label_text: title only (repeated for TF-IDF weight), used for cluster
-            # labels in incremental mode where --text doesn't affect embeddings.
-            label_text = scrub_model_words(f"{title}. {title}. {title}.")
             rows.append({
                 "title":        title,
                 "abstract":     abstract,
                 "text_vector":  scrubbed,
-                "label_text":   label_text,
                 "url":          r.pdf_url,
                 "id":           r.entry_id.split("/")[-1],
                 "author_count": len(r.authors),
