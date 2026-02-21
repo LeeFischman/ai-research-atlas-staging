@@ -1084,7 +1084,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> tuple:
         diag["label"] = label_text
         diagnostics.append(diag)
         # Tag each paper in this cluster with the label (used below for --text)
-        df.loc[mask[mask].index, "_cluster_label_tmp"] = label_text
+        df.loc[df.index[mask], "_cluster_label_tmp"] = label_text
         cx = float(coords_2d[mask, 0].mean())
         cy = float(coords_2d[mask, 1].mean())
         label_rows.append({"x": cx, "y": cy, "text": label_text})
