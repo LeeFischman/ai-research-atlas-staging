@@ -1,0 +1,40 @@
+name: Inspect dataset.parquet columns
+on:
+  workflow_dispatch: # Run once manually from the Actions tab, then delete this file
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: pip install pandas pyarrow
+
+      - name: Inspect dataset.parquet
+        run: |
+          python3 - << 'EOF'
+          import pandas as pd
+          import os
+
+          path = "data/dataset.parquet"
+          if not os.path.exists(path):
+              print(f"ERROR: {path} not found")
+              exit(1)
+
+          df = pd.read_parquet(path)
+          print(f"Rows: {len(df)}")
+          print(f"Columns ({len(df.columns)}): {list(df.columns)}")
+          print()
+          for col in df.columns:
+              print(f"  {col}: {df[col].dtype} — sample: {df[col].iloc[0] if len(df) > 0 else 'n/a'}")
+          EOF
