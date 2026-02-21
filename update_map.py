@@ -830,7 +830,7 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 #
 # Recommended experiment: try "mpnet" vs "specter2_base" to test whether
 # scientific domain specialisation actually helps your clustering quality.
-EMBEDDING_MODEL = "specter2_base"
+EMBEDDING_MODEL = "mpnet"
 
 _EMBEDDING_MODEL_IDS = {
     "specter2_base": "allenai/specter2_base",
