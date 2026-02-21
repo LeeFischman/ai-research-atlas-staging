@@ -10,64 +10,144 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 4.698850631713867,
-                "y": 7.167084767268254,
-                "text": "Evaluators Llm"
+                "x": 1.9357625246047974,
+                "y": 5.369330406188965,
+                "text": "Constructionism Reconceptualizes"
             },
             {
-                "x": 4.405771176020305,
-                "y": 5.885596950848897,
-                "text": "Uncovers Annotator"
+                "x": 4.492600059509277,
+                "y": 5.066262245178223,
+                "text": "Machine Learning and Data Classification"
             },
             {
-                "x": 3.35372583489669,
-                "y": 6.036883329090319,
-                "text": "Persona Design and Applications"
-            },
-            {
-                "x": 7.33378608410175,
-                "y": 8.466321138235239,
+                "x": 4.319806933403015,
+                "y": 6.999413728713989,
                 "text": "Stochastic Gradient Optimization Techniques"
             },
             {
-                "x": 7.432250318073091,
-                "y": 7.969005153292701,
-                "text": "Pretrained Latent"
+                "x": 3.387061595916748,
+                "y": 6.459844793592181,
+                "text": "Mechanistically Opaque"
             },
             {
-                "x": 6.653114106920031,
-                "y": 7.020799901750353,
+                "x": 4.323876789637974,
+                "y": 5.696472099849156,
                 "text": "Time Series Analysis and Forecasting"
             },
             {
-                "x": 7.582367493556096,
-                "y": 6.411672922281118,
-                "text": "AI in cancer detection"
+                "x": 2.738274315992991,
+                "y": 5.855534553527832,
+                "text": "Underexplored Medclarify"
             },
             {
-                "x": 8.159256041049957,
-                "y": 7.282518565654755,
+                "x": 1.380841503540675,
+                "y": 7.7368623812993365,
+                "text": "Reinforcement Learning in Robotics"
+            },
+            {
+                "x": 1.868945837020874,
+                "y": 6.354979801177978,
+                "text": "Validation Pipelines"
+            },
+            {
+                "x": 5.225749731063843,
+                "y": 7.029702246189117,
+                "text": "Frontier Lvlms"
+            },
+            {
+                "x": 1.9638291358947755,
+                "y": 4.800975894927978,
+                "text": "Submissions Innoeval"
+            },
+            {
+                "x": 0.19711199045802155,
+                "y": 5.867524782816569,
+                "text": "Misbehaviors Require"
+            },
+            {
+                "x": 0.01476008870771953,
+                "y": 4.805616446903774,
+                "text": "Understudied Textbf"
+            },
+            {
+                "x": 0.02301379684358835,
+                "y": 5.315688514709473,
+                "text": "Diverse Interdisciplinary Research Studies"
+            },
+            {
+                "x": 4.912563528333392,
+                "y": 7.3343323298863,
+                "text": "Regularizes Weight"
+            },
+            {
+                "x": 4.988785213894314,
+                "y": 6.30006742477417,
+                "text": "Pretrained Bidirectional"
+            },
+            {
+                "x": 5.2794569333394366,
+                "y": 7.3859554926554365,
+                "text": "Variational Autoencoders"
+            },
+            {
+                "x": 2.4081053733825684,
+                "y": 7.261232471466064,
+                "text": "Grained Vqa"
+            },
+            {
+                "x": 5.365338047345479,
+                "y": 5.347944339116414,
+                "text": "Machine Learning in Healthcare"
+            },
+            {
+                "x": 5.910890706380209,
+                "y": 6.306467787424723,
                 "text": "Leveraging Saliency"
             },
             {
-                "x": 2.9959060316500454,
-                "y": 7.0103572347889775,
-                "text": "Adversarial Robustness in Machine Learning"
+                "x": 1.8440382927656174,
+                "y": 3.535757690668106,
+                "text": "Uncovers Annotator"
             },
             {
-                "x": 3.4280917048454285,
-                "y": 8.11585291226705,
+                "x": 0.6755464540587531,
+                "y": 6.6884523497687445,
+                "text": "Age of Information Optimization"
+            },
+            {
+                "x": 1.0505863775809605,
+                "y": 6.09675935904185,
                 "text": "Https Github"
             },
             {
-                "x": 5.126823886235555,
-                "y": 9.682652854919434,
+                "x": 2.2450651781899587,
+                "y": 3.866992609841483,
+                "text": "Lingual Pipelines"
+            },
+            {
+                "x": 2.675232450167338,
+                "y": 8.25619932015737,
+                "text": "Offline Reinforcement"
+            },
+            {
+                "x": 3.3853548049926756,
+                "y": 8.00123109817505,
                 "text": "Reward Posteriors"
             },
             {
-                "x": 3.779383818308512,
-                "y": 9.597733243306477,
-                "text": "Reinforcement Learning in Robotics"
+                "x": 1.4215164979298909,
+                "y": 4.330211480458577,
+                "text": "Bayesian Modeling and Causal Inference"
+            },
+            {
+                "x": 1.576180601119995,
+                "y": 3.991575765609741,
+                "text": "Assessment Decoding"
+            },
+            {
+                "x": 0.9219086633788215,
+                "y": 3.9191588030921087,
+                "text": "Persona Design and Applications"
             }
         ],
         "initialState": {
