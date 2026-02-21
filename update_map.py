@@ -9,7 +9,6 @@ import time
 import shutil
 import random
 import urllib.error
-import urllib.request
 from datetime import datetime, timedelta, timezone
 
 # ──────────────────────────────────────────────
@@ -17,10 +16,8 @@ from datetime import datetime, timedelta, timezone
 # ──────────────────────────────────────────────
 DB_PATH         = "database.parquet"
 STOP_WORDS_PATH = "stop_words.csv"
-RUN_STATE_PATH        = "run_state.json"        # tracks last fetch date to avoid duplicate arXiv calls
-AUTHOR_STATS_CACHE   = "author_stats_cache.json"  # persists OpenAlex author stats between runs
-RETENTION_DAYS  = 14      # papers older than this are pruned each run
-ARXIV_MAX       = 1500    # max papers fetched per arXiv query
+RETENTION_DAYS  = 4       # papers older than this are pruned each run
+ARXIV_MAX       = 250     # max papers fetched per arXiv query
 
 # Embedding mode is controlled by the EMBEDDING_MODE env var.
 # Set automatically by the workflow_dispatch input in the YAML.
@@ -29,10 +26,10 @@ ARXIV_MAX       = 1500    # max papers fetched per arXiv query
 # Embedding mode controls how papers are embedded and projected each run.
 # "full"        — CLI handles SPECTER2 + UMAP internally. Slower but always
 #                 produces a globally coherent layout. --text feeds both
-#                 embeddings and TF-IDF labels.
+#                 embeddings and TF-IDF labels so label_text column is unused.
 # "incremental" — Python embeds only NEW papers; UMAP re-projects all stored
-#                 vectors. Faster. cluster_label is used for TF-IDF labels
-#                 via --text, producing consistent per-cluster topic names.
+#                 vectors. Faster. --text only feeds TF-IDF so label_text
+#                 (title-only) is used for sharper cluster labels.
 EMBEDDING_MODE = os.environ.get("EMBEDDING_MODE", "incremental").strip().lower()
 
 print(f"▶  Embedding mode : {EMBEDDING_MODE.upper()}")
@@ -65,27 +62,7 @@ def clear_docs_contents(target_dir: str) -> None:
 
 
 # ──────────────────────────────────────────────
-# 3. RUN STATE
-#    Persists the last successful arXiv fetch date so re-running the
-#    workflow on the same calendar day (e.g. after a partial failure)
-#    skips the fetch and reuses the papers already in the rolling DB.
-# ──────────────────────────────────────────────
-def load_run_state() -> dict:
-    if os.path.exists(RUN_STATE_PATH):
-        try:
-            with open(RUN_STATE_PATH) as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {}
-
-def save_run_state(state: dict) -> None:
-    with open(RUN_STATE_PATH, "w") as f:
-        json.dump(state, f, indent=2)
-
-
-# ──────────────────────────────────────────────
-# 4. REPUTATION SCORING
+# 3. REPUTATION SCORING
 # ──────────────────────────────────────────────
 INSTITUTION_PATTERN = re.compile(r"\b(" + "|".join([
 
@@ -222,22 +199,9 @@ def calculate_reputation(row) -> str:
     score = 0
     full_text = f"{row['title']} {row['abstract']}".lower()
 
-    # Institution match — strongest signal.
-    # Use structured OpenAlex institution names when available (more accurate);
-    # fall back to regex text-search in title/abstract for unindexed papers.
-    inst_names = row.get("openalex_institution_names") if hasattr(row, "get") else None
-    if isinstance(inst_names, list) and inst_names:
-        inst_text = " | ".join(inst_names)
-        if INSTITUTION_PATTERN.search(inst_text):
-            score += 3
-    else:
-        if INSTITUTION_PATTERN.search(full_text):
-            score += 3
-
-    # Author seniority — at least one established researcher on the paper
-    seniority = row.get("author_seniority") if hasattr(row, "get") else None
-    if seniority == "Established":
-        score += 2
+    # Institution match — strongest signal
+    if INSTITUTION_PATTERN.search(full_text):
+        score += 3
 
     # Public codebase — indicates reproducibility commitment
     if any(k in full_text for k in ["github.com", "huggingface.co"]):
@@ -250,7 +214,7 @@ def calculate_reputation(row) -> str:
 
 
 # ──────────────────────────────────────────────
-# 5. ROLLING DATABASE
+# 4. ROLLING DATABASE
 # ──────────────────────────────────────────────
 def load_existing_db() -> pd.DataFrame:
     if not os.path.exists(DB_PATH):
@@ -280,7 +244,7 @@ def merge_papers(existing: pd.DataFrame, new: pd.DataFrame) -> pd.DataFrame:
 
 
 # ──────────────────────────────────────────────
-# 6. ARXIV FETCH WITH EXPONENTIAL BACKOFF
+# 5. ARXIV FETCH WITH EXPONENTIAL BACKOFF
 # ──────────────────────────────────────────────
 BASE_WAIT   = 15
 MAX_WAIT    = 480
@@ -309,418 +273,7 @@ def fetch_arxiv(client, search) -> list:
 
 
 # ──────────────────────────────────────────────
-# 5.5 OPENALEX INSTITUTION LOOKUP
-#
-# Replaces regex text-search with structured institution data.
-# Batch lookups via the OpenAlex REST API using arXiv IDs.
-# No API key required; mailto param places us in the polite pool
-# (~10 req/sec, effectively unlimited for our volume).
-#
-# Response fields used in Step 1:
-#   authorships[].institutions[].display_name  → matched against INSTITUTION_PATTERN
-#   authorships[].institutions[].country_code  → stored for Step 3
-#   authorships[].institutions[].type          → stored for Step 4
-#
-# Response fields used in Step 2:
-#   authorships[].author.id                    → OpenAlex author ID for seniority lookup
-#
-# Schema additions to database.parquet:
-#   openalex_institution_names    list[str]  — deduplicated institution names
-#   openalex_institution_countries list[str] — ISO-2 country codes (parallel to names)
-#   openalex_institution_types    list[str]  — education/company/government/nonprofit
-#   openalex_author_ids           list[str]  — OpenAlex author IDs for this paper
-#   author_seniority              str        — "Established" / "Emerging" / "Unknown"
-#   openalex_fetched              bool       — True once we have queried OpenAlex
-# ──────────────────────────────────────────────
-OPENALEX_EMAIL  = "lee@leefischman.com"   # polite-pool identifier
-OPENALEX_SLEEP  = 0.12                     # seconds between requests (~8 req/sec)
-
-def fetch_openalex_data(arxiv_ids: list) -> dict:
-    """
-    Look up institution data for a list of arXiv IDs using pyalex.
-
-    pyalex handles all URL construction and endpoint resolution internally,
-    avoiding the URL-encoding issues encountered with raw urllib calls.
-
-    Returns a dict containing ONLY the IDs that got a successful response.
-    IDs not present in the returned dict stay openalex_fetched=False and
-    are retried on the next daily run (covers the ~1-2 day indexing lag).
-    """
-    if not arxiv_ids:
-        return {}
-
-    try:
-        import pyalex
-        pyalex.config.email = OPENALEX_EMAIL
-    except ImportError:
-        print("  pyalex not installed — skipping OpenAlex lookup. "
-              "Add 'pyalex' to requirements.txt.")
-        return {}
-
-    result: dict[str, dict] = {}
-    indexed = 0
-    not_found = 0
-    errors = 0
-
-    print(f"  Querying OpenAlex for {len(arxiv_ids)} arXiv IDs "
-          f"(pyalex, ~{len(arxiv_ids) * OPENALEX_SLEEP:.0f}s)...")
-
-    for i, aid in enumerate(arxiv_ids):
-        clean_id = re.sub(r"v\d+$", "", aid)
-
-        try:
-            # Use the arXiv DOI as the OpenAlex entity ID.
-            # Format: doi:10.48550/arxiv.{id} — confirmed working via browser test.
-            # This avoids all URL-encoding issues: the DOI contains no slashes
-            # in the path, so pyalex passes it through cleanly.
-            work = pyalex.Works()[f"doi:10.48550/arxiv.{clean_id}"]
-
-            names, countries, types = [], [], []
-            author_ids = []
-            for authorship in work.get("authorships", []):
-                author_id = authorship.get("author", {}).get("id", "").strip()
-                if author_id and author_id not in author_ids and len(author_ids) < 8:
-                    author_ids.append(author_id)
-                for inst in authorship.get("institutions", []):
-                    name    = inst.get("display_name", "").strip()
-                    country = inst.get("country_code", "").strip()
-                    itype   = inst.get("type", "").strip()
-                    if name and name not in names:
-                        names.append(name)
-                        countries.append(country)
-                        types.append(itype)
-
-            # ── Step 5: topic taxonomy and keywords ──────────────────────
-            # primary_topic gives the single best taxonomy match.
-            # Only trust it when score ≥ 0.85; below that label as Unknown.
-            TOPIC_SCORE_THRESHOLD = 0.0
-            primary = work.get("primary_topic") or {}
-            topic_score = primary.get("score", 0) or 0
-            if topic_score >= TOPIC_SCORE_THRESHOLD:
-                openalex_topic    = primary.get("display_name", "Unknown") or "Unknown"
-                subfield_obj      = primary.get("subfield") or {}
-                openalex_subfield = subfield_obj.get("display_name", "Unknown") or "Unknown"
-            else:
-                openalex_topic    = "Unknown"
-                openalex_subfield = "Unknown"
-
-            # Keywords: free-text phrases, filtered to score ≥ 0.5 to drop noise.
-            KEYWORD_SCORE_THRESHOLD = 0.5
-            openalex_keywords = [
-                kw["display_name"]
-                for kw in (work.get("keywords") or [])
-                if (kw.get("score") or 0) >= KEYWORD_SCORE_THRESHOLD
-                and kw.get("display_name")
-            ]
-
-            result[aid] = {
-                "institution_names":     names,
-                "institution_countries": countries,
-                "institution_types":     types,
-                "author_ids":            author_ids,
-                "openalex_topic":        openalex_topic,
-                "openalex_subfield":     openalex_subfield,
-                "openalex_keywords":     openalex_keywords,
-            }
-            if names:
-                indexed += 1
-
-        except Exception as exc:
-            err_str = str(exc).lower()
-            if "404" in err_str or "not found" in err_str or "no work" in err_str:
-                not_found += 1
-            else:
-                errors += 1
-                print(f"  OpenAlex error for {aid} ({type(exc).__name__}: {exc}) — will retry next run.")
-
-        time.sleep(OPENALEX_SLEEP)
-
-        if (i + 1) % 50 == 0:
-            print(f"  ... {i + 1}/{len(arxiv_ids)} queried "
-                  f"({indexed} with institutions so far)")
-
-    responded = len(result)
-    print(f"  OpenAlex: {indexed} with institutions | "
-          f"{responded - indexed} found but no institution data | "
-          f"{not_found} not yet indexed (will retry) | "
-          f"{errors} errors.")
-    return result
-
-
-def apply_openalex_columns(df: pd.DataFrame, openalex: dict) -> pd.DataFrame:
-    """
-    Write OpenAlex lookup results into the DataFrame.
-
-    Only rows whose arXiv ID is present in `openalex` are updated —
-    the dict only contains IDs that got a 200 response, so:
-      - openalex_fetched=True  → we got a response (may or may not have institutions)
-      - openalex_fetched=False → 404 or error; will be retried on the next run
-    """
-    df = df.copy()
-
-    for col in ("openalex_institution_names", "openalex_institution_countries",
-                "openalex_institution_types", "openalex_author_ids",
-                "openalex_keywords"):
-        if col not in df.columns:
-            df[col] = None
-
-    for col in ("openalex_topic", "openalex_subfield"):
-        if col not in df.columns:
-            df[col] = "Unknown"
-
-    if "openalex_fetched" not in df.columns:
-        df["openalex_fetched"] = False
-
-    for idx, row in df.iterrows():
-        aid = row["id"]
-        if aid not in openalex:
-            continue                   # 404 / error — leave openalex_fetched=False
-        data = openalex[aid]
-        df.at[idx, "openalex_institution_names"]     = data["institution_names"]
-        df.at[idx, "openalex_institution_countries"] = data["institution_countries"]
-        df.at[idx, "openalex_institution_types"]     = data["institution_types"]
-        df.at[idx, "openalex_author_ids"]            = data.get("author_ids", [])
-        df.at[idx, "openalex_topic"]                 = data.get("openalex_topic", "Unknown")
-        df.at[idx, "openalex_subfield"]              = data.get("openalex_subfield", "Unknown")
-        df.at[idx, "openalex_keywords"]              = data.get("openalex_keywords", [])
-        df.at[idx, "openalex_fetched"]               = True
-
-    return df
-
-
-
-# ──────────────────────────────────────────────
-# 6a. AUTHOR SENIORITY (Step 2)
-#
-# Fetches career citation counts for each unique author across the corpus.
-# Authors are deduplicated so shared authors are fetched only once per run.
-# Results are cached in-memory; nothing extra is written to parquet beyond
-# the per-paper author_seniority column.
-#
-# Seniority tiers (based on the highest-ranked author on the paper):
-#   Established  — cited_by_count ≥ 1000  OR  works_count ≥ 50
-#   Emerging     — cited_by_count ≥ 100   OR  works_count ≥ 10
-#   Unknown      — no OpenAlex author data available
-#
-# Reputation impact: +2 points for at least one Established author.
-# ──────────────────────────────────────────────
-
-# Seniority thresholds
-ESTABLISHED_CITATIONS = 1000
-ESTABLISHED_WORKS     = 50
-EMERGING_CITATIONS    = 100
-EMERGING_WORKS        = 10
-
-
-def fetch_author_stats(author_ids: list) -> dict:
-    """
-    Fetch cited_by_count and works_count for a list of OpenAlex author IDs.
-
-    Deduplicates before fetching so shared authors (common in cs.AI) are
-    only queried once. Returns a dict mapping author_id → stats dict.
-    IDs that fail silently return no entry (seniority falls back to Unknown).
-    """
-    if not author_ids:
-        return {}
-
-    try:
-        import pyalex
-        pyalex.config.email = OPENALEX_EMAIL
-    except ImportError:
-        return {}
-
-    unique_ids = list(dict.fromkeys(author_ids))   # deduplicate, preserve order
-    stats: dict[str, dict] = {}
-    errors = 0
-
-    print(f"  Fetching author stats for {len(unique_ids)} unique authors "
-          f"(~{len(unique_ids) * OPENALEX_SLEEP:.0f}s)...")
-
-    for i, author_id in enumerate(unique_ids):
-        try:
-            author = pyalex.Authors()[author_id]
-            stats[author_id] = {
-                "cited_by_count": author.get("cited_by_count", 0) or 0,
-                "works_count":    author.get("works_count", 0)    or 0,
-            }
-        except Exception as exc:
-            err_str = str(exc).lower()
-            if "404" not in err_str and "not found" not in err_str:
-                errors += 1
-        time.sleep(OPENALEX_SLEEP)
-
-        if (i + 1) % 100 == 0:
-            print(f"  ... {i + 1}/{len(unique_ids)} authors fetched")
-
-    print(f"  Author stats: {len(stats)} retrieved | "
-          f"{len(unique_ids) - len(stats) - errors} not found | {errors} errors.")
-    return stats
-
-
-def compute_author_seniority(author_ids: list, stats: dict) -> str:
-    """
-    Return the seniority tier of the most senior author on a paper.
-    Tiers: Established > Emerging > Unknown.
-    """
-    if not author_ids or not stats:
-        return "Unknown"
-
-    best = "Unknown"
-    for aid in author_ids:
-        s = stats.get(aid)
-        if not s:
-            continue
-        if (s["cited_by_count"] >= ESTABLISHED_CITATIONS or
-                s["works_count"] >= ESTABLISHED_WORKS):
-            return "Established"   # can't do better — short-circuit
-        if (s["cited_by_count"] >= EMERGING_CITATIONS or
-                s["works_count"] >= EMERGING_WORKS):
-            best = "Emerging"
-
-    return best
-
-
-def load_author_stats_cache() -> dict:
-    """Load persisted author stats from disk. Returns empty dict if not found."""
-    if os.path.exists(AUTHOR_STATS_CACHE):
-        try:
-            with open(AUTHOR_STATS_CACHE) as f:
-                cache = json.load(f)
-                print(f"  Author stats cache: loaded {len(cache)} entries from {AUTHOR_STATS_CACHE}.")
-                return cache
-        except Exception:
-            pass
-    return {}
-
-
-def save_author_stats_cache(cache: dict) -> None:
-    """Persist author stats to disk so they survive between runs."""
-    with open(AUTHOR_STATS_CACHE, "w") as f:
-        json.dump(cache, f)
-
-
-def apply_author_seniority(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Collect all author IDs from papers that have openalex_author_ids,
-    fetch stats only for authors NOT already in the on-disk cache,
-    then write author_seniority for every row.
-
-    The cache (author_stats_cache.json) persists between runs so authors
-    seen in previous runs are never re-queried — same pattern as run_state.json
-    for arXiv fetches.
-    """
-    if "openalex_author_ids" not in df.columns:
-        df["author_seniority"] = "Unknown"
-        return df
-
-    # Gather all unique author IDs across the corpus
-    all_author_ids = []
-    for ids in df["openalex_author_ids"]:
-        if isinstance(ids, list):
-            all_author_ids.extend(ids)
-
-    if not all_author_ids:
-        df["author_seniority"] = "Unknown"
-        return df
-
-    unique_ids = list(dict.fromkeys(all_author_ids))
-
-    # Load cache and only fetch IDs we haven't seen before
-    cache = load_author_stats_cache()
-    uncached = [aid for aid in unique_ids if aid not in cache]
-
-    if uncached:
-        print(f"  Author stats: {len(unique_ids) - len(uncached)} cached, "
-              f"{len(uncached)} new to fetch.")
-        new_stats = fetch_author_stats(uncached)
-        cache.update(new_stats)
-        save_author_stats_cache(cache)
-    else:
-        print(f"  Author stats: all {len(unique_ids)} authors in cache — skipping API calls.")
-
-    # Compute per-paper seniority using the full cache
-    df = df.copy()
-    if "author_seniority" not in df.columns:
-        df["author_seniority"] = "Unknown"
-
-    for idx, row in df.iterrows():
-        aids = row.get("openalex_author_ids")
-        if isinstance(aids, list) and aids:
-            df.at[idx, "author_seniority"] = compute_author_seniority(aids, cache)
-
-    est  = (df["author_seniority"] == "Established").sum()
-    emg  = (df["author_seniority"] == "Emerging").sum()
-    unk  = (df["author_seniority"] == "Unknown").sum()
-    print(f"  Author seniority: {est} Established | {emg} Emerging | {unk} Unknown.")
-    return df
-
-
-
-# ──────────────────────────────────────────────
-# 7. COUNTRY & INSTITUTION TYPE DIMENSIONS (Steps 3 & 4)
-#
-# Both fields are already stored in the parquet from the Step 1 fetch:
-#   openalex_institution_countries  list[str]  — ISO-2 codes, parallel to names
-#   openalex_institution_types      list[str]  — education/company/government/nonprofit
-#
-# We derive single scalar columns for Embedding Atlas color-by:
-#   institution_country  — most common country among the paper's institutions,
-#                          with a simple majority rule; "Unknown" if no data.
-#   institution_type     — most common type; "Unknown" if no data.
-#
-# "Most common" rather than "first" avoids over-weighting one author's
-# affiliation on large multi-institution papers.
-# ──────────────────────────────────────────────
-
-def most_common(values: list) -> str:
-    """Return the most frequent non-empty value in a list, or 'Unknown'."""
-    counts: dict[str, int] = {}
-    for v in values:
-        if v and isinstance(v, str):
-            counts[v] = counts.get(v, 0) + 1
-    return max(counts, key=counts.get) if counts else "Unknown"
-
-
-def apply_geo_and_type_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Derive scalar institution_country and institution_type columns from
-    the list columns written by apply_openalex_columns.
-    Rows without OpenAlex data get 'Unknown' for both.
-    """
-    df = df.copy()
-
-    # Ensure source list columns exist (graceful on pre-Step-1 parquet)
-    for col in ("openalex_institution_countries", "openalex_institution_types"):
-        if col not in df.columns:
-            df[col] = None
-
-    df["institution_country"] = df["openalex_institution_countries"].apply(
-        lambda v: most_common(v) if isinstance(v, list) else "Unknown"
-    )
-    df["institution_type"] = df["openalex_institution_types"].apply(
-        lambda v: most_common(v) if isinstance(v, list) else "Unknown"
-    )
-
-    # Summary for the run log
-    countries = df["institution_country"].value_counts()
-    top_countries = ", ".join(
-        f"{c} ({n})" for c, n in countries.head(5).items() if c != "Unknown"
-    )
-    types = df["institution_type"].value_counts()
-    type_summary = ", ".join(
-        f"{t} ({n})" for t, n in types.items() if t != "Unknown"
-    )
-    unknown_c = (df["institution_country"] == "Unknown").sum()
-    unknown_t = (df["institution_type"]    == "Unknown").sum()
-    print(f"  Institution countries: top 5 — {top_countries or 'none yet'} "
-          f"| {unknown_c} Unknown.")
-    print(f"  Institution types: {type_summary or 'none yet'} "
-          f"| {unknown_t} Unknown.")
-    return df
-
-
-# ──────────────────────────────────────────────
-# 8. INCREMENTAL EMBEDDING
+# 6. INCREMENTAL EMBEDDING
 #    Embeds only papers missing vectors, then re-projects
 #    ALL papers with UMAP for a globally coherent layout.
 # ──────────────────────────────────────────────
@@ -728,7 +281,7 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
     from sentence_transformers import SentenceTransformer
     import umap as umap_lib
 
-    model = SentenceTransformer(EMBEDDING_MODEL_ID)
+    model = SentenceTransformer("allenai/specter2_base")
 
     if "embedding" in df.columns:
         needs_embed = df["embedding"].isna()
@@ -740,7 +293,7 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
     if n_new:
         print(f"  Embedding {n_new} new paper(s) with SPECTER2...")
         idx     = df.index[needs_embed].tolist()
-        texts   = df.loc[idx, "text_vector"].tolist()
+        texts   = df.loc[idx, "text"].tolist()
         vectors = model.encode(texts, show_progress_bar=True, batch_size=16,
                                convert_to_numpy=True)
         # Assign row-by-row using integer positions to avoid pandas mixed-type
@@ -752,36 +305,6 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 
     all_vectors = np.array(df["embedding"].tolist(), dtype=np.float32)
     n = len(all_vectors)
-
-    # ── OpenAlex topic blending (optional) ──────────────────────────────
-    # Nudges each paper's SPECTER2 vector toward its OpenAlex topic vector
-    # before UMAP runs. Alpha=0.0 disables blending entirely (default).
-    # See OPENALEX_BLEND_ALPHA in the config block above for details.
-    if OPENALEX_BLEND_ALPHA > 0.0 and "openalex_topic" in df.columns:
-        vocab_emb, vocab_lbl = _load_vocab_embeddings(VOCAB_EMBEDDINGS_PATH)
-        if vocab_emb is not None:
-            # Build a lookup: topic name → L2-normalised 768D vector
-            topic_lookup = {lbl: vocab_emb[i] for i, lbl in enumerate(vocab_lbl)}
-            blended = 0
-            skipped = 0
-            for i, topic in enumerate(df["openalex_topic"].tolist()):
-                tvec = topic_lookup.get(topic)
-                if tvec is not None:
-                    # Both vectors are already unit-normalised; weighted sum
-                    # then re-normalise so cosine distances stay meaningful.
-                    mixed = (1.0 - OPENALEX_BLEND_ALPHA) * all_vectors[i] +                             OPENALEX_BLEND_ALPHA * tvec
-                    norm = np.linalg.norm(mixed)
-                    all_vectors[i] = mixed / norm if norm > 0 else mixed
-                    blended += 1
-                else:
-                    skipped += 1   # no topic match — SPECTER2 vector unchanged
-            print(f"  OpenAlex blend (alpha={OPENALEX_BLEND_ALPHA}): "
-                  f"{blended} blended, {skipped} unchanged (no topic match).")
-        else:
-            print("  OpenAlex blend skipped — vocab_embeddings.npz not found.")
-    elif OPENALEX_BLEND_ALPHA == 0.0:
-        print("  OpenAlex blend disabled (OPENALEX_BLEND_ALPHA=0.0).")
-
     print(f"  Projecting {n} papers with UMAP (two-stage)...")
 
     # ── Stage 1: 768D → 50D (for clustering) ────────────────────────────
@@ -807,298 +330,72 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # ──────────────────────────────────────────────
-# 9. CLUSTER LABEL GENERATION
+# 7. CLUSTER LABEL GENERATION
 #
-# CURRENT APPROACH: Vocabulary-first with KeyBERT fallback
-#   For each cluster, compute the mean of its SPECTER2 embeddings (centroid)
-#   and find the closest match in the pre-built OpenAlex topic vocabulary
-#   (vocab_embeddings.npz). This produces clean, consistent, human-curated
-#   labels like "Reinforcement Learning" or "Natural Language Processing"
-#   rather than extracted phrases like "reward shaping policy".
+# CURRENT APPROACH: KeyBERT (option 1)
+#   Uses semantic keyword extraction via SPECTER2 to find the most
+#   representative 1-2 word phrase for each spatial cluster. Produces
+#   meaningful labels like "federated learning" or "vision-language"
+#   rather than raw TF-IDF frequency winners.
 #
-#   If the best vocabulary match scores below MIN_VOCAB_CONFIDENCE (cosine
-#   similarity), the cluster falls back to KeyBERT extraction. This handles
-#   niche or emerging topics not well-covered by the OpenAlex taxonomy.
+# ALTERNATIVES (if you want to change approach):
 #
-# PREVIOUS APPROACH: KeyBERT with abstracts as input
-#   Re-enable by setting LABEL_MODE = "keybert" below, or by removing
-#   vocab_embeddings.npz from the repo (the code gracefully falls back).
+#   Option 2 — LLM-generated labels via Anthropic API (highest quality):
+#     After clustering, send the top-N titles per cluster to claude-haiku
+#     and ask for a 2-4 word descriptive label. Best results but adds
+#     latency and API cost. Requires ANTHROPIC_API_KEY in repo secrets.
+#     Rough implementation: collect cluster titles → call anthropic.Anthropic()
+#     client → parse response → write labels parquet.
 #
-# VOCAB FILE: data/vocab_embeddings.npz
-#   Downloaded from the label-vocabulary-builder repo as part of the
-#   GitHub Actions workflow (see .github/workflows/update_map.yml).
-#   Contains ~300 pre-embedded CS/AI topic names from OpenAlex.
+#   Option 3 — Bigrams in label_text (lowest effort):
+#     Pre-process label_text to append bigrams joined with underscores
+#     (e.g. "reinforcement_learning", "graph_neural") before the atlas
+#     build. TF-IDF then has more distinctive tokens to rank. No new
+#     dependencies. Add to the label_text construction in the row builder:
+#       import nltk; nltk.download("punkt")
+#       from nltk import ngrams, word_tokenize
+#       words = word_tokenize(title.lower())
+#       bigrams = ["_".join(b) for b in ngrams(words, 2)]
+#       label_text = title + " " + " ".join(bigrams)
+#
+#   Option 4 — Pre-computed labels file from external tool:
+#     Generate a CSV/parquet with columns x, y, text (optional: level,
+#     priority) using any method, then pass via --labels to the CLI.
+#     This is the escape hatch if none of the above satisfy.
 # ──────────────────────────────────────────────
-
-# ════════════════════════════════════════════════════════════════════
-# OPENALEX TOPIC BLENDING
-# ════════════════════════════════════════════════════════════════════
-#
-# ── OPENALEX_BLEND_ALPHA (float, default: 0.0) ───────────────────────
-# Blends each paper's SPECTER2 embedding with its OpenAlex topic vector
-# before UMAP runs. The topic vector comes from vocab_embeddings.npz —
-# the same file used for cluster labeling.
-#
-# Formula: blended = (1 - alpha) * specter2_vector + alpha * topic_vector
-#
-# 0.0  → pure SPECTER2 (current default, no blending)
-# 0.2  → gentle nudge toward OpenAlex taxonomy (recommended starting point)
-# 0.5  → equal weight; clusters become more taxonomy-aligned
-# 1.0  → pure OpenAlex topic vectors (loses content-level nuance)
-#
-# Papers without a matched OpenAlex topic use their SPECTER2 vector unchanged.
-# If vocab_embeddings.npz is not found, blending is skipped silently.
-#
-# Requires LABEL_MODE = "vocab" or vocab_embeddings.npz to be present.
-# Has no effect when LABEL_MODE = "curated_20" (different embedding space).
-#
-# Recommended experiment: try 0.0 vs 0.2 vs 0.4 and compare cluster
-# coherence in label_diagnostics.json.
-OPENALEX_BLEND_ALPHA = 0.0
-# ════════════════════════════════════════════════════════════════════
-
-# ════════════════════════════════════════════════════════════════════
-# EMBEDDING MODEL SETTINGS
-# ════════════════════════════════════════════════════════════════════
-#
-# ── EMBEDDING_MODEL (str) ────────────────────────────────────────────
-# Which SentenceTransformer model to use for SPECTER2 embeddings.
-# All three options output 768D vectors, so no downstream changes are
-# needed — vocab_embeddings.npz, UMAP, and HDBSCAN all remain the same.
-#
-# IMPORTANT: vocab_embeddings.npz was built with specter2_base.
-# If you switch to mpnet, the vocab centroid matching will be less
-# accurate (different embedding space). Either:
-#   a) Set LABEL_MODE = "keybert" when using mpnet, or
-#   b) Regenerate vocab_embeddings.npz with the new model via
-#      the label-vocabulary-builder repo.
-#
-# Options:
-#   "specter2_base" — allenai/specter2_base (current default)
-#                     Scientific domain, fast, well-tested here.
-#                     768D output. vocab_embeddings.npz was built with this.
-#   "mpnet"         — sentence-transformers/all-mpnet-base-v2
-#                     General-purpose, not science-specific.
-#                     Strong semantic similarity benchmark performance.
-#                     768D output — no downstream dimension changes needed.
-#
-# NOTE: allenai/specter2 (adapter version) has a known PEFT compatibility
-# issue with recent sentence-transformers and is excluded.
-#
-# Recommended experiment: try "mpnet" vs "specter2_base" to test whether
-# scientific domain specialisation actually helps your clustering quality.
-EMBEDDING_MODEL = "specter2_base"
-
-_EMBEDDING_MODEL_IDS = {
-    "specter2_base": "allenai/specter2_base",
-    "mpnet":         "sentence-transformers/all-mpnet-base-v2",
-}
-
-if EMBEDDING_MODEL not in _EMBEDDING_MODEL_IDS:
-    raise ValueError(
-        f"Unknown EMBEDDING_MODEL '{EMBEDDING_MODEL}'. "
-        f"Choose from: {list(_EMBEDDING_MODEL_IDS)}"
-    )
-
-EMBEDDING_MODEL_ID = _EMBEDDING_MODEL_IDS[EMBEDDING_MODEL]
-print(f"▶  Embedding model: {EMBEDDING_MODEL_ID}")
-
-# ════════════════════════════════════════════════════════════════════
-# LABELING SETTINGS
-# ════════════════════════════════════════════════════════════════════
-#
-# ── LABEL_MODE (str) ─────────────────────────────────────────────────
-# Controls how cluster labels are generated.
-#
-# "vocab"      — OpenAlex ~300-topic vocabulary loaded from vocab_embeddings.npz.
-#                Falls back to KeyBERT when cosine similarity < MIN_VOCAB_CONFIDENCE.
-#                Produces specific, granular labels. Requires the .npz file.
-#
-# "curated_20" — 20 hand-curated categories covering modern arXiv/cs.AI research.
-#                Embeddings are computed at runtime from CURATED_20_LABELS below
-#                (takes ~1s for 20 strings; no .npz file needed).
-#                Always assigns the best-matching category — no KeyBERT fallback.
-#                The threshold (MIN_CURATED_CONFIDENCE) is intentionally low (0.3)
-#                since every cluster should map to one of the 20 categories.
-#                Use this to see broad thematic structure across the corpus.
-#
-# "keybert"    — KeyBERT extraction on cluster abstracts for all clusters.
-#                Produces phrase-level labels ("reward shaping policy") rather
-#                than topic names. No vocab file required. Original approach.
-#
-# Parallel comparison: run with "curated_20" and "vocab" on alternate days
-# (or use EMBEDDING_MODE=full to force a fresh run) and compare label quality
-# in the diagnostics JSON.
-LABEL_MODE = "vocab"
-
-# ── CURATED_20_LABELS ─────────────────────────────────────────────────
-# 20 hand-curated categories for modern arXiv cs.AI research (Feb 2026).
-# Used only when LABEL_MODE = "curated_20".
-# Edit freely — these are embedded at runtime with the active EMBEDDING_MODEL,
-# so no .npz regeneration is needed after changes.
-#
-# Grouped by theme for readability; order does not affect matching.
-CURATED_20_LABELS = [
-    # Core Model Architectures & Training
-    "Foundation Models and Scaling Laws",
-    "State Space Models",
-    "Mixture of Experts",
-    "Neural ODEs and Continuous-Time Models",
-    # Learning Paradigms
-    "Agentic AI and Autonomous Agents",
-    "Reinforcement Learning from Human Feedback",
-    "Multi-Agent Reinforcement Learning",
-    "Self-Supervised and Contrastive Learning",
-    # Specialized AI Capabilities
-    "Multimodal Fusion",
-    "Retrieval-Augmented Generation",
-    "Mathematical Reasoning and Theorem Proving",
-    "AI for Code and Software Engineering",
-    # Ethics, Safety & Evaluation
-    "Benchmark Design and Evaluation Methodology",
-    "Explainability and Interpretability",
-    "Adversarial Robustness and AI Safety",
-    "AI Governance and Policy",
-    # Hardware & Deployment
-    "On-Device and Edge AI",
-    "Efficient Inference and Quantization",
-    # Domain-Specific Applications
-    "AI for Science",
-    "Medical and Clinical AI",
-]
-
-# ── MIN_VOCAB_CONFIDENCE (float, default: 0.75) ──────────────────────
-# Minimum cosine similarity to accept a vocabulary match (LABEL_MODE="vocab").
-# Higher → fewer vocab labels, more KeyBERT fallbacks (more conservative).
-# Lower  → more vocab labels, accepts weaker matches.
-# Recommended range: 0.65–0.85.
-MIN_VOCAB_CONFIDENCE = 0.75
-
-# ── MIN_CURATED_CONFIDENCE (float, default: 0.30) ────────────────────
-# Minimum cosine similarity to accept a curated-20 match (LABEL_MODE="curated_20").
-# Intentionally low — with only 20 categories every cluster should match one.
-# Raise above 0.5 only if you want genuine mismatches to fall back to KeyBERT.
-# Range: 0.20–0.50.
-MIN_CURATED_CONFIDENCE = 0.30
-
-# ── VOCAB_EMBEDDINGS_PATH (str) ──────────────────────────────────────
-# Path to the pre-built OpenAlex vocabulary embeddings file.
-# Used only when LABEL_MODE = "vocab".
-# Generated by the label-vocabulary-builder repo.
-VOCAB_EMBEDDINGS_PATH = "data/vocab_embeddings.npz"
-# ════════════════════════════════════════════════════════════════════
-
-
-def _load_vocab_embeddings(path: str):
+def generate_keybert_labels(df: pd.DataFrame) -> str:
     """
-    Load pre-computed vocabulary embeddings from disk.
-    Returns (embeddings, labels) or (None, None) if file not found or invalid.
-    Embeddings are L2-normalised 768-dim SPECTER2 vectors, shape (N, 768).
-    Used only when LABEL_MODE = "vocab".
-    """
-    if not os.path.exists(path):
-        print(f"  [vocab] {path} not found — will use KeyBERT for all clusters.")
-        return None, None
-    try:
-        data = np.load(path, allow_pickle=True)
-        embeddings = data["embeddings"].astype(np.float32)
-        labels = data["labels"].tolist()
-        print(f"  [vocab] Loaded {len(labels)} vocabulary entries from {path}.")
-        return embeddings, labels
-    except Exception as e:
-        print(f"  [vocab] Failed to load {path} ({e}) — will use KeyBERT for all clusters.")
-        print(f"  [vocab] Run the label-vocabulary-builder workflow to regenerate vocab_embeddings.npz.")
-        return None, None
-
-
-def _build_curated_embeddings(labels: list, model) -> np.ndarray:
-    """
-    Embed CURATED_20_LABELS at runtime using the active SentenceTransformer model.
-    Returns an L2-normalised (N, D) float32 matrix ready for cosine similarity.
-    Called once per run when LABEL_MODE = "curated_20"; takes ~1s for 20 strings.
-    """
-    print(f"  [curated_20] Embedding {len(labels)} curated category labels at runtime...")
-    vectors = model.encode(labels, show_progress_bar=False, convert_to_numpy=True)
-    vectors = vectors.astype(np.float32)
-    # L2-normalise each row so dot product == cosine similarity
-    norms = np.linalg.norm(vectors, axis=1, keepdims=True)
-    norms = np.where(norms > 0, norms, 1.0)
-    vectors = vectors / norms
-    print(f"  [curated_20] Done. Embedding shape: {vectors.shape}")
-    return vectors
-
-
-def _vocab_label_for_centroid(
-    centroid: np.ndarray,
-    vocab_embeddings: np.ndarray,
-    vocab_labels: list,
-    min_confidence: float,
-) -> tuple[str | None, float, list]:
-    """
-    Find the closest vocabulary entry to a cluster centroid via cosine similarity.
-
-    Args:
-        centroid:         Mean of the cluster's raw 768D SPECTER2 embeddings.
-        vocab_embeddings: (N, 768) matrix of L2-normalised vocab embeddings.
-        vocab_labels:     Corresponding label strings, length N.
-        min_confidence:   Minimum cosine similarity to accept a match.
-
-    Returns:
-        (label, score, top5_candidates)
-        label is None if best score < min_confidence (triggers KeyBERT fallback).
-    """
-    # L2-normalise the centroid for cosine similarity via dot product
-    norm = np.linalg.norm(centroid)
-    if norm > 0:
-        centroid = centroid / norm
-
-    scores = vocab_embeddings @ centroid.astype(np.float32)
-    top_idx = np.argsort(scores)[::-1][:5]
-    candidates = [(vocab_labels[i], float(scores[i])) for i in top_idx]
-
-    best_label, best_score = candidates[0]
-    if best_score < min_confidence:
-        return None, best_score, candidates
-    return best_label, best_score, candidates
-
-
-def generate_keybert_labels(df: pd.DataFrame) -> tuple:
-    """
-    Cluster papers with HDBSCAN, then label each cluster.
-
-    Labeling strategy (controlled by LABEL_MODE above):
-      1. Compute the cluster centroid from raw 768D SPECTER2 embeddings.
-      2. Find the closest OpenAlex topic via cosine similarity.
-      3. If confidence ≥ MIN_VOCAB_CONFIDENCE → use vocab label.
-      4. Otherwise → fall back to KeyBERT on the cluster's abstracts.
-
-    Writes labels.parquet and adds a cluster_label column to df.
-    Returns (df, labels_path).
-
-    cluster_label is written into the parquet so the embedding-atlas
-    auto-labeler uses it as its text source via --text cluster_label.
-    All papers in a cluster share the same label string, so TF-IDF
-    correctly extracts the cluster's topic name rather than random phrases.
+    Cluster the 2D projection with HDBSCAN, then use KeyBERT + SPECTER2
+    to extract the best 1-2 word phrase for each cluster. Writes a
+    labels.parquet file and returns its path for the --labels CLI flag.
     """
     from keybert import KeyBERT
     from sklearn.cluster import HDBSCAN
 
-    print("  Generating cluster labels...")
+    print("  Generating KeyBERT cluster labels...")
 
-    # 2D coords used only for placing label positions on the map.
+    # 2D coords used only for computing label centroid positions for display.
     coords_2d = df[["projection_x", "projection_y"]].values.astype(np.float64)
 
     # ── Clustering input: 50D cosine space ──────────────────────────────
-    # HDBSCAN clusters on 50D UMAP projections (cosine metric) for semantic
-    # fidelity. The 768D vectors are used separately for centroid matching.
+    # CURRENT APPROACH: cluster on the 50D UMAP projection (stored in
+    # embedding_50d) using cosine metric. This is far more semantically
+    # accurate than clustering on 2D display coords, which lose structure
+    # during the final compression step.
     #
     # ALTERNATIVE A — cluster on raw 768D SPECTER2 vectors:
-    #   To enable: replace the block below with:
+    #   More faithful to the original embedding space but slower and
+    #   HDBSCAN struggles with very high dimensions (curse of dimensionality).
+    #   Use 50D as a middle ground (current approach) unless you have
+    #   a strong reason to use the full vectors.
+    #   To enable: replace the embedding_50d block below with:
     #     all_vectors = np.array(df["embedding"].tolist(), dtype=np.float32)
     #     cluster_input = all_vectors
     #     cluster_metric = "cosine"
     #
     # ALTERNATIVE B — cluster on 2D display coords (original approach):
+    #   Simple but lossy. Fine for small corpora but misses structure
+    #   compressed away during the 768D → 2D projection.
     #   To enable: replace the block below with:
     #     cluster_input = coords_2d
     #     cluster_metric = "euclidean"
@@ -1107,246 +404,164 @@ def generate_keybert_labels(df: pd.DataFrame) -> tuple:
         cluster_metric = "cosine"
         print("  Clustering on 50D cosine space (high-fidelity).")
     else:
+        # Fallback for runs where 50D projection isn't yet stored.
         cluster_input = coords_2d
         cluster_metric = "euclidean"
         print("  Clustering on 2D coords (fallback — embedding_50d not available).")
 
     # ── HDBSCAN clustering settings ─────────────────────────────────────
+    # min_cluster_size: minimum papers for a group to become a cluster.
+    #   Higher → fewer, larger, more general clusters (fewer labels).
+    #   Lower  → more, smaller, more specific clusters (more labels).
+    #   Recommended range: 3–15. Default: 5.
+    #
+    # min_samples: how conservative cluster assignment is.
+    #   Lower  → more points assigned to clusters (less noise/unlabelled).
+    #   Higher → stricter, more points treated as noise.
+    #   Recommended range: 1–5. Default: 3.
+    #
+    # cluster_selection_method:
+    #   "eom"  (default) — Excess of Mass; finds clusters of varying sizes.
+    #   "leaf" — selects leaf nodes of the condensed tree; smaller, more
+    #            granular clusters. Try this if clusters feel too coarse.
+    #   To enable leaf mode: add cluster_selection_method="leaf" below.
+    #
+    # Adaptive min_cluster_size (scales with corpus size):
+    #   Rather than a fixed value, scale to corpus size so the number of
+    #   clusters stays roughly proportional as the rolling DB grows/shrinks.
+    #   To enable: replace min_cluster_size=5 with:
+    #     min_cluster_size=max(5, len(df) // 40)
+    #
+    # Soft clustering (reduces unlabelled noise points):
+    #   HDBSCAN supports fuzzy cluster membership — points near boundaries
+    #   get fractional membership rather than being forced into one cluster
+    #   or marked as noise. Requires prediction_data=True and a separate
+    #   soft assignment step via hdbscan.all_points_membership_vectors().
+    #   Note: soft clustering is not currently implemented here; enable
+    #   prediction_data=True below as a first step if you want to explore it.
     # ════════════════════════════════════════════════════════════════════
     # HDBSCAN SETTINGS — all changes take effect on the next build.
     # These settings do not affect database.parquet in any way.
     # ════════════════════════════════════════════════════════════════════
     #
-    # ── min_cluster_size (int, default: adaptive) ────────────────────────
-    # Minimum papers required to form a cluster.
+    # ── min_cluster_size (int, default: 5) ──────────────────────────────
+    # Minimum number of papers required to form a cluster.
     # Lower  → more clusters, more specific labels.
     # Higher → fewer clusters, more general labels.
     # Syntax:   HDBSCAN(min_cluster_size=5, ...)
-    # Range:    3–15 recommended for a ~300-paper corpus.
+    # Range:    3–15 recommended for a ~300 paper corpus.
     #
     # ── min_samples (int, default: 4) ───────────────────────────────────
+    # Controls how conservative cluster assignment is.
     # Lower  → more points pulled into clusters, fewer noise points.
-    # Higher → stricter assignment, more noise points.
+    # Higher → stricter assignment, more points marked as noise.
     # Syntax:   HDBSCAN(..., min_samples=4, ...)
     # Range:    1–5 recommended.
     #
-    # ── cluster_selection_method (str, default: "leaf") ──────────────────
-    # "leaf" — smaller, more granular clusters (current).
-    # "eom"  — larger clusters of varying sizes.
+    # ── cluster_selection_method (str, default: "eom") ──────────────────
+    # "eom"  — Excess of Mass; finds clusters of varying sizes (default).
+    # "leaf" — Selects leaf nodes; smaller, more granular clusters.
+    #          Try "leaf" if clusters feel too coarse.
     # Syntax:   HDBSCAN(..., cluster_selection_method="leaf")
     #
+    # ── metric (str, set automatically above) ───────────────────────────
+    # "cosine"    — used when clustering on 50D embeddings (current).
+    # "euclidean" — used as fallback when clustering on 2D coords.
+    # Do not change this directly; it is set by the cluster_metric variable.
+    #
+    # ── Adaptive min_cluster_size (scales with corpus size) ─────────────
+    # Keeps cluster count roughly proportional as the rolling DB changes.
+    # Syntax:   HDBSCAN(min_cluster_size=max(5, len(df) // 40), ...)
+    #
     # ── cluster_selection_epsilon (float, default: 0.0) ─────────────────
-    # Merges clusters closer than this threshold. Raise to merge tiny clusters.
+    # Merges clusters closer than this distance threshold. Useful if you
+    # see many tiny clusters that should logically be one topic.
     # Syntax:   HDBSCAN(..., cluster_selection_epsilon=0.5)
-    # Range:    0.0 (off) to ~2.0.
+    # Range:    0.0 (off) to ~2.0; tune by inspecting cluster count.
     #
     # ── alpha (float, default: 1.0) ─────────────────────────────────────
+    # Controls how aggressively clusters are split during extraction.
     # Higher → fewer, more stable clusters.
-    # Lower  → more splits.
+    # Lower  → more splits, more clusters.
     # Syntax:   HDBSCAN(..., alpha=1.0)
     # Range:    0.5–2.0 typical.
     # ════════════════════════════════════════════════════════════════════
-    clusterer = HDBSCAN(
-        min_cluster_size=max(5, len(df) // 40),
-        min_samples=4,
-        metric=cluster_metric,
-        cluster_selection_method="leaf",
-    )
+    clusterer = HDBSCAN(min_cluster_size=max(5, len(df) // 40), min_samples=4, metric=cluster_metric, cluster_selection_method="leaf")
     cluster_ids = clusterer.fit_predict(cluster_input)
 
     n_clusters = len(set(cluster_ids)) - (1 if -1 in cluster_ids else 0)
     print(f"  Found {n_clusters} clusters (noise points excluded).")
-    print(f"  Label mode: {LABEL_MODE}")
 
-    # ── Raw 768D vectors — needed for centroid matching in all vocab modes ──
-    # These preserve the full semantic structure that UMAP compresses away.
-    all_768d = None
-    if "embedding" in df.columns and LABEL_MODE in ("vocab", "curated_20"):
-        all_768d = np.array(df["embedding"].tolist(), dtype=np.float32)
+    # KeyBERT with SPECTER2 — reuses the cached HuggingFace download.
+    kw_model = KeyBERT(model="allenai/specter2_base")
 
-    # ── Load / build vocab embeddings based on LABEL_MODE ───────────────────
-    vocab_embeddings, vocab_labels = None, None
-    curated_confidence = MIN_CURATED_CONFIDENCE
-
-    if LABEL_MODE == "vocab":
-        # Load pre-built OpenAlex ~300-topic vocabulary from disk.
-        vocab_embeddings, vocab_labels = _load_vocab_embeddings(VOCAB_EMBEDDINGS_PATH)
-
-    elif LABEL_MODE == "curated_20":
-        # Embed the 20 hand-curated category strings at runtime.
-        # Uses the same model as paper embeddings so the spaces are aligned.
-        from sentence_transformers import SentenceTransformer as _ST
-        _model = _ST(EMBEDDING_MODEL_ID)
-        vocab_embeddings = _build_curated_embeddings(CURATED_20_LABELS, _model)
-        vocab_labels = CURATED_20_LABELS
-        del _model   # free VRAM before KeyBERT loads (KeyBERT reloads it internally)
-
-    # ── KeyBERT — initialised once; used as fallback for "vocab" and "keybert" mode
-    # In "curated_20" mode it is only used when a cluster scores below
-    # MIN_CURATED_CONFIDENCE (rare given only 20 broad categories).
-    kw_model = KeyBERT(model=EMBEDDING_MODEL_ID)
-
-    from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
-    KEYBERT_STOP_WORDS = list(ENGLISH_STOP_WORDS) + [
-        # Generic AI/ML paper boilerplate — common across ALL clusters
-        "model", "models", "modeling", "modeled",
-        "paper", "propose", "proposed", "approach",
-        "method", "methods", "task", "tasks", "performance", "results",
-        "result", "work", "framework", "system", "learning", "deep",
-        "based", "using", "show", "new", "novel", "training", "dataset",
-        "data", "benchmark", "improve", "improved", "state", "art",
-        "effective", "efficient", "robust", "demonstrate", "achieve",
-        # Abstract-specific boilerplate
-        "present", "introduce", "existing", "recent", "large",
-        "address", "problem", "challenge", "issue", "key",
-        "conduct", "evaluate", "evaluation", "study", "studies",
-        "experiment", "experiments", "experimental", "empirical",
-        "outperform", "outperforms", "baseline", "baselines",
-        "significant", "significantly", "extensive", "comprehensive",
-    ]
-
-    vocab_count = 0
-    curated_count = 0
-    keybert_count = 0
     label_rows = []
-    diagnostics = []   # written to label_diagnostics.json for inspection
-
-    # Confidence threshold varies by mode
-    active_confidence = (
-        MIN_CURATED_CONFIDENCE if LABEL_MODE == "curated_20"
-        else MIN_VOCAB_CONFIDENCE
-    )
-
     for cid in sorted(set(cluster_ids)):
         if cid == -1:
             continue  # HDBSCAN noise points get no label
-
         mask = cluster_ids == cid
-        label_text = None
-        diag = {
-            "cluster_id":    int(cid),
-            "paper_count":   int(mask.sum()),
-            "method":        None,
-            "label":         None,
-            "vocab_score":   None,
-            "vocab_top10":   [],
-            "keybert_top3":  [],
-            "sample_titles": df.loc[mask, "title"].tolist()[:5],
-        }
+        # Use label_text (scrubbed, title-only) rather than raw title so
+        # "model/models" variants are already stripped before KeyBERT sees them.
+        titles = df.loc[mask, "label_text"].tolist()
+        combined = " ".join(titles)
 
-        # ── Step 1: Centroid matching (vocab or curated_20 modes) ────────────
-        if vocab_embeddings is not None and all_768d is not None:
-            centroid = all_768d[mask].mean(axis=0)
-            label_text, score, candidates = _vocab_label_for_centroid(
-                centroid, vocab_embeddings, vocab_labels, active_confidence
-            )
-            diag["vocab_score"] = round(float(score), 4)
-            diag["vocab_top10"] = [(t, round(float(s), 4)) for t, s in candidates[:10]]
-            if label_text:
-                method_tag = "curated_20" if LABEL_MODE == "curated_20" else "vocab"
-                diag["method"] = method_tag
-                print(f"  Cluster {cid} ({mask.sum()} papers) → {method_tag}: '{label_text}' "
-                      f"(score={score:.3f})")
-                print(f"    top5: {[(t, f'{s:.3f}') for t,s in candidates[:5]]}")
-                if LABEL_MODE == "curated_20":
-                    curated_count += 1
-                else:
-                    vocab_count += 1
-            else:
-                print(f"  Cluster {cid} ({mask.sum()} papers) → centroid too low "
-                      f"(best={score:.3f}: '{candidates[0][0]}') → KeyBERT fallback")
+        # Extend scikit-learn English stop words with AI boilerplate that
+        # KeyBERT would otherwise rank highly across all clusters.
+        # Note: stop_words="english" passes a string to CountVectorizer which
+        # uses sklearn's list internally — we extend that list explicitly here.
+        from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+        KEYBERT_STOP_WORDS = list(ENGLISH_STOP_WORDS) + [
+            "model", "models", "modeling", "modeled",
+            "paper", "propose", "proposed", "approach",
+            "method", "methods", "task", "tasks", "performance", "results",
+            "result", "work", "framework", "system", "learning", "deep",
+            "based", "using", "show", "new", "novel", "training", "dataset",
+            "data", "benchmark", "improve", "improved", "state", "art",
+            "effective", "efficient", "robust", "demonstrate", "achieve",
+        ]
 
-        # ── Step 2: KeyBERT fallback ─────────────────────────────────────────
-        # Always used when LABEL_MODE = "keybert".
-        # Used as fallback when centroid score is too low in "vocab" / "curated_20".
-        if label_text is None:
-            abstracts = df.loc[mask, "abstract"].tolist()
-            combined  = " ".join(abstracts)
-            # ── KeyBERT keyword extraction settings ─────────────────────────
-            # keyphrase_ngram_range: (min, max) words per phrase.
-            #   (1, 2) → single words and bigrams (recommended).
-            #   (2, 2) → bigrams only — specific but can produce odd pairings.
-            #
-            # use_mmr: Maximal Marginal Relevance reduces redundancy.
-            #   True  → broader, more diverse terms.
-            #   False → highest-scoring terms regardless of similarity.
-            #
-            # diversity: only applies when use_mmr=True. Range 0.0–1.0.
-            #   Lower  → keywords closer to cluster centroid (more representative).
-            #   Higher → more spread out.
-            keywords = kw_model.extract_keywords(
-                combined,
-                keyphrase_ngram_range=(2, 2),
-                stop_words=KEYBERT_STOP_WORDS,
-                use_mmr=True,
-                diversity=0.3,
-                top_n=3,
-            )
-            print(f"  Cluster {cid} ({mask.sum()} papers) → keybert: {keywords}")
-            if not keywords:
-                diag["method"] = "keybert_empty"
-                diagnostics.append(diag)
-                continue
-            label_text = keywords[0][0].title()
-            diag["keybert_top3"] = [(kw, round(float(sc), 4)) for kw, sc in keywords]
-            diag["method"] = "keybert"
-            keybert_count += 1
+        # ── KeyBERT keyword extraction settings ─────────────────────────
+        # keyphrase_ngram_range: (min, max) words per keyword phrase.
+        #   (1, 1) → single words only e.g. "robotics", "safety" — more general.
+        #   (1, 2) → single words and bigrams e.g. "medical imaging" — more specific.
+        #   (2, 2) → bigrams only — specific but can produce odd pairings.
+        #
+        # use_mmr: Maximal Marginal Relevance reduces redundancy between keywords.
+        #   True  → picks broader, more diverse terms across the cluster.
+        #   False → picks the highest-scoring terms regardless of similarity.
+        #
+        # diversity: only applies when use_mmr=True. Range 0.0–1.0.
+        #   Lower  → keywords closer to cluster centroid (more representative).
+        #   Higher → keywords more spread out (more diverse but less focused).
+        #
+        # top_n: how many candidate keywords to extract (kept for debug printing).
+        keywords = kw_model.extract_keywords(
+            combined,
+            keyphrase_ngram_range=(2, 2),
+            stop_words=KEYBERT_STOP_WORDS,
+            use_mmr=True,
+            diversity=0.3,
+            top_n=3,
+        )
+        print(f"  Cluster {cid} ({mask.sum()} papers) top keywords: {keywords}")
+        print(f"  Sample input (first 200 chars): {combined[:200]}")
+        if not keywords:
+            continue
 
-        diag["label"] = label_text
-        diagnostics.append(diag)
-        # Tag each paper in this cluster with the label (used below for --text)
-        df.loc[df.index[mask], "_cluster_label_tmp"] = label_text
+        label_text = keywords[0][0].title()
         cx = float(coords_2d[mask, 0].mean())
         cy = float(coords_2d[mask, 1].mean())
         label_rows.append({"x": cx, "y": cy, "text": label_text})
-
-    print(f"  Labeling summary: {vocab_count} vocab | {curated_count} curated_20 | "
-          f"{keybert_count} KeyBERT fallback.")
-
-    # ── Write diagnostics report ─────────────────────────────────────────────
-    # label_diagnostics.json shows exactly what happened for every cluster:
-    #   - which label was chosen and why (vocab / curated_20 / keybert)
-    #   - the top 10 candidates with cosine scores
-    #   - the top 3 KeyBERT keywords (when used as fallback)
-    #   - 5 sample paper titles from the cluster
-    # Use this to compare LABEL_MODE options and tune confidence thresholds.
-    diag_path = "label_diagnostics.json"
-    with open(diag_path, "w") as f:
-        json.dump({
-            "summary": {
-                "label_mode":      LABEL_MODE,
-                "total_clusters":  len(diagnostics),
-                "vocab_labels":    vocab_count,
-                "curated_labels":  curated_count,
-                "keybert_labels":  keybert_count,
-                "min_confidence":  active_confidence,
-                "vocab_file":      VOCAB_EMBEDDINGS_PATH if LABEL_MODE == "vocab" else "n/a",
-                "vocab_loaded":    vocab_embeddings is not None,
-            },
-            "clusters": diagnostics,
-        }, f, indent=2)
-    print(f"  Wrote diagnostics to {diag_path} — inspect to tune labeling.")
-
-    # ── Write cluster_label column back into df ──────────────────────────
-    # Each paper gets the label of its cluster. Noise points (HDBSCAN -1)
-    # get an empty string. This column is passed to the embedding-atlas CLI
-    # via --text so its built-in TF-IDF auto-labeler sees identical strings
-    # for all papers in a cluster and correctly extracts the topic name.
-    if "_cluster_label_tmp" in df.columns:
-        df["cluster_label"] = df["_cluster_label_tmp"].fillna("").astype(str)
-        df = df.drop(columns=["_cluster_label_tmp"])
-    else:
-        df["cluster_label"] = ""
 
     labels_df = pd.DataFrame(label_rows)
     labels_path = "labels.parquet"
     labels_df.to_parquet(labels_path, index=False)
     print(f"  Wrote {len(labels_df)} labels to {labels_path}.")
-    return df, labels_path
+    return labels_path
 
 
 # ──────────────────────────────────────────────
-# 10. HTML POP-OUT PANEL
+# 8. HTML POP-OUT PANELS  (About + Shortcuts)
 # ──────────────────────────────────────────────
 def build_panel_html(run_date: str) -> str:
     return (
@@ -1364,20 +579,31 @@ def build_panel_html(run_date: str) -> str:
     --arm-bg: rgba(15,23,42,0.82);
     --arm-panel-w: 300px;
   }
-  #arm-tab {
+
+  /* ── Tab strip ─────────────────────────────────────────────────────── */
+  #arm-tabs {
     position:fixed; left:0; top:50%; transform:translateY(-50%);
-    z-index:1000000; display:flex; align-items:center; justify-content:center;
+    z-index:1000000; display:flex; flex-direction:column; gap:4px;
+  }
+  .arm-tab-btn {
+    display:flex; align-items:center; justify-content:center;
     writing-mode:vertical-rl; text-orientation:mixed;
     background:rgba(15,23,42,0.90); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
     color:var(--arm-accent); border:1px solid var(--arm-border); border-left:none;
-    padding:18px 9px; border-radius:0 10px 10px 0; cursor:pointer;
+    padding:18px 9px; cursor:pointer;
     font-family:var(--arm-font); font-weight:600; font-size:12px;
     letter-spacing:0.12em; text-transform:uppercase;
     box-shadow:3px 0 20px rgba(0,0,0,0.4);
     transition:background 0.2s,color 0.2s,box-shadow 0.2s; user-select:none;
   }
-  #arm-tab:hover { background:rgba(30,41,59,0.95); color:#93c5fd; box-shadow:4px 0 24px rgba(96,165,250,0.2); }
-  #arm-panel {
+  .arm-tab-btn:first-child { border-radius:0 10px 0 0; }
+  .arm-tab-btn:last-child  { border-radius:0 0 10px 0; }
+  .arm-tab-btn:only-child  { border-radius:0 10px 10px 0; }
+  .arm-tab-btn:hover { background:rgba(30,41,59,0.95); color:#93c5fd; box-shadow:4px 0 24px rgba(96,165,250,0.2); }
+  .arm-tab-btn.arm-tab-active { background:rgba(30,41,59,0.98); color:#93c5fd; }
+
+  /* ── Shared panel chrome ────────────────────────────────────────────── */
+  .arm-panel {
     position:fixed; left:0; top:50%;
     transform:translateY(-50%) translateX(-110%);
     z-index:999999; width:var(--arm-panel-w); max-height:88vh;
@@ -1388,15 +614,18 @@ def build_panel_html(run_date: str) -> str:
     font-family:var(--arm-font); font-size:13px; color:#e2e8f0; line-height:1.65;
     transition:transform 0.32s cubic-bezier(0.4,0,0.2,1); overflow:hidden;
   }
-  #arm-panel.arm-open { transform:translateY(-50%) translateX(0); }
-  #arm-body { overflow-y:auto; overflow-x:hidden; padding:22px 20px 16px; flex:1; scrollbar-width:thin; scrollbar-color:#334155 transparent; }
-  #arm-body::-webkit-scrollbar { width:4px; }
-  #arm-body::-webkit-scrollbar-thumb { background:#334155; border-radius:4px; }
+  .arm-panel.arm-open { transform:translateY(-50%) translateX(0); }
+  .arm-body { overflow-y:auto; overflow-x:hidden; padding:22px 20px 16px; flex:1; scrollbar-width:thin; scrollbar-color:#334155 transparent; }
+  .arm-body::-webkit-scrollbar { width:4px; }
+  .arm-body::-webkit-scrollbar-thumb { background:#334155; border-radius:4px; }
+  .arm-panel-footer { padding:10px 20px 14px; border-top:1px solid var(--arm-border); display:flex; align-items:center; gap:7px; flex-shrink:0; }
+
+  /* ── Shared typography ──────────────────────────────────────────────── */
   .arm-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px; }
   .arm-title { font-size:15px; font-weight:700; color:#f1f5f9; letter-spacing:-0.01em; line-height:1.3; margin:0; }
   .arm-title span { color:var(--arm-accent); }
-  #arm-close { background:none; border:none; color:var(--arm-muted); cursor:pointer; font-size:17px; line-height:1; padding:2px 4px; border-radius:4px; transition:color 0.15s,background 0.15s; flex-shrink:0; margin-left:8px; }
-  #arm-close:hover { color:#f1f5f9; background:rgba(255,255,255,0.07); }
+  .arm-close-btn { background:none; border:none; color:var(--arm-muted); cursor:pointer; font-size:17px; line-height:1; padding:2px 4px; border-radius:4px; transition:color 0.15s,background 0.15s; flex-shrink:0; margin-left:8px; }
+  .arm-close-btn:hover { color:#f1f5f9; background:rgba(255,255,255,0.07); }
   .arm-byline { font-size:12px; color:var(--arm-muted); margin-bottom:16px; }
   .arm-byline a { color:var(--arm-accent); text-decoration:none; font-weight:500; }
   .arm-byline a:hover { color:#93c5fd; text-decoration:underline; }
@@ -1412,62 +641,201 @@ def build_panel_html(run_date: str) -> str:
   .arm-dot-enhanced { background:#f59e0b; box-shadow:0 0 6px rgba(245,158,11,0.5); }
   .arm-dot-std { background:#6366f1; box-shadow:0 0 6px rgba(99,102,241,0.4); }
   .arm-legend-label { font-weight:600; color:#cbd5e1; }
+  /* ── Book cards ─────────────────────────────────────────────────────── */
   .arm-book { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.03); border:1px solid var(--arm-border); border-radius:8px; padding:10px 12px; text-decoration:none; transition:background 0.2s,border-color 0.2s; margin-bottom:8px; }
   .arm-book:hover { background:rgba(96,165,250,0.07); border-color:rgba(96,165,250,0.3); }
   .arm-book-icon { font-size:22px; flex-shrink:0; }
   .arm-book-text { display:flex; flex-direction:column; }
   .arm-book-title { font-size:12px; font-weight:600; color:#e2e8f0; line-height:1.3; margin-bottom:2px; }
   .arm-book-sub { font-size:11px; color:var(--arm-accent); }
-  #arm-footer { padding:10px 20px 14px; border-top:1px solid var(--arm-border); display:flex; align-items:center; gap:7px; flex-shrink:0; }
+
+  /* ── Status footer ───────────────────────────────────────────────────── */
   .arm-status-dot { width:7px; height:7px; border-radius:50%; background:#22c55e; box-shadow:0 0 6px rgba(34,197,94,0.7); flex-shrink:0; animation:arm-pulse 2.5s ease-in-out infinite; }
   @keyframes arm-pulse { 0%,100% { opacity:1; } 50% { opacity:0.35; } }
   .arm-status-text { font-size:11px; color:#475569; font-family:var(--arm-font); }
   .arm-status-text strong { color:#64748b; font-weight:500; }
+
+  /* ── Shortcuts panel ─────────────────────────────────────────────────── */
+  .arm-shortcut-row {
+    display:grid; grid-template-columns:auto 1fr; align-items:center;
+    gap:10px 14px; margin-bottom:11px;
+  }
+  .arm-key-group { display:flex; align-items:center; gap:5px; flex-shrink:0; }
+  .arm-key {
+    display:inline-flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15);
+    border-bottom:2px solid rgba(0,0,0,0.35); border-radius:5px;
+    padding:3px 7px; font-size:11px; font-weight:600; font-family:var(--arm-font);
+    color:#cbd5e1; white-space:nowrap; line-height:1.4;
+    box-shadow:0 1px 0 rgba(0,0,0,0.3);
+  }
+  .arm-key-sep { color:#475569; font-size:10px; }
+  .arm-shortcut-desc { font-size:12px; color:#94a3b8; line-height:1.45; }
+  .arm-shortcut-desc strong { color:#cbd5e1; font-weight:600; }
+  .arm-shortcut-icon { font-size:15px; line-height:1; }
 </style>
 
-<button id="arm-tab" onclick="document.getElementById('arm-panel').classList.toggle('arm-open')" aria-label="Open info panel">About</button>
+<script>
+  function armToggle(panelId, tabId) {
+    var allPanels = document.querySelectorAll('.arm-panel');
+    var allTabs   = document.querySelectorAll('.arm-tab-btn');
+    var panel = document.getElementById(panelId);
+    var isOpen = panel.classList.contains('arm-open');
+    // Close everything first
+    allPanels.forEach(function(p) { p.classList.remove('arm-open'); });
+    allTabs.forEach(function(t)   { t.classList.remove('arm-tab-active'); });
+    // Toggle the clicked panel unless it was already open
+    if (!isOpen) {
+      panel.classList.add('arm-open');
+      document.getElementById(tabId).classList.add('arm-tab-active');
+    }
+  }
+  function armClose(panelId, tabId) {
+    document.getElementById(panelId).classList.remove('arm-open');
+    document.getElementById(tabId).classList.remove('arm-tab-active');
+  }
+</script>
 
-<div id="arm-panel" role="complementary" aria-label="About this atlas">
-  <div id="arm-body">
+<!-- ── Tab strip ───────────────────────────────────────────────── -->
+<div id="arm-tabs">
+  <button id="arm-tab-about"     class="arm-tab-btn" onclick="armToggle('arm-panel-about','arm-tab-about')"     aria-label="Open About panel">About</button>
+  <button id="arm-tab-shortcuts" class="arm-tab-btn" onclick="armToggle('arm-panel-shortcuts','arm-tab-shortcuts')" aria-label="Open Shortcuts panel">Keys</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ABOUT PANEL
+═══════════════════════════════════════════════════════════════ -->
+<div id="arm-panel-about" class="arm-panel" role="complementary" aria-label="About this atlas">
+  <div class="arm-body">
+
     <div class="arm-header">
       <p class="arm-title">The <span>AI Research</span> Atlas</p>
-      <button id="arm-close" onclick="document.getElementById('arm-panel').classList.remove('arm-open')" aria-label="Close panel">&#x2715;</button>
+      <button class="arm-close-btn" onclick="armClose('arm-panel-about','arm-tab-about')" aria-label="Close panel">&#x2715;</button>
     </div>
     <div class="arm-byline">By <a href="https://www.linkedin.com/in/lee-fischman/" target="_blank" rel="noopener">Lee Fischman</a></div>
 
-    <p class="arm-p">A live semantic atlas of recent AI research from arXiv (cs.AI), rebuilt daily. Each point is a paper. Nearby points share similar topics &mdash; clusters surface naturally from the embedding space and are labelled by their most distinctive terms.</p>
-    <p class="arm-p">Powered by <a href="https://apple.github.io/embedding-atlas/" target="_blank" rel="noopener">Apple Embedding Atlas</a> and SPECTER2 scientific embeddings.</p>
+    <p class="arm-p">A live semantic map of recent AI research from arXiv (cs.AI), rebuilt every day at 14:00 UTC. Each point is a paper. The map shows a rolling 4-day window &mdash; up to 250 papers per day.</p>
 
     <hr class="arm-divider">
 
-    <div class="arm-tip"><span class="arm-tip-icon">&#x1F4A1;</span><span>Set color to <strong>Reputation</strong> to see higher reputation scoring.</span></div>
+    <p class="arm-section">How the map is organized</p>
+    <p class="arm-p">Papers are embedded with <a href="https://allenai.org/blog/specter" target="_blank" rel="noopener">SPECTER2</a>, a model trained on scientific citation graphs. <strong>Nearby points are papers a researcher in that subfield would read together</strong> &mdash; they cluster by intellectual proximity, not just surface keywords. A paper on RL safety and one on multi-agent coordination may sit close even if they share few words.</p>
+    <p class="arm-p">Cluster labels are extracted with KeyBERT, finding the most distinctive 2-word phrase in each group's titles.</p>
 
-  <div class="arm-tip"><span class="arm-tip-icon">&#x1F4A1;</span><span>Set color to <strong>Author Tier</strong>; more authors tends to be better.</span></div>
+    <hr class="arm-divider">
 
-  <div class="arm-tip"><span class="arm-tip-icon">&#x1F4A1;</span><span>Set color to <strong>author_seniority</strong> to highlight papers with established researchers.</span></div>
+    <p class="arm-section">Color dimensions</p>
+    <div class="arm-legend-row">
+      <div class="arm-dot arm-dot-enhanced"></div>
+      <div><span class="arm-legend-label">Reputation Enhanced</span><br>Paper is from a recognized institution, lab, or has a public codebase.</div>
+    </div>
+    <div class="arm-legend-row">
+      <div class="arm-dot arm-dot-std"></div>
+      <div><span class="arm-legend-label">Reputation Std</span><br>No strong institutional signal detected in the abstract text.</div>
+    </div>
+    <p class="arm-p" style="margin-top:8px;">Switch the <strong>Color by</strong> dropdown to <strong>author_tier</strong> to see team size (1–3, 4–7, 8+ authors), which loosely correlates with resource backing.</p>
 
-  <div class="arm-tip"><span class="arm-tip-icon">&#x1F310;</span><span>Set color to <strong>institution_country</strong> to see the geographic spread of AI research.</span></div>
+    <hr class="arm-divider">
 
-  <div class="arm-tip"><span class="arm-tip-icon">&#x1F3DB;</span><span>Set color to <strong>institution_type</strong> to compare academic vs industry research.</span></div>
-
-  <div class="arm-tip"><span class="arm-tip-icon">&#x1F9EC;</span><span>Set color to <strong>openalex_subfield</strong> to see research areas from the OpenAlex taxonomy.</span></div>
+    <p class="arm-section">Powered by</p>
+    <p class="arm-p"><a href="https://apple.github.io/embedding-atlas/" target="_blank" rel="noopener">Apple Embedding Atlas</a> &bull; SPECTER2 &bull; UMAP &bull; HDBSCAN &bull; KeyBERT &bull; arXiv API</p>
 
     <hr class="arm-divider">
 
     <p class="arm-section">Books by the author</p>
     <a class="arm-book" href="https://www.amazon.com/dp/B0GMVH6P2W" target="_blank" rel="noopener">
       <span class="arm-book-icon">&#x1F4D8;</span>
-      <span class="arm-book-text"><span class="arm-book-title">Building Deep Learning Products</span><span class="arm-book-sub">Available on Amazon &#x2192;</span></span>
+      <span class="arm-book-text">
+        <span class="arm-book-title">Building Deep Learning Products</span>
+        <span class="arm-book-sub">Available on Amazon &#x2192;</span>
+      </span>
     </a>
 
-    <hr class="arm-divider">
-
-    <p class="arm-section">How to use</p>
-    <p class="arm-p">Click any point to read its abstract and open the PDF on arXiv. Use the search bar to find papers by keyword or phrase. Drag to pan; scroll or pinch to zoom.</p>
   </div>
-  <div id="arm-footer">
+  <div class="arm-panel-footer">
     <div class="arm-status-dot"></div>
     <span class="arm-status-text">Last updated <strong>""" + run_date + """ UTC</strong></span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SHORTCUTS PANEL
+═══════════════════════════════════════════════════════════════ -->
+<div id="arm-panel-shortcuts" class="arm-panel" role="complementary" aria-label="Keyboard and mouse shortcuts">
+  <div class="arm-body">
+
+    <div class="arm-header">
+      <p class="arm-title"><span>Shortcuts</span> &amp; Controls</p>
+      <button class="arm-close-btn" onclick="armClose('arm-panel-shortcuts','arm-tab-shortcuts')" aria-label="Close panel">&#x2715;</button>
+    </div>
+
+    <p class="arm-section" style="margin-top:6px;">Navigation</p>
+
+    <div class="arm-shortcut-row">
+      <div class="arm-key-group"><span class="arm-shortcut-icon">🖱️</span><span class="arm-key">Drag</span></div>
+      <div class="arm-shortcut-desc"><strong>Pan</strong> the map</div>
+    </div>
+    <div class="arm-shortcut-row">
+      <div class="arm-key-group"><span class="arm-shortcut-icon">🖱️</span><span class="arm-key">Scroll</span></div>
+      <div class="arm-shortcut-desc"><strong>Zoom</strong> in / out</div>
+    </div>
+    <div class="arm-shortcut-row">
+      <div class="arm-key-group"><span class="arm-shortcut-icon">🤌</span><span class="arm-key">Pinch</span></div>
+      <div class="arm-shortcut-desc"><strong>Zoom</strong> on touch / trackpad</div>
+    </div>
+    <div class="arm-shortcut-row">
+      <div class="arm-key-group"><span class="arm-key">Dbl&nbsp;click</span></div>
+      <div class="arm-shortcut-desc"><strong>Reset</strong> zoom &amp; pan to fit</div>
+    </div>
+
+    <hr class="arm-divider">
+    <p class="arm-section">Selecting papers</p>
+
+    <div class="arm-shortcut-row">
+      <div class="arm-key-group"><span class="arm-shortcut-icon">🖱️</span><span class="arm-key">Click</span></div>
+      <div class="arm-shortcut-desc"><strong>Select</strong> a paper — shows title, abstract, and PDF link</div>
+    </div>
+    <div class="arm-shortcut-row">
+      <div class="arm-key-group"><span class="arm-key">Click</span><span class="arm-key-sep">+</span><span class="arm-key">empty</span></div>
+      <div class="arm-shortcut-desc"><strong>Deselect</strong> — click any blank area</div>
+    </div>
+    <div class="arm-shortcut-row">
+      <div class="arm-key-group"><span class="arm-key">Esc</span></div>
+      <div class="arm-shortcut-desc"><strong>Dismiss</strong> the detail panel</div>
+    </div>
+
+    <hr class="arm-divider">
+    <p class="arm-section">Search &amp; filter</p>
+
+    <div class="arm-shortcut-row">
+      <div class="arm-key-group"><span class="arm-shortcut-icon">🔍</span><span class="arm-key">Search&nbsp;bar</span></div>
+      <div class="arm-shortcut-desc"><strong>Filter by keyword</strong> — matches titles and abstracts; non-matching points dim</div>
+    </div>
+    <div class="arm-shortcut-row">
+      <div class="arm-key-group"><span class="arm-key">Enter</span></div>
+      <div class="arm-shortcut-desc"><strong>Commit search</strong> &amp; highlight matches</div>
+    </div>
+    <div class="arm-shortcut-row">
+      <div class="arm-key-group"><span class="arm-key">Esc</span></div>
+      <div class="arm-shortcut-desc"><strong>Clear search</strong> and restore all points</div>
+    </div>
+
+    <hr class="arm-divider">
+    <p class="arm-section">Color &amp; labels</p>
+
+    <div class="arm-shortcut-row">
+      <div class="arm-key-group"><span class="arm-key">Color&nbsp;by</span></div>
+      <div class="arm-shortcut-desc">Switch between <strong>Reputation</strong>, <strong>author_tier</strong>, or other columns to recolor the map</div>
+    </div>
+    <div class="arm-shortcut-row">
+      <div class="arm-key-group"><span class="arm-key">Labels</span></div>
+      <div class="arm-shortcut-desc">Floating cluster labels appear automatically; zoom in to reveal more granular ones</div>
+    </div>
+
+  </div>
+  <div class="arm-panel-footer">
+    <div class="arm-status-dot"></div>
+    <span class="arm-status-text">Tip: open <strong>About</strong> for color legend details</span>
   </div>
 </div>
 """
@@ -1475,7 +843,7 @@ def build_panel_html(run_date: str) -> str:
 
 
 # ──────────────────────────────────────────────
-# 11. MAIN
+# 9. MAIN
 # ──────────────────────────────────────────────
 if __name__ == "__main__":
     clear_docs_contents("docs")
@@ -1486,127 +854,69 @@ if __name__ == "__main__":
     # Load & prune existing rolling DB
     existing_df  = load_existing_db()
     is_first_run = existing_df.empty and not os.path.exists(DB_PATH)
-    days_back    = 15 if is_first_run else 2
+    days_back    = 5 if is_first_run else 2
 
     if is_first_run:
         print("  First run — pre-filling with last 5 days of arXiv papers.")
     else:
         print(f"  Loaded {len(existing_df)} existing papers from rolling DB.")
 
-    # ── One-time migration: fix rows poisoned by the batch-400 bug ───────
-    # An earlier build used a pre-filled result dict, causing rows that got
-    # HTTP 400 errors to be marked openalex_fetched=True with empty institution
-    # lists.  Reset any such rows to False so they are retried this run.
-    # This guard is harmless once all rows have real data: the condition
-    # (fetched=True AND empty names) will simply never match.
-    if "openalex_fetched" in existing_df.columns and "openalex_institution_names" in existing_df.columns:
-        bad_mask = (
-            (existing_df["openalex_fetched"] == True) &
-            (existing_df["openalex_institution_names"].apply(
-                lambda v: not isinstance(v, list) or len(v) == 0
-            ))
-        )
-        if bad_mask.any():
-            existing_df.loc[bad_mask, "openalex_fetched"] = False
-            print(f"  Migration: reset openalex_fetched for {bad_mask.sum()} rows "
-                  f"with empty institution data (will re-query this run).")
-
-    # Load run state — used to skip arXiv fetch if already ran today
-    run_state   = load_run_state()
-    today_date  = now.strftime("%Y-%m-%d")
-    already_ran = run_state.get("last_fetch_date") == today_date
-
-    if already_ran:
-        print(f"  arXiv already fetched today ({today_date}) — skipping fetch, "
-              f"reusing {len(existing_df)} papers from rolling DB.")
-        df     = existing_df.copy()
-        new_df = pd.DataFrame()   # empty — no new papers this run
-    else:
-        # Fetch from arXiv
+    # Fetch from arXiv
         # Set a descriptive User-Agent as required by arXiv's API policy.
-        # Without this, new clients may receive HTTP 406 rejections.
-        opener = urllib.request.build_opener()
-        opener.addheaders = [("User-Agent",
-            "ai-research-atlas/1.0 (https://github.com/lfischman/ai-research-atlas; "
-            "mailto:lee.fischman@gmail.com)")]
-        urllib.request.install_opener(opener)
+    # Without this, new clients may receive HTTP 406 rejections.
+    import urllib.request
+    opener = urllib.request.build_opener()
+    opener.addheaders = [("User-Agent",
+        "ai-research-atlas/1.0 (https://github.com/lfischman/ai-research-atlas; "
+        "mailto:lee.fischman@gmail.com)")]
+    urllib.request.install_opener(opener)
 
-        client = arxiv.Client(page_size=100, delay_seconds=10)
-        search = arxiv.Search(
-            query=(
-                f"cat:cs.AI AND submittedDate:"
-                f"[{(now - timedelta(days=days_back)).strftime('%Y%m%d%H%M')}"
-                f" TO {now.strftime('%Y%m%d%H%M')}]"
-            ),
-            max_results=ARXIV_MAX,
-        )
+    client = arxiv.Client(page_size=100, delay_seconds=10)
+    search = arxiv.Search(
+        query=(
+            f"cat:cs.AI AND submittedDate:"
+            f"[{(now - timedelta(days=days_back)).strftime('%Y%m%d%H%M')}"
+            f" TO {now.strftime('%Y%m%d%H%M')}]"
+        ),
+        max_results=ARXIV_MAX,
+    )
 
-        results = fetch_arxiv(client, search)
-        if not results:
-            print("  No results returned from arXiv. Skipping build.")
-            exit(0)
+    results = fetch_arxiv(client, search)
+    if not results:
+        print("  No results returned from arXiv. Skipping build.")
+        exit(0)
 
-        print(f"  Fetched {len(results)} papers from arXiv.")
+    print(f"  Fetched {len(results)} papers from arXiv.")
 
-        # Build new-papers DataFrame
-        today_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-        rows = []
-        for r in results:
-            title    = r.title
-            abstract = r.summary
-            scrubbed = scrub_model_words(f"{title}. {title}. {abstract}")
-            rows.append({
-                "title":        title,
-                "abstract":     abstract,
-                "text_vector":  scrubbed,
-                "url":          r.pdf_url,
-                "id":           r.entry_id.split("/")[-1],
-                "author_count": len(r.authors),
-                "author_tier":  categorize_authors(len(r.authors)),
-                "date_added":   r.published.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            })
+    # Build new-papers DataFrame
+    today_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    rows = []
+    for r in results:
+        title    = r.title
+        abstract = r.summary
+        scrubbed = scrub_model_words(f"{title}. {title}. {abstract}")
+        # label_text: title only (repeated for TF-IDF weight), used for cluster
+        # labels in incremental mode where --text doesn't affect embeddings.
+        label_text = scrub_model_words(f"{title}. {title}. {title}.")
+        rows.append({
+            "title":        title,
+            "abstract":     abstract,
+            "text":         scrubbed,
+            "label_text":   label_text,
+            "url":          r.pdf_url,
+            "id":           r.entry_id.split("/")[-1],
+            "author_count": len(r.authors),
+            "author_tier":  categorize_authors(len(r.authors)),
+            "date_added":   today_str,
+        })
 
-        new_df = pd.DataFrame(rows)
+    new_df = pd.DataFrame(rows)
+    new_df["Reputation"] = new_df.apply(calculate_reputation, axis=1)
 
-        # ── OpenAlex institution lookup ──────────────────────────────────────
-        openalex_data = fetch_openalex_data(new_df["id"].tolist())
-        new_df = apply_openalex_columns(new_df, openalex_data)
-        new_df["Reputation"] = new_df.apply(calculate_reputation, axis=1)
-
-        # Merge into rolling DB
-        df = merge_papers(existing_df, new_df)
-        df = df.drop(columns=["group"], errors="ignore")
-        print(f"  Rolling DB: {len(df)} papers after merge.")
-
-        # Record successful fetch so re-runs today skip arXiv
-        save_run_state({**run_state, "last_fetch_date": today_date})
-
-    # Ensure OpenAlex columns exist for all rows (including those loaded from
-    # an older parquet that predates this schema).
-    for col in ("openalex_institution_names", "openalex_institution_countries",
-                "openalex_institution_types"):
-        if col not in df.columns:
-            df[col] = None
-    if "openalex_fetched" not in df.columns:
-        df["openalex_fetched"] = False
-
-    # Backfill: query OpenAlex for any rows that haven't been fetched yet.
-    # new_df is empty when arXiv was already fetched today, so this covers
-    # all unfetched rows in that case too.
-    new_ids        = set(new_df["id"].tolist()) if not new_df.empty else set()
-    unfetched_mask = (df["openalex_fetched"] == False) & (~df["id"].isin(new_ids))
-    unfetched_ids  = df.loc[unfetched_mask, "id"].tolist()
-    if unfetched_ids:
-        print(f"  Backfilling OpenAlex data for {len(unfetched_ids)} existing rows...")
-        backfill_data = fetch_openalex_data(unfetched_ids)
-        df = apply_openalex_columns(df, backfill_data)
-        # Recalculate Reputation for rows that got new institution data
-        newly_fetched = df["openalex_fetched"] & df["id"].isin(unfetched_ids)
-        if newly_fetched.any():
-            df.loc[newly_fetched, "Reputation"] = df.loc[newly_fetched].apply(
-                calculate_reputation, axis=1
-            )
-            print(f"  Re-scored Reputation for {newly_fetched.sum()} backfilled rows.")
+    # Merge into rolling DB
+    df = merge_papers(existing_df, new_df)
+    df = df.drop(columns=["group"], errors="ignore")  # remove legacy column name
+    print(f"  Rolling DB: {len(df)} papers after merge.")
 
     # Backfill Reputation for older rows that predate the column.
     if "Reputation" not in df.columns or df["Reputation"].isna().any():
@@ -1615,30 +925,16 @@ if __name__ == "__main__":
             print(f"  Backfilling Reputation for {missing.sum()} older rows...")
             df.loc[missing, "Reputation"] = df.loc[missing].apply(calculate_reputation, axis=1)
 
-    # ── Author seniority (Step 2) ────────────────────────────────────────
-    df = apply_author_seniority(df)
-
-    # ── Country & institution type dimensions (Steps 3 & 4) ──────────────
-    # No additional API calls needed — data is already in the parquet from
-    # the Step 1 OpenAlex fetch. Just derives scalar columns from the lists.
-    df = apply_geo_and_type_columns(df)
-
-    # Re-score Reputation now that all signals are populated
-    df["Reputation"] = df.apply(calculate_reputation, axis=1)
-
     # Embed & project (incremental mode only)
     labels_path = None
     if EMBEDDING_MODE == "incremental":
         print("  Incremental mode: embedding new papers only.")
         df = embed_and_project(df)
-        df, labels_path = generate_keybert_labels(df)
+        labels_path = generate_keybert_labels(df)
 
     # Save rolling DB
     # Full mode: drop projection columns so CLI always recomputes a fresh layout.
     if EMBEDDING_MODE == "full":
-        # Full mode: drop raw vectors so the CLI always recomputes a fresh layout.
-        # cluster_label is kept — it's written by generate_keybert_labels in
-        # incremental mode, so it won't exist in full mode (no-op).
         save_df = df.drop(columns=["embedding", "projection_x", "projection_y"], errors="ignore")
     else:
         save_df = df
@@ -1649,19 +945,6 @@ if __name__ == "__main__":
     save_df = save_df.copy()
     save_df["date_added"] = pd.to_datetime(save_df["date_added"], utc=True).dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    # Normalize OpenAlex list columns: replace None/NaN with empty lists so
-    # pyarrow can infer a consistent list[string] type for the column.
-    for col in ("openalex_institution_names", "openalex_institution_countries",
-                "openalex_institution_types", "openalex_author_ids",
-                "openalex_keywords"):
-        if col in save_df.columns:
-            save_df[col] = save_df[col].apply(
-                lambda v: v if isinstance(v, list) else []
-            )
-    # openalex_fetched: ensure bool (not object)
-    if "openalex_fetched" in save_df.columns:
-        save_df["openalex_fetched"] = save_df["openalex_fetched"].fillna(False).astype(bool)
-
     save_df.to_parquet(DB_PATH, index=False)
     print(f"  Saved {len(save_df)} papers to {DB_PATH}.")
 
@@ -1670,17 +953,13 @@ if __name__ == "__main__":
 
     if EMBEDDING_MODE == "incremental":
         # Incremental mode: embeddings are pre-computed via --x/--y.
-        # --text cluster_label feeds embedding-atlas's built-in TF-IDF
-        # auto-labeler. Since every paper in a cluster shares the same label
-        # string (e.g. all 32 papers in cluster 7 have "Reinforcement Learning
-        # in Robotics"), TF-IDF extracts that phrase as the cluster label.
-        # --labels also passes our positioned labels.parquet as a secondary
-        # layer; remove it if it causes duplicate labels in the UI.
+        # KeyBERT labels are passed via --labels, bypassing TF-IDF entirely.
+        # --text is intentionally omitted so the CLI cannot generate competing
+        # automatic TF-IDF labels that would override our KeyBERT labels.
         atlas_cmd = [
             "embedding-atlas", DB_PATH,
             "--x",          "projection_x",
             "--y",          "projection_y",
-            "--text",       "cluster_label",
             "--labels",     labels_path,
             "--export-application", "site.zip",
         ]
@@ -1690,8 +969,8 @@ if __name__ == "__main__":
         # To improve label quality in full mode, switch to incremental mode.
         atlas_cmd = [
             "embedding-atlas", DB_PATH,
-            "--text",       "text_vector",
-            "--model",      EMBEDDING_MODEL_ID,
+            "--text",       "text",
+            "--model",      "allenai/specter2_base",
             # "--stop-words", STOP_WORDS_PATH,  # omitted: NLTK default stop words are used
             "--export-application", "site.zip",
         ]
@@ -1715,25 +994,14 @@ if __name__ == "__main__":
         # Lower it to label more clusters including sparse ones.
         # conf["labelDensityThreshold"] = 0.1  # default is ~0.05
 
-        # column_mappings: keys are parquet column names, values are display
-        # names shown in the color dropdown and popup. Order controls dropdown order.
-        conf["column_mappings"] = {
-            "title":                      "Title",
-            "abstract":                   "Abstract",
-            "Reputation":                 "Reputation",
-            "author_count":               "Author Count",
-            "author_tier":                "Author Tier",
-            "author_seniority":           "Seniority",
-            "institution_country":        "Country",
-            "institution_type":           "Institution Type",
-            "openalex_subfield":          "Research Area",
-            "openalex_topic":             "Topic",
-            "openalex_keywords":          "Keywords",
-            "url":                        "URL",
-            "openalex_institution_names": "Institutions",
-            "cluster_label":              "Research Topic",
-            "text_vector":                "Scrubbed Text",
-        }
+        conf.setdefault("column_mappings", {}).update({
+            "title":        "title",
+            "abstract":     "abstract",
+            "Reputation":   "Reputation",
+            "author_count": "author_count",
+            "author_tier":  "author_tier",
+            "url":          "url",
+        })
 
         with open(config_path, "w") as f:
             json.dump(conf, f, indent=4)
@@ -1741,17 +1009,17 @@ if __name__ == "__main__":
     else:
         print("  docs/data/config.json not found — skipping config override.")
 
-    # Inject pop-out panel
+    # Inject About + Shortcuts pop-out panels
     index_file = "docs/index.html"
     if os.path.exists(index_file):
-        panel_html = build_panel_html(run_date)
+        panels_html = build_panel_html(run_date)
         with open(index_file, "r", encoding="utf-8") as f:
             content = f.read()
-        content = content.replace("</body>", panel_html + "\n</body>") \
-            if "</body>" in content else content + panel_html
+        content = content.replace("</body>", panels_html + "\n</body>") \
+            if "</body>" in content else content + panels_html
         with open(index_file, "w", encoding="utf-8") as f:
             f.write(content)
-        print("  Info panel injected into index.html.")
+        print("  About + Shortcuts panels injected into index.html.")
     else:
         print("  docs/index.html not found — skipping panel injection.")
 
