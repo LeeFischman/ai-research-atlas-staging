@@ -10,124 +10,64 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 1.6702655792236327,
-                "y": 5.25805435180664,
-                "text": "Logic, Reasoning, and Knowledge"
+                "x": 4.698850631713867,
+                "y": 7.167084767268254,
+                "text": "Medical and Clinical AI"
             },
             {
-                "x": 4.319806933403015,
-                "y": 6.999413728713989,
-                "text": "Stochastic Gradient Optimization Techniques"
+                "x": 4.405771176020305,
+                "y": 5.885596950848897,
+                "text": "Self-Supervised and Contrastive Learning"
             },
             {
-                "x": 3.439619263013204,
-                "y": 6.3928070068359375,
-                "text": "Machine Learning and Algorithms"
+                "x": 3.35372583489669,
+                "y": 6.036883329090319,
+                "text": "AI Governance and Policy"
             },
             {
-                "x": 4.492600059509277,
-                "y": 5.066262245178223,
-                "text": "Machine Learning and Data Classification"
+                "x": 7.33378608410175,
+                "y": 8.466321138235239,
+                "text": "Self-Supervised and Contrastive Learning"
             },
             {
-                "x": 4.323876789637974,
-                "y": 5.696472099849156,
-                "text": "Time Series Analysis and Forecasting"
+                "x": 7.432250318073091,
+                "y": 7.969005153292701,
+                "text": "Efficient Inference and Quantization"
             },
             {
-                "x": 5.174188954489572,
-                "y": 7.047876630510602,
-                "text": "Stochastic Gradient Optimization Techniques"
+                "x": 6.653114106920031,
+                "y": 7.020799901750353,
+                "text": "Self-Supervised and Contrastive Learning"
             },
             {
-                "x": 2.678382721814242,
-                "y": 5.709031798622825,
-                "text": "Machine Learning and Data Classification"
+                "x": 7.582367493556096,
+                "y": 6.411672922281118,
+                "text": "Self-Supervised and Contrastive Learning"
             },
             {
-                "x": 0.12090269792824984,
-                "y": 5.84959454536438,
-                "text": "Software System Performance and Reliability"
+                "x": 8.159256041049957,
+                "y": 7.282518565654755,
+                "text": "Self-Supervised and Contrastive Learning"
             },
             {
-                "x": 4.912563528333392,
-                "y": 7.3343323298863,
-                "text": "Stochastic Gradient Optimization Techniques"
+                "x": 2.9959060316500454,
+                "y": 7.0103572347889775,
+                "text": "Adversarial Robustness and AI Safety"
             },
             {
-                "x": 1.4042566906322131,
-                "y": 7.796695058996027,
-                "text": "Reinforcement Learning in Robotics"
+                "x": 3.4280917048454285,
+                "y": 8.11585291226705,
+                "text": "Benchmark Design and Evaluation Methodology"
             },
             {
-                "x": -0.011089715330551067,
-                "y": 5.27268107732137,
-                "text": "Diverse Interdisciplinary Research Studies"
+                "x": 5.126823886235555,
+                "y": 9.682652854919434,
+                "text": "Reinforcement Learning from Human Feedback"
             },
             {
-                "x": 0.009254689921032299,
-                "y": 4.732847733931108,
-                "text": "Adversarial Robustness in Machine Learning"
-            },
-            {
-                "x": 4.926022257123675,
-                "y": 6.3779586383274625,
-                "text": "Stochastic Gradient Optimization Techniques"
-            },
-            {
-                "x": 5.2794569333394366,
-                "y": 7.3859554926554365,
-                "text": "Stochastic Gradient Optimization Techniques"
-            },
-            {
-                "x": 1.8826952642864652,
-                "y": 3.529076761669583,
-                "text": "Authorship Attribution and Profiling"
-            },
-            {
-                "x": 5.395531524311412,
-                "y": 5.315761045976118,
-                "text": "Machine Learning in Healthcare"
-            },
-            {
-                "x": 5.9518800515394945,
-                "y": 6.395346017984243,
-                "text": "Domain Adaptation and Few-Shot Learning"
-            },
-            {
-                "x": 2.1174850940704344,
-                "y": 3.948053550720215,
-                "text": "Text Readability and Simplification"
-            },
-            {
-                "x": 0.7548228998978933,
-                "y": 6.742654323577881,
-                "text": "Age of Information Optimization"
-            },
-            {
-                "x": 0.9806623041629792,
-                "y": 6.147087240219117,
-                "text": "Speech and dialogue systems"
-            },
-            {
-                "x": 1.1205728181770869,
-                "y": 3.938688005719866,
-                "text": "Persona Design and Applications"
-            },
-            {
-                "x": 1.4215164979298909,
-                "y": 4.330211480458577,
-                "text": "Bayesian Modeling and Causal Inference"
-            },
-            {
-                "x": 2.65204119682312,
-                "y": 8.318011283874512,
-                "text": "Reinforcement Learning in Robotics"
-            },
-            {
-                "x": 3.3370346228281655,
-                "y": 8.009509007136026,
-                "text": "Machine Learning and Data Classification"
+                "x": 3.779383818308512,
+                "y": 9.597733243306477,
+                "text": "Reinforcement Learning from Human Feedback"
             }
         ],
         "initialState": {
