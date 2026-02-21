@@ -5,63 +5,69 @@
             "projection": {
                 "x": "projection_x",
                 "y": "projection_y"
-            }
+            },
+            "text": "cluster_label"
         },
         "embeddingViewLabels": [
             {
-                "x": 5.129191841397967,
-                "y": 6.577197313308716,
-                "text": "Stochastic Gradient Optimization Techniques"
-            },
-            {
-                "x": 4.770101577043533,
-                "y": 5.58242666721344,
+                "x": 4.698850631713867,
+                "y": 7.167084767268254,
                 "text": "Machine Learning and Data Classification"
             },
             {
-                "x": 1.1669328131458976,
-                "y": 4.080990943041715,
+                "x": 4.405771176020305,
+                "y": 5.885596950848897,
+                "text": "Machine Learning and Data Classification"
+            },
+            {
+                "x": 3.35372583489669,
+                "y": 6.036883329090319,
                 "text": "Persona Design and Applications"
             },
             {
-                "x": 2.1630652776131263,
-                "y": 4.159014481764573,
-                "text": "Topic Modeling"
-            },
-            {
-                "x": 0.20816562958061696,
-                "y": 5.304248714447022,
-                "text": "Adversarial Robustness in Machine Learning"
-            },
-            {
-                "x": 1.3655725967966847,
-                "y": 4.802844206492106,
-                "text": "Adversarial Robustness in Machine Learning"
-            },
-            {
-                "x": 1.1475519071454587,
-                "y": 6.310654142628545,
-                "text": "Software System Performance and Reliability"
-            },
-            {
-                "x": 3.119085282087326,
-                "y": 7.5276468098163605,
-                "text": "Reinforcement Learning in Robotics"
-            },
-            {
-                "x": 1.9202133200385354,
-                "y": 7.836289275776256,
-                "text": "Reinforcement Learning in Robotics"
-            },
-            {
-                "x": 5.715680122375488,
-                "y": 6.027718630704013,
+                "x": 7.33378608410175,
+                "y": 8.466321138235239,
                 "text": "Stochastic Gradient Optimization Techniques"
             },
             {
-                "x": 5.6208217694209175,
-                "y": 4.716355433830848,
+                "x": 7.432250318073091,
+                "y": 7.969005153292701,
+                "text": "Stochastic Gradient Optimization Techniques"
+            },
+            {
+                "x": 6.653114106920031,
+                "y": 7.020799901750353,
+                "text": "Time Series Analysis and Forecasting"
+            },
+            {
+                "x": 7.582367493556096,
+                "y": 6.411672922281118,
+                "text": "AI in cancer detection"
+            },
+            {
+                "x": 8.159256041049957,
+                "y": 7.282518565654755,
                 "text": "Domain Adaptation and Few-Shot Learning"
+            },
+            {
+                "x": 2.9959060316500454,
+                "y": 7.0103572347889775,
+                "text": "Adversarial Robustness in Machine Learning"
+            },
+            {
+                "x": 3.4280917048454285,
+                "y": 8.11585291226705,
+                "text": "Speech and dialogue systems"
+            },
+            {
+                "x": 5.126823886235555,
+                "y": 9.682652854919434,
+                "text": "Reinforcement Learning in Robotics"
+            },
+            {
+                "x": 3.779383818308512,
+                "y": 9.597733243306477,
+                "text": "Reinforcement Learning in Robotics"
             }
         ],
         "initialState": {
@@ -89,6 +95,7 @@
         "openalex_topic": "Topic",
         "openalex_keywords": "Keywords",
         "url": "URL",
-        "openalex_institution_names": "Institutions"
+        "openalex_institution_names": "Institutions",
+        "cluster_label": "Research Topic"
     }
 }
