@@ -915,7 +915,7 @@ CURATED_20_LABELS = [
 # Higher → fewer vocab labels, more KeyBERT fallbacks (more conservative).
 # Lower  → more vocab labels, accepts weaker matches.
 # Recommended range: 0.65–0.85.
-MIN_VOCAB_CONFIDENCE = 0.85
+MIN_VOCAB_CONFIDENCE = 0.50
 
 # ── MIN_CURATED_CONFIDENCE (float, default: 0.30) ────────────────────
 # Minimum cosine similarity to accept a curated-20 match (LABEL_MODE="curated_20").
