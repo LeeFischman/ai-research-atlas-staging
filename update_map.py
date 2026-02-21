@@ -880,7 +880,7 @@ def _vocab_label_for_centroid(
     return best_label, best_score, candidates
 
 
-def generate_keybert_labels(df: pd.DataFrame) -> str:
+def generate_keybert_labels(df: pd.DataFrame) -> tuple:
     """
     Cluster papers with HDBSCAN, then label each cluster.
 
@@ -890,7 +890,13 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
       3. If confidence ≥ MIN_VOCAB_CONFIDENCE → use vocab label.
       4. Otherwise → fall back to KeyBERT on the cluster's abstracts.
 
-    Writes labels.parquet and returns its path for the --labels CLI flag.
+    Writes labels.parquet and adds a cluster_label column to df.
+    Returns (df, labels_path).
+
+    cluster_label is written into the parquet so the embedding-atlas
+    auto-labeler uses it as its text source via --text cluster_label.
+    All papers in a cluster share the same label string, so TF-IDF
+    correctly extracts the cluster's topic name rather than random phrases.
     """
     from keybert import KeyBERT
     from sklearn.cluster import HDBSCAN
@@ -1077,6 +1083,8 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
 
         diag["label"] = label_text
         diagnostics.append(diag)
+        # Tag each paper in this cluster with the label (used below for --text)
+        df.loc[mask[mask].index, "_cluster_label_tmp"] = label_text
         cx = float(coords_2d[mask, 0].mean())
         cy = float(coords_2d[mask, 1].mean())
         label_rows.append({"x": cx, "y": cy, "text": label_text})
@@ -1105,11 +1113,22 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
         }, f, indent=2)
     print(f"  Wrote diagnostics to {diag_path} — inspect to tune labeling.")
 
+    # ── Write cluster_label column back into df ──────────────────────────
+    # Each paper gets the label of its cluster. Noise points (HDBSCAN -1)
+    # get an empty string. This column is passed to the embedding-atlas CLI
+    # via --text so its built-in TF-IDF auto-labeler sees identical strings
+    # for all papers in a cluster and correctly extracts the topic name.
+    if "_cluster_label_tmp" in df.columns:
+        df["cluster_label"] = df["_cluster_label_tmp"].fillna("").astype(str)
+        df = df.drop(columns=["_cluster_label_tmp"])
+    else:
+        df["cluster_label"] = ""
+
     labels_df = pd.DataFrame(label_rows)
     labels_path = "labels.parquet"
     labels_df.to_parquet(labels_path, index=False)
     print(f"  Wrote {len(labels_df)} labels to {labels_path}.")
-    return labels_path
+    return df, labels_path
 
 
 # ──────────────────────────────────────────────
@@ -1402,11 +1421,14 @@ if __name__ == "__main__":
     if EMBEDDING_MODE == "incremental":
         print("  Incremental mode: embedding new papers only.")
         df = embed_and_project(df)
-        labels_path = generate_keybert_labels(df)
+        df, labels_path = generate_keybert_labels(df)
 
     # Save rolling DB
     # Full mode: drop projection columns so CLI always recomputes a fresh layout.
     if EMBEDDING_MODE == "full":
+        # Full mode: drop raw vectors so the CLI always recomputes a fresh layout.
+        # cluster_label is kept — it's written by generate_keybert_labels in
+        # incremental mode, so it won't exist in full mode (no-op).
         save_df = df.drop(columns=["embedding", "projection_x", "projection_y"], errors="ignore")
     else:
         save_df = df
@@ -1438,13 +1460,17 @@ if __name__ == "__main__":
 
     if EMBEDDING_MODE == "incremental":
         # Incremental mode: embeddings are pre-computed via --x/--y.
-        # KeyBERT labels are passed via --labels, bypassing TF-IDF entirely.
-        # --text is intentionally omitted so the CLI cannot generate competing
-        # automatic TF-IDF labels that would override our KeyBERT labels.
+        # --text cluster_label feeds embedding-atlas's built-in TF-IDF
+        # auto-labeler. Since every paper in a cluster shares the same label
+        # string (e.g. all 32 papers in cluster 7 have "Reinforcement Learning
+        # in Robotics"), TF-IDF extracts that phrase as the cluster label.
+        # --labels also passes our positioned labels.parquet as a secondary
+        # layer; remove it if it causes duplicate labels in the UI.
         atlas_cmd = [
             "embedding-atlas", DB_PATH,
             "--x",          "projection_x",
             "--y",          "projection_y",
+            "--text",       "cluster_label",
             "--labels",     labels_path,
             "--export-application", "site.zip",
         ]
@@ -1495,6 +1521,7 @@ if __name__ == "__main__":
             "openalex_keywords":          "Keywords",
             "url":                        "URL",
             "openalex_institution_names": "Institutions",
+            "cluster_label":              "Research Topic",
         }
 
         with open(config_path, "w") as f:
