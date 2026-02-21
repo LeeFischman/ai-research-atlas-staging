@@ -808,7 +808,7 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 # Master switch for vocabulary-based labeling.
 # True  → use OpenAlex vocabulary, fall back to KeyBERT on low confidence.
 # False → use KeyBERT for all clusters (previous behaviour).
-USE_VOCAB_LABELS = True
+USE_VOCAB_LABELS = False
 
 # ── MIN_VOCAB_CONFIDENCE (float, default: 0.75) ──────────────────────
 # Minimum cosine similarity to accept a vocabulary match.
