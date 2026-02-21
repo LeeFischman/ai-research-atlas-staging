@@ -968,7 +968,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> tuple:
         min_cluster_size=max(5, len(df) // 40),
         min_samples=4,
         metric=cluster_metric,
-        cluster_selection_method="leaf",
+        cluster_selection_method="eom",
     )
     cluster_ids = clusterer.fit_predict(cluster_input)
 
