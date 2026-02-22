@@ -332,44 +332,30 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 # ──────────────────────────────────────────────
 # 7. CLUSTER LABEL GENERATION
 #
-# CURRENT APPROACH: KeyBERT (option 1)
+# CURRENT APPROACH: Claude Haiku (Option 2)
+#   Sends up to 8 abstracts per cluster to claude-haiku-4-5 and asks for
+#   a 3-6 word label capturing the shared *citation thread* — the intellectual
+#   reason a researcher would cite these papers together. Produces labels like
+#   "Sparse Reward Policy Learning" rather than raw keyword extractions.
+#   Requires ANTHROPIC_API_KEY in GitHub repo secrets.
+#
+# ALTERNATIVE: KeyBERT keyword extraction (Option 1 — original approach)
 #   Uses semantic keyword extraction via SPECTER2 to find the most
-#   representative 1-2 word phrase for each spatial cluster. Produces
-#   meaningful labels like "federated learning" or "vision-language"
-#   rather than raw TF-IDF frequency winners.
+#   representative phrase for each cluster. No API key required.
+#   To restore: replace generate_cluster_labels() with the KeyBERT version
+#   (see git history) and add keybert to pip install in the workflow.
 #
-# ALTERNATIVES (if you want to change approach):
-#
-#   Option 2 — LLM-generated labels via Anthropic API (highest quality):
-#     After clustering, send the top-N titles per cluster to claude-haiku
-#     and ask for a 2-4 word descriptive label. Best results but adds
-#     latency and API cost. Requires ANTHROPIC_API_KEY in repo secrets.
-#     Rough implementation: collect cluster titles → call anthropic.Anthropic()
-#     client → parse response → write labels parquet.
-#
-#   Option 3 — Bigrams in label_text (lowest effort):
-#     Pre-process label_text to append bigrams joined with underscores
-#     (e.g. "reinforcement_learning", "graph_neural") before the atlas
-#     build. TF-IDF then has more distinctive tokens to rank. No new
-#     dependencies. Add to the label_text construction in the row builder:
-#       import nltk; nltk.download("punkt")
-#       from nltk import ngrams, word_tokenize
-#       words = word_tokenize(title.lower())
-#       bigrams = ["_".join(b) for b in ngrams(words, 2)]
-#       label_text = title + " " + " ".join(bigrams)
-#
-#   Option 4 — Pre-computed labels file from external tool:
-#     Generate a CSV/parquet with columns x, y, text (optional: level,
-#     priority) using any method, then pass via --labels to the CLI.
-#     This is the escape hatch if none of the above satisfy.
+# FALLBACK: Pre-computed labels file (Option 4)
+#   Generate a parquet with columns x, y, text (optionally level, priority)
+#   using any method, then pass via --labels to the CLI.
 # ──────────────────────────────────────────────
 def _strip_urls(text: str) -> str:
-    """Remove URLs and arXiv-style citation keys before KeyBERT sees the text.
+    """Remove URLs and arXiv-style citation keys from abstract text.
 
     Targets:
       - http/https URLs (e.g. https://github.com/user/repo)
       - Bare github.com / huggingface.co references
-      - Citation-key tokens containing digits+underscores (e.g. cho2026_tokenizer,
+      - Citation-key tokens containing digits (e.g. cho2026_tokenizer,
         agentlab_main, youtu_cy06ljee1jq) — identifiers, not natural language
     """
     # Remove full URLs
@@ -382,61 +368,54 @@ def _strip_urls(text: str) -> str:
     return " ".join(text.split())  # normalise whitespace
 
 
-def _is_clean_label(phrase: str) -> bool:
-    """Return True only if a KeyBERT candidate is suitable as a display label.
-
-    Rejects phrases that contain:
-      - Digits  (benchmark names, version numbers, citation keys)
-      - Underscores  (tool identifiers, citation keys)
-      - Non-alpha/space characters  (URLs, punctuation artifacts)
-      - Any single word longer than 18 chars  (benchmark name concatenations
-        like "realtoxicityprompts", "ultrafeedback", "magnetoencephalography"
-        are real words but make poor map labels)
-    Accepts only phrases made of plain alphabetic words and spaces.
+def generate_cluster_labels(df: pd.DataFrame) -> str:
     """
-    if not re.match(r'^[A-Za-z][A-Za-z ]+$', phrase):
-        return False
-    if any(len(w) > 18 for w in phrase.split()):
-        return False
-    return True
-
-
-def generate_keybert_labels(df: pd.DataFrame) -> str:
-    """
-    Cluster the 2D projection with HDBSCAN, then use KeyBERT + SPECTER2
-    to extract keyword phrases for each cluster. Writes a labels.parquet
-    file and returns its path for the --labels CLI flag.
+    Cluster the 2D projection with HDBSCAN, then use Claude Haiku to generate
+    a concise, meaningful label for each cluster. Writes a labels.parquet file
+    and returns its path for the --labels CLI flag.
 
     LABELING STRATEGY
     -----------------
-    Input text: full abstracts (not titles). Abstracts are ~10x longer and
-    contain the shared methodology vocabulary that explains *why* SPECTER2
-    grouped papers together, rather than just what they're named.
+    Input:  Full abstracts (not titles). Abstracts contain the methodology
+            vocabulary that explains *why* SPECTER2 grouped papers together.
 
-    Multiple labels per cluster: each cluster is spatially sub-divided
-    using k-means on 2D display coords so each label describes a distinct
-    region. Sub-label count scales with cluster size:
-      < SUB_LABEL_MIN_PAPERS  → 1 label  (too small to split reliably)
-      < SUB_LABEL_MED_PAPERS  → 2 labels
-      otherwise               → 3 labels
+    Model:  claude-haiku-4-5 — fast and cheap. At ~20 clusters × ~8 abstracts
+            per call, a full build costs well under $0.01.
+
+    Prompt: Focused on the *citation thread* — the shared intellectual reason
+            a researcher in this domain would cite these papers together.
+            Asks for 3-6 words capturing methodology or framing, not just topic.
+
+    Requires: ANTHROPIC_API_KEY environment variable. Add to GitHub repo secrets
+              as ANTHROPIC_API_KEY, then expose in the workflow YAML:
+                env:
+                  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     """
-    from keybert import KeyBERT
-    from sklearn.cluster import HDBSCAN, KMeans
+    import anthropic
+    from sklearn.cluster import HDBSCAN
 
-    print("  Generating KeyBERT cluster labels...")
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError(
+            "ANTHROPIC_API_KEY is not set. Add it to GitHub repo secrets "
+            "and expose it in the workflow YAML under env:."
+        )
 
-    # ── Sub-label thresholds ─────────────────────────────────────────────
-    # SUB_LABEL_MIN_PAPERS: clusters smaller than this get exactly 1 label.
-    #   Splitting tiny clusters produces unreliable sub-group keywords.
-    #   Recommended range: 8–12. Default: 10.
-    SUB_LABEL_MIN_PAPERS = 10
+    client = anthropic.Anthropic(api_key=api_key)
+    print("  Generating Claude Haiku cluster labels...")
+
+    # ── How many abstracts to send per cluster ───────────────────────────
+    # ABSTRACTS_PER_LABEL: number of abstracts sampled per cluster for the
+    # Haiku prompt. More = richer context but longer prompt.
+    # Recommended range: 6–12. Default: 8.
+    ABSTRACTS_PER_LABEL = 8
     #
-    # SUB_LABEL_MED_PAPERS: clusters between MIN and MED get 2 labels.
-    #   Clusters at or above this threshold get 3 labels.
-    #   Recommended range: 18–25. Default: 20.
-    SUB_LABEL_MED_PAPERS = 20
+    # ABSTRACT_CHAR_LIMIT: each abstract is truncated to this many characters
+    # before being sent. Keeps prompt size predictable.
+    # Recommended range: 300–600. Default: 450.
+    ABSTRACT_CHAR_LIMIT = 450
 
-    # 2D coords used for sub-cluster centroid positions and k-means splitting.
+    # 2D coords used for label centroid placement.
     coords_2d = df[["projection_x", "projection_y"]].values.astype(np.float64)
 
     # ── Clustering input: 50D cosine space ──────────────────────────────
@@ -466,7 +445,6 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
         cluster_metric = "cosine"
         print("  Clustering on 50D cosine space (high-fidelity).")
     else:
-        # Fallback for runs where 50D projection isn't yet stored.
         cluster_input = coords_2d
         cluster_metric = "euclidean"
         print("  Clustering on 2D coords (fallback — embedding_50d not available).")
@@ -476,7 +454,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
     # These settings do not affect database.parquet in any way.
     # ════════════════════════════════════════════════════════════════════
     #
-    # ── min_cluster_size (int, default: 5) ──────────────────────────────
+    # ── min_cluster_size (int, default: adaptive) ───────────────────────
     # Minimum number of papers required to form a cluster.
     # Lower  → more clusters, more specific labels.
     # Higher → fewer clusters, more general labels.
@@ -486,225 +464,98 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
     # ── min_samples (int, default: 4) ───────────────────────────────────
     # Controls how conservative cluster assignment is.
     # Lower  → more points pulled into clusters, fewer noise points.
-    # Higher → stricter assignment, more points marked as noise.
     # Syntax:   HDBSCAN(..., min_samples=4, ...)
     # Range:    1–5 recommended.
     #
     # ── cluster_selection_method (str, default: "leaf") ─────────────────
     # "eom"  — Excess of Mass; finds clusters of varying sizes.
     # "leaf" — Selects leaf nodes; smaller, more granular clusters (current).
-    # Syntax:   HDBSCAN(..., cluster_selection_method="leaf")
-    #
-    # ── metric (str, set automatically above) ───────────────────────────
-    # "cosine"    — used when clustering on 50D embeddings (current).
-    # "euclidean" — used as fallback when clustering on 2D coords.
-    # Do not change this directly; it is set by the cluster_metric variable.
-    #
-    # ── Adaptive min_cluster_size (scales with corpus size) ─────────────
-    # Keeps cluster count roughly proportional as the rolling DB changes.
-    # Syntax:   HDBSCAN(min_cluster_size=max(5, len(df) // 40), ...)
     #
     # ── cluster_selection_epsilon (float, default: 0.0) ─────────────────
-    # Merges clusters closer than this distance threshold. Useful if you
-    # see many tiny clusters that should logically be one topic.
+    # Merges clusters closer than this distance threshold.
     # Syntax:   HDBSCAN(..., cluster_selection_epsilon=0.5)
-    # Range:    0.0 (off) to ~2.0; tune by inspecting cluster count.
-    #
-    # ── alpha (float, default: 1.0) ─────────────────────────────────────
-    # Controls how aggressively clusters are split during extraction.
-    # Higher → fewer, more stable clusters.
-    # Lower  → more splits, more clusters.
-    # Syntax:   HDBSCAN(..., alpha=1.0)
-    # Range:    0.5–2.0 typical.
+    # Range:    0.0 (off) to ~2.0.
     # ════════════════════════════════════════════════════════════════════
-    clusterer = HDBSCAN(min_cluster_size=max(5, len(df) // 40), min_samples=4, metric=cluster_metric, cluster_selection_method="leaf")
+    clusterer = HDBSCAN(
+        min_cluster_size=max(5, len(df) // 40),
+        min_samples=4,
+        metric=cluster_metric,
+        cluster_selection_method="leaf",
+    )
     cluster_ids = clusterer.fit_predict(cluster_input)
 
     n_clusters = len(set(cluster_ids)) - (1 if -1 in cluster_ids else 0)
     print(f"  Found {n_clusters} clusters (noise points excluded).")
 
-    # KeyBERT with SPECTER2 — reuses the cached HuggingFace download.
-    kw_model = KeyBERT(model="allenai/specter2_base")
-
-    # ── Abstract-aware stop words ────────────────────────────────────────
-    # When using full abstracts (vs. titles), generic academic boilerplate
-    # dominates TF-IDF scores unless explicitly suppressed. This list extends
-    # scikit-learn's English stop words with:
-    #   - AI/ML topic-agnostic terms that appear in almost every abstract
-    #   - Process verbs that describe what any paper does ("propose", "show")
-    #   - Quality adjectives that describe any paper ("effective", "novel")
-    #   - Measurement / evaluation words ("accuracy", "benchmark", "score")
-    #   - Abstract structure words ("section", "paper", "experiment")
-    # Add to this list whenever you see a word winning labels that shouldn't.
-    from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
-    KEYBERT_STOP_WORDS = list(ENGLISH_STOP_WORDS) + [
-        # ── model variants (handled by scrub_model_words but belt+suspenders)
-        "model", "models", "modeling", "modeled", "modelling",
-        # ── process verbs — what any paper does
-        "propose", "proposed", "proposes", "proposing",
-        "present", "presented", "presents", "presenting",
-        "introduce", "introduced", "introduces", "introducing",
-        "develop", "developed", "develops", "developing",
-        "show", "shows", "shown", "showing",
-        "demonstrate", "demonstrated", "demonstrates", "demonstrating",
-        "achieve", "achieved", "achieves", "achieving",
-        "improve", "improved", "improves", "improving",
-        "evaluate", "evaluated", "evaluates", "evaluating",
-        "explore", "explored", "explores", "exploring",
-        "study", "studies", "studied", "studying",
-        "address", "addressed", "addresses", "addressing",
-        # ── structural / meta words
-        "paper", "work", "approach", "method", "methods",
-        "framework", "system", "technique", "techniques",
-        "task", "tasks", "problem", "problems",
-        "experiment", "experiments", "experimental",
-        "result", "results", "finding", "findings",
-        "section", "figure", "table", "appendix",
-        # ── quality adjectives — describe every paper
-        "new", "novel", "effective", "efficient", "robust",
-        "state", "art", "better", "best", "strong", "large",
-        "simple", "general", "unified", "comprehensive",
-        # ── measurement / evaluation words
-        "performance", "accuracy", "score", "scores",
-        "benchmark", "baseline", "baselines", "metric", "metrics",
-        "dataset", "datasets", "data", "corpus", "corpora",
-        # ── generic ML infrastructure
-        "training", "train", "trained", "inference",
-        "deep", "learning", "based", "using", "via",
-        "network", "networks", "layer", "layers",
-        # ── common numeric / size words
-        "large", "small", "scale", "high", "low",
-        # ── URL fragments and domain words (belt+suspenders alongside _strip_urls)
-        "https", "http", "www", "github", "com", "org", "io",
-        "huggingface", "arxiv", "pdf", "code", "repo",
-    ]
+    # ── Haiku prompt ─────────────────────────────────────────────────────
+    # Instructs Claude to find the shared *citation thread* — the intellectual
+    # reason a researcher would cite multiple papers from this group together —
+    # rather than just naming the broadest topic. This surfaces SPECTER2's
+    # citation-graph groupings as human-readable explanations.
+    SYSTEM_PROMPT = (
+        "You are a research cartographer labeling clusters of AI papers "
+        "grouped by a citation-aware embedding model (SPECTER2). Papers in "
+        "the same cluster were grouped because researchers in the same domain "
+        "tend to cite them together — they may share a methodology, theoretical "
+        "framework, problem formulation, or application domain even if their "
+        "surface topics differ.\n\n"
+        "Your task: read the abstracts and return a single label of 3–6 words "
+        "that captures the shared intellectual thread — the reason a researcher "
+        "would cite multiple papers from this group together.\n\n"
+        "Rules:\n"
+        "- Focus on methodology or framing, not just topic keywords.\n"
+        "- Prefer noun phrases: 'Sparse Reward Policy Learning' not 'Papers About RL'.\n"
+        "- No punctuation, no quotes, no sentence structure — just the label.\n"
+        "- Return ONLY the label text and nothing else."
+    )
 
     label_rows = []
     for cid in sorted(set(cluster_ids)):
         if cid == -1:
-            continue  # HDBSCAN noise points get no label
+            continue
 
         mask = cluster_ids == cid
         n_papers = int(mask.sum())
-        cluster_coords = coords_2d[mask]            # 2D positions for this cluster
+        cluster_coords = coords_2d[mask]
         cluster_abstracts = df.loc[mask, "abstract"].tolist()
 
-        # ── Determine sub-label count ────────────────────────────────────
-        # Scale to cluster size so small clusters get one clean label and
-        # large clusters get up to 3 labels covering distinct sub-regions.
-        if n_papers < SUB_LABEL_MIN_PAPERS:
-            n_labels = 1
-        elif n_papers < SUB_LABEL_MED_PAPERS:
-            n_labels = 2
-        else:
-            n_labels = 3
+        # Sample up to ABSTRACTS_PER_LABEL abstracts, clean and truncate each.
+        sample = cluster_abstracts[:ABSTRACTS_PER_LABEL]
+        cleaned = [_strip_urls(a)[:ABSTRACT_CHAR_LIMIT] for a in sample]
+        numbered = "\n\n".join(f"[{i+1}] {a}" for i, a in enumerate(cleaned))
+        user_msg = f"Cluster of {n_papers} papers. Abstracts:\n\n{numbered}"
 
-        # ── Sub-divide the cluster spatially ────────────────────────────
-        # k-means on 2D display coords splits the cluster into n_labels
-        # spatial regions. Each region gets its own KeyBERT label placed
-        # at that region's centroid. When n_labels == 1 we skip k-means.
-        #
-        # MIN_SUB_GROUP_PAPERS: sub-groups smaller than this are skipped.
-        #   k-means doesn't guarantee balanced splits — a 3-way split of a
-        #   21-paper cluster can produce a 2-paper splinter with too little
-        #   vocabulary for meaningful extraction. Skip rather than mislabel.
-        #   Recommended range: 3–6. Default: 4.
-        MIN_SUB_GROUP_PAPERS = 4
+        # Call Haiku with a simple retry on transient errors.
+        label_text = None
+        for attempt in range(3):
+            try:
+                response = client.messages.create(
+                    model="claude-haiku-4-5-20251001",
+                    max_tokens=32,
+                    system=SYSTEM_PROMPT,
+                    messages=[{"role": "user", "content": user_msg}],
+                )
+                label_text = response.content[0].text.strip().title()
+                break
+            except Exception as e:
+                print(f"  Cluster {cid}: Haiku API attempt {attempt+1} failed: {e}")
+                time.sleep(2 ** attempt)
 
-        if n_labels == 1:
-            sub_groups = [(cluster_abstracts, cluster_coords)]
-        else:
-            km = KMeans(n_clusters=n_labels, random_state=42, n_init=10)
-            sub_ids = km.fit_predict(cluster_coords)
-            sub_groups = []
-            for sid in range(n_labels):
-                sub_mask = sub_ids == sid
-                if sub_mask.sum() < MIN_SUB_GROUP_PAPERS:
-                    print(f"    Sub-group {sid} skipped ({sub_mask.sum()} papers < MIN_SUB_GROUP_PAPERS={MIN_SUB_GROUP_PAPERS})")
-                    continue
-                sub_abstracts = [cluster_abstracts[i] for i, m in enumerate(sub_mask) if m]
-                sub_coords    = cluster_coords[sub_mask]
-                sub_groups.append((sub_abstracts, sub_coords))
+        if not label_text:
+            print(f"  Cluster {cid}: all API attempts failed — skipping label.")
+            continue
 
-        # ── Extract one KeyBERT keyword per sub-group ────────────────────
-        #
-        # keyphrase_ngram_range: (min, max) words per keyword phrase.
-        #   (1, 1) → single words only — more general.
-        #   (1, 2) → words and bigrams — more specific (current).
-        #   (2, 2) → bigrams only — specific but can produce odd pairings.
-        #
-        # use_mmr: Maximal Marginal Relevance — reduces redundancy.
-        #   True  → broader, more diverse terms (current).
-        #   False → highest-scoring terms regardless of overlap.
-        #
-        # diversity: only applies when use_mmr=True. Range 0.0–1.0.
-        #   Lower  → keywords closer to centroid (more representative).
-        #   Higher → keywords more spread out (more diverse).
-        #   0.5 is used here (vs. 0.3 for title mode) because abstracts are
-        #   longer and higher diversity is needed to avoid repetition.
-        #
-        # top_n: candidates extracted; only the top-1 is used per sub-group.
-        #   Set higher than needed so MMR has room to diversify.
-        # ── level and priority ───────────────────────────────────────────
-        # Atlas passes `level` directly into its WebAssembly renderer as a
-        # zoom threshold — labels only appear when zoom >= level. On a static
-        # exported site the initial zoom never triggers level=1, so ALL labels
-        # must use level=0 to be visible.
-        #
-        # Overlap between sibling labels is handled by `priority` instead:
-        # when two labels would visually collide, the higher priority wins.
-        # Primary labels (10) beat sub-labels (5) in a tie, but sub-labels
-        # in spatially distinct positions appear freely regardless.
-        print(f"  Cluster {cid} ({n_papers} papers) → {n_labels} label(s)")
-        for sub_idx, (sub_abstracts, sub_coords) in enumerate(sub_groups):
-
-            # Strip URLs and citation-key tokens before KeyBERT sees the text.
-            combined = _strip_urls(" ".join(sub_abstracts))
-
-            keywords = kw_model.extract_keywords(
-                combined,
-                keyphrase_ngram_range=(1, 2),
-                stop_words=KEYBERT_STOP_WORDS,
-                use_mmr=True,
-                diversity=0.5,
-                top_n=5,
-            )
-            print(f"    Sub-group {sub_idx} ({len(sub_abstracts)} papers) keywords: {keywords}")
-
-            if not keywords:
-                continue
-
-            # Pick the highest-scoring candidate that passes the label validator.
-            # Falls back to the raw top keyword only if nothing clean is found.
-            clean = [(kw, score) for kw, score in keywords if _is_clean_label(kw)]
-            winner = clean[0][0] if clean else keywords[0][0]
-            if not clean:
-                print(f"    Sub-group {sub_idx}: no clean candidate found, using raw top keyword '{winner}'")
-
-            label_text = winner.title()
-            # Nudge sub-labels outward from the cluster center.
-            # NUDGE_FACTOR: 0.0 = centroid only, 1.0 = full step away from center.
-            # Needs to be large enough that sub-labels don't collide with their
-            # primary label and get culled by Atlas's overlap detection.
-            # Recommended range: 0.3–0.7. Default: 0.5.
-            NUDGE_FACTOR = 0.5
-            cluster_cx = float(cluster_coords[:, 0].mean())
-            cluster_cy = float(cluster_coords[:, 1].mean())
-            cx = float(sub_coords[:, 0].mean())
-            cy = float(sub_coords[:, 1].mean())
-            cx = cx + NUDGE_FACTOR * (cx - cluster_cx)
-            cy = cy + NUDGE_FACTOR * (cy - cluster_cy)
-            print(f"    Sub-group {sub_idx} placed at ({cx:.3f}, {cy:.3f}), cluster center ({cluster_cx:.3f}, {cluster_cy:.3f})")
-            label_rows.append({"x": cx, "y": cy, "text": label_text,
-                                "level": 0, "priority": 10})
+        cx = float(cluster_coords[:, 0].mean())
+        cy = float(cluster_coords[:, 1].mean())
+        print(f"  Cluster {cid} ({n_papers} papers): '{label_text}'  @ ({cx:.2f}, {cy:.2f})")
+        label_rows.append({"x": cx, "y": cy, "text": label_text,
+                            "level": 0, "priority": 10})
 
     labels_df = pd.DataFrame(label_rows)
-    print(f"  Label coordinate summary ({len(labels_df)} total):")
-    for _, row in labels_df.iterrows():
-        print(f"    priority={int(row['priority'])}  ({row['x']:.3f}, {row['y']:.3f})  '{row['text']}'")
     labels_path = "labels.parquet"
     labels_df.to_parquet(labels_path, index=False)
     print(f"  Wrote {len(labels_df)} labels to {labels_path}.")
+    return labels_path
     return labels_path
 
 
@@ -1035,7 +886,7 @@ if __name__ == "__main__":
     if EMBEDDING_MODE == "incremental":
         print("  Incremental mode: embedding new papers only.")
         df = embed_and_project(df)
-        labels_path = generate_keybert_labels(df)
+        labels_path = generate_cluster_labels(df)
 
     # Save rolling DB
     # Full mode: drop projection columns so CLI always recomputes a fresh layout.
@@ -1061,9 +912,9 @@ if __name__ == "__main__":
 
     if EMBEDDING_MODE == "incremental":
         # Incremental mode: embeddings are pre-computed via --x/--y.
-        # KeyBERT labels are passed via --labels, bypassing TF-IDF entirely.
+        # Claude Haiku labels are passed via --labels, bypassing TF-IDF entirely.
         # --text is intentionally omitted so the CLI cannot generate competing
-        # automatic TF-IDF labels that would override our KeyBERT labels.
+        # automatic TF-IDF labels that would override our Haiku labels.
         atlas_cmd = [
             "embedding-atlas", DB_PATH,
             "--x",          "projection_x",
