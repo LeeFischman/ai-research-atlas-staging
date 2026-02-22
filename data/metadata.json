@@ -9,164 +9,157 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 3.657961365243663,
-                "y": 9.277094044892685,
+                "x": 6.3955458998680115,
+                "y": 11.852949261665344,
+                "text": "Underexplored Theoretical",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 4.388392150402069,
+                "y": 10.838737964630127,
+                "text": "Operationalize Rfeval",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 6.5170159990137275,
+                "y": 12.62804686072823,
+                "text": "Imaging Leveraging",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 6.293219709396363,
+                "y": 14.128717160836244,
+                "text": "Leveraging Saliency",
+                "level": 0,
+                "priority": 5
+            },
+            {
+                "x": 6.654051446914672,
+                "y": 13.16383265715379,
+                "text": "Neural Cnns",
+                "level": 0,
+                "priority": 5
+            },
+            {
+                "x": 3.8611451840400695,
+                "y": 9.500122423171996,
+                "text": "Adversarial Prompts",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 3.8510005688667297,
+                "y": 8.205971689224244,
+                "text": "Cybercriminals Ai",
+                "level": 0,
+                "priority": 5
+            },
+            {
+                "x": 3.2174802231788635,
+                "y": 8.677645845413208,
                 "text": "Collusive Actions",
                 "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 4.748618942758311,
-                "y": 5.905746835507221,
-                "text": "Adversarial Prompts",
-                "level": 1,
                 "priority": 5
             },
             {
-                "x": 5.497923314571381,
-                "y": 6.790553629398346,
-                "text": "Emerging Quantum",
+                "x": 4.70603673734163,
+                "y": 9.279097219768323,
+                "text": "Underexplored Llm",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 5.5513410568237305,
-                "y": 4.159893751144409,
-                "text": "Pretraining Tokamak",
+                "x": 5.080182734706946,
+                "y": 8.711940504375256,
+                "text": "Development Workflows",
                 "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 3.62516849102912,
-                "y": 7.208451090849839,
-                "text": "Assessment Llm",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 3.4690707110739374,
-                "y": 8.033544932402574,
-                "text": "Inherently Counterfactual",
-                "level": 1,
                 "priority": 5
             },
             {
-                "x": 2.8587022412906995,
-                "y": 7.761622183973139,
-                "text": "Workarounds Collection",
-                "level": 1,
-                "priority": 5
-            },
-            {
-                "x": 3.615076116153172,
-                "y": 6.5561895847320555,
-                "text": "Lingual Pipelines",
+                "x": 5.261072724660237,
+                "y": 10.092379430135091,
+                "text": "Crafted Questions",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.0820256471633916,
-                "y": 6.818705034255982,
+                "x": 5.663508885701498,
+                "y": 9.458584772745768,
                 "text": "Uncovers Annotator",
-                "level": 1,
+                "level": 0,
                 "priority": 5
             },
             {
-                "x": 6.366139041052924,
-                "y": 7.134539604187012,
-                "text": "Finetuned Reward",
+                "x": 4.599122398240226,
+                "y": 12.86796088899885,
+                "text": "Pretrained Bidirectional",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 8.017129634221394,
-                "y": 5.258049125671386,
-                "text": "Leveraging Unlabelled",
+                "x": 5.98866948400225,
+                "y": 13.810633237021309,
+                "text": "Distillation Generative",
+                "level": 0,
+                "priority": 5
+            },
+            {
+                "x": 5.412793219089508,
+                "y": 12.927514791488647,
+                "text": "Distillation Frameworks",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 5.341632178000041,
-                "y": 7.991637460674558,
+                "x": 3.3208707571029663,
+                "y": 10.679874300956726,
                 "text": "Llm Agents",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 5.433290098110835,
-                "y": 8.557584212223688,
-                "text": "Agent Orchestration",
-                "level": 1,
+                "x": 2.6519696950912475,
+                "y": 10.657965350151063,
+                "text": "Backend Workflow",
+                "level": 0,
                 "priority": 5
             },
             {
-                "x": 7.648659916270862,
-                "y": 7.878241926366632,
-                "text": "Offline Reinforcement",
+                "x": 5.044396127973284,
+                "y": 13.893365042550224,
+                "text": "Multifaceted Learnable",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 6.626106938362121,
-                "y": 7.906924045562744,
-                "text": "Grained Vqa",
-                "level": 1,
-                "priority": 5
-            },
-            {
-                "x": 7.418072208404541,
-                "y": 7.100991523742676,
-                "text": "Reward Posteriors",
-                "level": 1,
-                "priority": 5
-            },
-            {
-                "x": 7.00015003897927,
-                "y": 9.030986525795676,
-                "text": "Autonomously Climb",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 6.66226845481179,
-                "y": 8.541989638588646,
-                "text": "Replanning Vlm",
-                "level": 1,
-                "priority": 5
-            },
-            {
-                "x": 5.964744031429291,
-                "y": 5.140290975570679,
-                "text": "Optimization Generative",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 6.509626431558646,
-                "y": 4.268758749494365,
+                "x": 4.948803157806396,
+                "y": 13.466746131352016,
                 "text": "Regularizes Weight",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 7.091893803372103,
-                "y": 4.807721463371726,
-                "text": "Multifaceted Learnable",
-                "level": 1,
-                "priority": 5
-            },
-            {
-                "x": 7.932772904350644,
-                "y": 4.375113968622117,
-                "text": "Challenging Gigapixel",
+                "x": 1.9681312772962782,
+                "y": 12.020893414815268,
+                "text": "Autonomously Climb",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 7.346432775769915,
-                "y": 5.011541453770229,
-                "text": "Distillation Generative",
-                "level": 1,
+                "x": 2.684120283126831,
+                "y": 12.701775112152099,
+                "text": "Sparse Reward",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 3.1073415660858155,
+                "y": 12.895061931610108,
+                "text": "Regret Minimization",
+                "level": 0,
                 "priority": 5
             }
         ],
