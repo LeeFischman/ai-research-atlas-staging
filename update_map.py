@@ -363,6 +363,44 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 #     priority) using any method, then pass via --labels to the CLI.
 #     This is the escape hatch if none of the above satisfy.
 # ──────────────────────────────────────────────
+def _strip_urls(text: str) -> str:
+    """Remove URLs and arXiv-style citation keys before KeyBERT sees the text.
+
+    Targets:
+      - http/https URLs (e.g. https://github.com/user/repo)
+      - Bare github.com / huggingface.co references
+      - Citation-key tokens containing digits+underscores (e.g. cho2026_tokenizer,
+        agentlab_main, youtu_cy06ljee1jq) — identifiers, not natural language
+    """
+    # Remove full URLs
+    text = re.sub(r'https?://\S+', '', text)
+    # Remove bare domain references
+    text = re.sub(r'\b(?:github|huggingface|arxiv)\.(?:com|org|io)\S*', '', text, flags=re.IGNORECASE)
+    # Remove citation-key tokens: any word containing both digits and underscores,
+    # or camelCase identifiers mixed with digits (e.g. w4a4, cho2026)
+    text = re.sub(r'\b\w*\d\w*\b', '', text)
+    return " ".join(text.split())  # normalise whitespace
+
+
+def _is_clean_label(phrase: str) -> bool:
+    """Return True only if a KeyBERT candidate is suitable as a display label.
+
+    Rejects phrases that contain:
+      - Digits  (benchmark names, version numbers, citation keys)
+      - Underscores  (tool identifiers, citation keys)
+      - Non-alpha/space characters  (URLs, punctuation artifacts)
+      - Any single word longer than 18 chars  (benchmark name concatenations
+        like "realtoxicityprompts", "ultrafeedback", "magnetoencephalography"
+        are real words but make poor map labels)
+    Accepts only phrases made of plain alphabetic words and spaces.
+    """
+    if not re.match(r'^[A-Za-z][A-Za-z ]+$', phrase):
+        return False
+    if any(len(w) > 18 for w in phrase.split()):
+        return False
+    return True
+
+
 def generate_keybert_labels(df: pd.DataFrame) -> str:
     """
     Cluster the 2D projection with HDBSCAN, then use KeyBERT + SPECTER2
@@ -536,6 +574,9 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
         "network", "networks", "layer", "layers",
         # ── common numeric / size words
         "large", "small", "scale", "high", "low",
+        # ── URL fragments and domain words (belt+suspenders alongside _strip_urls)
+        "https", "http", "www", "github", "com", "org", "io",
+        "huggingface", "arxiv", "pdf", "code", "repo",
     ]
 
     label_rows = []
@@ -562,6 +603,14 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
         # k-means on 2D display coords splits the cluster into n_labels
         # spatial regions. Each region gets its own KeyBERT label placed
         # at that region's centroid. When n_labels == 1 we skip k-means.
+        #
+        # MIN_SUB_GROUP_PAPERS: sub-groups smaller than this are skipped.
+        #   k-means doesn't guarantee balanced splits — a 3-way split of a
+        #   21-paper cluster can produce a 2-paper splinter with too little
+        #   vocabulary for meaningful extraction. Skip rather than mislabel.
+        #   Recommended range: 3–6. Default: 4.
+        MIN_SUB_GROUP_PAPERS = 4
+
         if n_labels == 1:
             sub_groups = [(cluster_abstracts, cluster_coords)]
         else:
@@ -570,7 +619,8 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
             sub_groups = []
             for sid in range(n_labels):
                 sub_mask = sub_ids == sid
-                if sub_mask.sum() == 0:
+                if sub_mask.sum() < MIN_SUB_GROUP_PAPERS:
+                    print(f"    Sub-group {sid} skipped ({sub_mask.sum()} papers < MIN_SUB_GROUP_PAPERS={MIN_SUB_GROUP_PAPERS})")
                     continue
                 sub_abstracts = [cluster_abstracts[i] for i, m in enumerate(sub_mask) if m]
                 sub_coords    = cluster_coords[sub_mask]
@@ -597,7 +647,8 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
         #   Set higher than needed so MMR has room to diversify.
         print(f"  Cluster {cid} ({n_papers} papers) → {n_labels} label(s)")
         for sub_idx, (sub_abstracts, sub_coords) in enumerate(sub_groups):
-            combined = " ".join(sub_abstracts)
+            # Strip URLs and citation-key tokens before KeyBERT sees the text.
+            combined = _strip_urls(" ".join(sub_abstracts))
 
             keywords = kw_model.extract_keywords(
                 combined,
@@ -612,7 +663,14 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
             if not keywords:
                 continue
 
-            label_text = keywords[0][0].title()
+            # Pick the highest-scoring candidate that passes the label validator.
+            # Falls back to the raw top keyword only if nothing clean is found.
+            clean = [(kw, score) for kw, score in keywords if _is_clean_label(kw)]
+            winner = clean[0][0] if clean else keywords[0][0]
+            if not clean:
+                print(f"    Sub-group {sub_idx}: no clean candidate found, using raw top keyword '{winner}'")
+
+            label_text = winner.title()
             cx = float(sub_coords[:, 0].mean())
             cy = float(sub_coords[:, 1].mean())
             label_rows.append({"x": cx, "y": cy, "text": label_text})
