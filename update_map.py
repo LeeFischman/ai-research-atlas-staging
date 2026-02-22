@@ -561,7 +561,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
 
 
 # ──────────────────────────────────────────────
-# 8. HTML POP-OUT PANELS  (About + Shortcuts)
+# 8. HTML POP-OUT PANELS  (Shortcuts + About)
 # ──────────────────────────────────────────────
 def build_panel_html(run_date: str) -> str:
     return (
@@ -580,12 +580,12 @@ def build_panel_html(run_date: str) -> str:
     --arm-panel-w: 300px;
   }
 
-  /* ── Tab strip ─────────────────────────────────────────────────────── */
-  #arm-tabs {
+  /* ── Tab strip ───────────────────────────────────────────────────── */
+  #arm-tab-strip {
     position:fixed; left:0; top:50%; transform:translateY(-50%);
     z-index:1000000; display:flex; flex-direction:column; gap:4px;
   }
-  .arm-tab-btn {
+  .arm-tab {
     display:flex; align-items:center; justify-content:center;
     writing-mode:vertical-rl; text-orientation:mixed;
     background:rgba(15,23,42,0.90); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
@@ -596,13 +596,12 @@ def build_panel_html(run_date: str) -> str:
     box-shadow:3px 0 20px rgba(0,0,0,0.4);
     transition:background 0.2s,color 0.2s,box-shadow 0.2s; user-select:none;
   }
-  .arm-tab-btn:first-child { border-radius:0 10px 0 0; }
-  .arm-tab-btn:last-child  { border-radius:0 0 10px 0; }
-  .arm-tab-btn:only-child  { border-radius:0 10px 10px 0; }
-  .arm-tab-btn:hover { background:rgba(30,41,59,0.95); color:#93c5fd; box-shadow:4px 0 24px rgba(96,165,250,0.2); }
-  .arm-tab-btn.arm-tab-active { background:rgba(30,41,59,0.98); color:#93c5fd; }
+  #arm-shortcuts-tab { border-radius:0 10px 0 0; }
+  #arm-about-tab     { border-radius:0 0 10px 0; }
+  .arm-tab:hover     { background:rgba(30,41,59,0.95); color:#93c5fd; box-shadow:4px 0 24px rgba(96,165,250,0.2); }
+  .arm-tab.arm-active { background:rgba(30,41,59,0.98); color:#93c5fd; }
 
-  /* ── Shared panel chrome ────────────────────────────────────────────── */
+  /* ── Shared panel chrome ─────────────────────────────────────────── */
   .arm-panel {
     position:fixed; left:0; top:50%;
     transform:translateY(-50%) translateX(-110%);
@@ -618,14 +617,13 @@ def build_panel_html(run_date: str) -> str:
   .arm-body { overflow-y:auto; overflow-x:hidden; padding:22px 20px 16px; flex:1; scrollbar-width:thin; scrollbar-color:#334155 transparent; }
   .arm-body::-webkit-scrollbar { width:4px; }
   .arm-body::-webkit-scrollbar-thumb { background:#334155; border-radius:4px; }
-  .arm-panel-footer { padding:10px 20px 14px; border-top:1px solid var(--arm-border); display:flex; align-items:center; gap:7px; flex-shrink:0; }
 
-  /* ── Shared typography ──────────────────────────────────────────────── */
+  /* ── Shared typography ───────────────────────────────────────────── */
   .arm-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px; }
-  .arm-title { font-size:15px; font-weight:700; color:#f1f5f9; letter-spacing:-0.01em; line-height:1.3; margin:0; }
+  .arm-title  { font-size:15px; font-weight:700; color:#f1f5f9; letter-spacing:-0.01em; line-height:1.3; margin:0; }
   .arm-title span { color:var(--arm-accent); }
-  .arm-close-btn { background:none; border:none; color:var(--arm-muted); cursor:pointer; font-size:17px; line-height:1; padding:2px 4px; border-radius:4px; transition:color 0.15s,background 0.15s; flex-shrink:0; margin-left:8px; }
-  .arm-close-btn:hover { color:#f1f5f9; background:rgba(255,255,255,0.07); }
+  .arm-close  { background:none; border:none; color:var(--arm-muted); cursor:pointer; font-size:17px; line-height:1; padding:2px 4px; border-radius:4px; transition:color 0.15s,background 0.15s; flex-shrink:0; margin-left:8px; }
+  .arm-close:hover { color:#f1f5f9; background:rgba(255,255,255,0.07); }
   .arm-byline { font-size:12px; color:var(--arm-muted); margin-bottom:16px; }
   .arm-byline a { color:var(--arm-accent); text-decoration:none; font-weight:500; }
   .arm-byline a:hover { color:#93c5fd; text-decoration:underline; }
@@ -634,208 +632,152 @@ def build_panel_html(run_date: str) -> str:
   .arm-p { color:#94a3b8; margin:0 0 10px; font-size:12.5px; }
   .arm-p a { color:var(--arm-accent); text-decoration:none; }
   .arm-p a:hover { color:#93c5fd; text-decoration:underline; }
-  .arm-tip { background:var(--arm-accent-dim); border:1px solid rgba(96,165,250,0.22); border-radius:8px; padding:10px 12px; font-size:12px; color:#bfdbfe; margin-bottom:12px; display:flex; gap:8px; align-items:flex-start; }
-  .arm-tip-icon { flex-shrink:0; font-size:14px; margin-top:1px; }
-  .arm-legend-row { display:flex; align-items:flex-start; gap:9px; margin-bottom:8px; font-size:12px; color:#94a3b8; }
-  .arm-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; margin-top:4px; }
-  .arm-dot-enhanced { background:#f59e0b; box-shadow:0 0 6px rgba(245,158,11,0.5); }
-  .arm-dot-std { background:#6366f1; box-shadow:0 0 6px rgba(99,102,241,0.4); }
-  .arm-legend-label { font-weight:600; color:#cbd5e1; }
-  /* ── Book cards ─────────────────────────────────────────────────────── */
   .arm-book { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.03); border:1px solid var(--arm-border); border-radius:8px; padding:10px 12px; text-decoration:none; transition:background 0.2s,border-color 0.2s; margin-bottom:8px; }
   .arm-book:hover { background:rgba(96,165,250,0.07); border-color:rgba(96,165,250,0.3); }
   .arm-book-icon { font-size:22px; flex-shrink:0; }
   .arm-book-text { display:flex; flex-direction:column; }
   .arm-book-title { font-size:12px; font-weight:600; color:#e2e8f0; line-height:1.3; margin-bottom:2px; }
   .arm-book-sub { font-size:11px; color:var(--arm-accent); }
-
-  /* ── Status footer ───────────────────────────────────────────────────── */
+  .arm-footer { padding:10px 20px 14px; border-top:1px solid var(--arm-border); display:flex; align-items:center; gap:7px; flex-shrink:0; }
   .arm-status-dot { width:7px; height:7px; border-radius:50%; background:#22c55e; box-shadow:0 0 6px rgba(34,197,94,0.7); flex-shrink:0; animation:arm-pulse 2.5s ease-in-out infinite; }
   @keyframes arm-pulse { 0%,100% { opacity:1; } 50% { opacity:0.35; } }
   .arm-status-text { font-size:11px; color:#475569; font-family:var(--arm-font); }
   .arm-status-text strong { color:#64748b; font-weight:500; }
 
-  /* ── Shortcuts panel ─────────────────────────────────────────────────── */
-  .arm-shortcut-row {
-    display:grid; grid-template-columns:auto 1fr; align-items:center;
-    gap:10px 14px; margin-bottom:11px;
+  /* ── Shortcut tiles ──────────────────────────────────────────────── */
+  .arm-sc-intro { font-size:12.5px; color:#94a3b8; margin:0 0 14px; line-height:1.5; }
+  .arm-tile {
+    display:flex; align-items:center; gap:11px;
+    background:rgba(255,255,255,0.03); border:1px solid var(--arm-border);
+    border-radius:8px; padding:10px 12px; text-decoration:none;
+    transition:background 0.2s,border-color 0.2s; margin-bottom:7px; cursor:pointer;
   }
-  .arm-key-group { display:flex; align-items:center; gap:5px; flex-shrink:0; }
-  .arm-key {
-    display:inline-flex; align-items:center; justify-content:center;
-    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15);
-    border-bottom:2px solid rgba(0,0,0,0.35); border-radius:5px;
-    padding:3px 7px; font-size:11px; font-weight:600; font-family:var(--arm-font);
-    color:#cbd5e1; white-space:nowrap; line-height:1.4;
-    box-shadow:0 1px 0 rgba(0,0,0,0.3);
-  }
-  .arm-key-sep { color:#475569; font-size:10px; }
-  .arm-shortcut-desc { font-size:12px; color:#94a3b8; line-height:1.45; }
-  .arm-shortcut-desc strong { color:#cbd5e1; font-weight:600; }
-  .arm-shortcut-icon { font-size:15px; line-height:1; }
+  .arm-tile:hover { background:rgba(96,165,250,0.07); border-color:rgba(96,165,250,0.3); }
+  .arm-tile:hover .arm-tile-label { color:#e2e8f0; }
+  .arm-tile-icon { flex-shrink:0; width:18px; height:18px; color:#64748b; display:flex; align-items:center; justify-content:center; }
+  .arm-tile-text { display:flex; flex-direction:column; gap:1px; }
+  .arm-tile-label { font-size:12px; font-weight:600; color:#cbd5e1; line-height:1.3; transition:color 0.15s; }
+  .arm-tile-sub   { font-size:11px; color:#64748b; line-height:1.3; }
 </style>
 
 <script>
-  function armToggle(panelId, tabId) {
-    var allPanels = document.querySelectorAll('.arm-panel');
-    var allTabs   = document.querySelectorAll('.arm-tab-btn');
+  function armToggle(panelId, tabId, hideTabId) {
     var panel = document.getElementById(panelId);
     var isOpen = panel.classList.contains('arm-open');
-    // Close everything first
-    allPanels.forEach(function(p) { p.classList.remove('arm-open'); });
-    allTabs.forEach(function(t)   { t.classList.remove('arm-tab-active'); });
-    // Toggle the clicked panel unless it was already open
+    document.querySelectorAll('.arm-panel').forEach(function(p) { p.classList.remove('arm-open'); });
+    document.querySelectorAll('.arm-tab').forEach(function(t) { t.classList.remove('arm-active'); t.style.display = ''; });
     if (!isOpen) {
       panel.classList.add('arm-open');
-      document.getElementById(tabId).classList.add('arm-tab-active');
+      document.getElementById(tabId).classList.add('arm-active');
+      if (hideTabId) document.getElementById(hideTabId).style.display = 'none';
     }
   }
   function armClose(panelId, tabId) {
     document.getElementById(panelId).classList.remove('arm-open');
-    document.getElementById(tabId).classList.remove('arm-tab-active');
+    document.getElementById(tabId).classList.remove('arm-active');
+    document.querySelectorAll('.arm-tab').forEach(function(t) { t.style.display = ''; });
   }
 </script>
 
-<!-- ── Tab strip ───────────────────────────────────────────────── -->
-<div id="arm-tabs">
-  <button id="arm-tab-about"     class="arm-tab-btn" onclick="armToggle('arm-panel-about','arm-tab-about')"     aria-label="Open About panel">About</button>
-  <button id="arm-tab-shortcuts" class="arm-tab-btn" onclick="armToggle('arm-panel-shortcuts','arm-tab-shortcuts')" aria-label="Open Shortcuts panel">Keys</button>
+<!-- ── Tab strip ──────────────────────────────────────────────────── -->
+<div id="arm-tab-strip">
+  <button id="arm-shortcuts-tab" class="arm-tab"
+    onclick="armToggle('arm-shortcuts-panel','arm-shortcuts-tab','arm-about-tab')"
+    aria-label="Open Shortcuts panel">Shortcuts</button>
+  <button id="arm-about-tab" class="arm-tab"
+    onclick="armToggle('arm-about-panel','arm-about-tab','arm-shortcuts-tab')"
+    aria-label="Open About panel">About</button>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     ABOUT PANEL
-═══════════════════════════════════════════════════════════════ -->
-<div id="arm-panel-about" class="arm-panel" role="complementary" aria-label="About this atlas">
+<!-- ═══════════════════════════════════════════════════════════
+     SHORTCUTS PANEL
+═══════════════════════════════════════════════════════════ -->
+<div id="arm-shortcuts-panel" class="arm-panel" role="complementary" aria-label="Shortcuts">
   <div class="arm-body">
+    <div class="arm-header">
+      <p class="arm-title"><span>Shortcuts</span></p>
+      <button class="arm-close" onclick="armClose('arm-shortcuts-panel','arm-shortcuts-tab')" aria-label="Close">&#x2715;</button>
+    </div>
+    <p class="arm-sc-intro">Click a tile to see points colored by</p>
 
+    <a class="arm-tile" href="https://leefischman.github.io/ai-research-atlas-staging/#?state=rVZtj5s4EP4rp9F95CLICwG-VdVWOmnvdNfet2oVOTCbuHUwsofdpBH__TQGEiBkWVX9kuDxM8-M7Xk7wwsaK3UOCfizYD3zwQOSB7QkDgUkwXodrP0w9sNZHMUepHthyEJyhoB_6FQgJICHLWaZzHdOmRTLHjqyTJBg-BESKIz-hilJnW-O4MGpLzoxAx4JEkhVaQnNRoktKvAgFYQ7bVjhMxYlCVaAqvJg3nGlMJhJhtqOL1_-ffztn-tG5cGio0Jiq7CD_q9Zp1qVh9xC8rXZ8kBsLRmREnhQGnZKZiwtaa_NJtVlTtclSTT12XEjsgwZqQvMhcLjRuaWJJXuzLk4OG9HNx2pkfcBfIjeZmNeZj3pdzy9atOXkS5k2hXYcvssUfU8fUZK9875zq1fDmkxl9pI4ne7dXsodRfu9cLl8r1Z-WxkEB6D0BjGBIfK5gVT0nzVn_58fNj8_eGvB3iqPFh2nti580ehNHXeuX3UNjrro7dyDqzVFEUnHoYsly0mCqeI6mgacrCU1ddT6i4Mh9oyc8qRU24d7oeqEic0HOFnOAjzHRLYCr5JSyeGM5dSH7XSBhL4nSFu8UlkyFmEeardO9a53Tl810zlsvwMYrczuBN0OQVUVeUNLD9LReisNV-_xMqTBxZVHUgM2prS7vnjyg1Hd1uvMtsh1VfS3LhNhcJZE7vpXuQ5qhrvXStgwzPLtTkIJX-4akFk5LZ0rpza24bkq-8FT5xh7I0rL0d4qjhk48l4G5YWMXIfbpfPEvhTfL3iNKTrbDq2YIrtzeo2ZH8TLO2jtAQJmRKd7flP2e4Wz3fZ7yrc-LD4KR_a-vwu-y34xvZkMRsv_3eN9lA31ibr3lhbuWurg7mxNFkYb5rVXTM1wLFO1suxjneX-IJx3NG7ua-d8y51C3HMk9nfa8BDzuFMNJn7Ix38TkG5QhzzZB0YHwRu2tMIyvFP5vrISPEWuYM45skM7s8TN4NBZ5dbVz0NfyE3VLYj8YvE10IbarrVchYto3gVroJFtIqiMHJtaj1bxcs4jFf-IppHQRx7dZeBxJ8Fob-I1lEYhMt5OPfnYdvE-V-Jky55OlacR-366oITJ2ewe_36sZnVn4WyWFXV_w">
+      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="9,2 11.1,6.6 16.2,7.3 12.6,10.7 13.5,15.8 9,13.4 4.5,15.8 5.4,10.7 1.8,7.3 6.9,6.6"/></svg></span>
+      <span class="arm-tile-text"><span class="arm-tile-label">Reputation score</span></span>
+    </a>
+
+    <a class="arm-tile" href="https://leefischman.github.io/ai-research-atlas-staging/#?state=rVZbj5s6EP4r1aiPnAhyIYS3qtpKR9pz1NtbtYocmE3cOhjZw27SiP9ejYEECFlWq74kePzNN2N7bid4QmOlziAGfxIsJz54QHKPlsQ-hzhYLoOlH0bz2cRfTT1IdsKQhfgEAf_QMUeIAfcbTFOZbZ0yKZbdtWSpIMHwA8SQG_0TE5I6Wx_Ag2NXdGQGPBDEkKjCEpq1EhtU4EEiCLfasIIoaKfNOtFFRlCWHkxbzuQGU8lg2_Lm25f7d58vG6UHs5YKiY3CFvp7vU60KvaZhfhHveWB2FgyIiHwoDDslkxZ2nbovCSJpjo9rkWaIiN1jplQeFjLzJKkwp06E3vn7eCmIzXyNoAP0dmszcu0I_2Fx2dtujLSuUzaAltsHiWqjqePSMnOOf8V84IEG70c0mImtZHEL3ftdl_qLtzrBMz5e73w2UgvQHrB0Y8KDpb1Eyak-ao__Xt_t_7_w3938FB6MG89sXPnn1xpar1z86hNfFZHb-QcWIsxilY89FnOW0wUjhFV0dTnYCmrL8fUXRj2tWXqlCOn3DjcDVUljmg4wk-wF-YXxLARfJOWjgxnLqU-aqUNxPCeIW7xSaTIWYRZot07VtndOnwnRV2en0Bstwa3gs6ngLIsvZ7lR6kInbX6669YefDAoqoCiUEbU9gdf1y44eBu61mmW6TqSuobt4lQOKljN9mJLENV4b1LDax5Jpk2e6Hkb1ctiIzcFM6VY3PbEP_wveCBM4y9ceXlAA8lh-xqNN76pUUM3Ifb5bME_hhfpzj16Vqbji0YY3uxuvXZXwRLey8tQUymQGd7-ibb7eL5KvtthSsfZm_yoanPr7LfgK9sjxaz4fJ_02gHdWVttO4NtZWbtlqYK0ujhfGqWd00UwEc62i9HOp4N4nPGMcdvZr70jlvUjcQxzya_Z0G3OdsbbqZaDT3Bzr4jYJygTjm0TowPAhctacBlOMfzfWBkeIlcgdxzKMZ3J0nrgaD1i63rmoe_kZuqGyG4ieJz7k2VHer-SSaR6tFuAhm0SKKwsi1qeVksZqvwtXCn0XTKFitvKrLQOxPgtCfRcsoDML5NJz607Bp4vyvxFEXPB8rzqNmfXHBieMT2J1-_lhP649CWSzL8g8">
+      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="6" r="2.5"/><path d="M1 16c0-3.3 2.5-5 5.5-5"/><circle cx="13" cy="6" r="2.5"/><path d="M17 16c0-3.3-2.5-5-5.5-5"/><path d="M10 16c0-2.8-1.8-4.5-4-4.5"/></svg></span>
+      <span class="arm-tile-text"><span class="arm-tile-label">Author count</span><span class="arm-tile-sub">More authors tends to be better</span></span>
+    </a>
+
+    <a class="arm-tile" href="https://leefischman.github.io/ai-research-atlas-staging/#?state=rVZLj5tIEP4rUSlHYoEfGHOLookUaRIlm71FI6sNNXZv2jTqLmbMWvz3VTUwBoyHUbQXm67HV9XV9TrDExordQYx-LNgPfPBA5JHtCSOOcTBeh2s_TCKwtl6vvIgOQhDFuIzBPxDZY4QAx53mKYy2ztlUky769BSQYLFTxBDbvQ_mJDU2fYEHpR9UskIeCKIIVGFJTRbJXaowINEEO61YQVR0EGbrcVMaiOphKryYN5xKDeYSlawHY9-_rh_9_3CqDxYdFRI7BR2pP9uzolWxTGzEP9qWB6InSUjEgIPCsOuyZSptVOJLjK6HEmiqSOAW5GmyJI6x0woPG1lZklS4W6eiaPzdpTpQI28LcCX6DEb8zLtUX9j-axNn0Y6l0mXYIvdo0TV8_QRKTk45__CvCDBRi-XvDyEB9duD6ku4F4vaV6-tyufjQySZJAgw8zghNk-YUKaQ_35y_3d9tvHr3fwUHmw7Dyxc-dDrjR13rl91DZH66u3dE6s1RREJx-GKC8sBgqngOpsGmIwldXXU-ouDYfaMnXKkVNuHe6nqhIlGs7wMxyF-Q0x7ARH0lLJ4oyl1CettIEY3rOIO3wWKXIVYZZo9451hXcu3zVTuVo_g9jvDe4FvdwCqqryBpYfpSJ01pqv_8XKgwcWVZ1ILLQzhT3wxwUbTi5azzLdI9UhaSJuE6Fw1uRuchBZhqqW9y59sMGZZdochZL_um5BZOSucK6UbbQh_uV7wQNXGHvj2ssJHipO2c1kvg1bixiJh-PyXQJ_Cq_XnIZwHaZDC6bQXu1uQ_RXhaW9l5YgJlOgsz3_I9vd5vkm-12FKx8Wf-RD25_fZL8VvrI92czG2_9Noz2pK2uTfW9srNy01ZG5sjTZGK-G1U0ztYBDneyXYxPvJvCLjMOO3ox9mZw3oVsRhzxZ_b0BPMTsMN1ONFn7IxP8RkMZbFuTfWB8EbgaTyNSDn-y1kdWitfAnYhDnqzg_j5xtRh0uDy66p34J7mlsl2MnyQ-59pQM62Ws2gZbVbhKlhEqygKIzem1rPVZrkJLyt_Ec2jYLPx6ikDsT8LQn8RraMwCJfzcO7Pw3aI878SpS54R1ZcR-366oITJ2ewe_36sZnVn4WyWFXV_w">
+      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5L9 4l5 4.5"/><path d="M5.5 8v5.5h7V8"/><path d="M7 13.5v-3h4v3"/><path d="M3 8.5h12"/></svg></span>
+      <span class="arm-tile-text"><span class="arm-tile-label">Author seniority</span><span class="arm-tile-sub">Highlights established researchers</span></span>
+    </a>
+
+    <a class="arm-tile" href="https://leefischman.github.io/ai-research-atlas-staging/#?state=rVbdj6M2EP9XqlEfaQT5IIS302lPqrSt2l7fTqvIgdnEPQdH9rAbGvG_V2NgYwhZVqe-JHg-fjMez9cFXtBYqQtIIZxF61kIAZA8oiVxPEEardfROow3i3CWhEkA2UEYstBeIMIfqk4IKeBxh3kui71TJsW0B4-WCxIsfoYUTkb_gxlJXWzPEEDVJ1WMgGeCFDJVWkKzVWKHCgLIBOFeG1aQhSVJpdPIdFmQqaCuA5h7Pp0M5pJ1rOfU1z8ff_rjyqgDWHgqJHYKPem_23OmVXksLKTfWlYAYmfJiIwggNKwdzJnakkHbRqXrkeSaJog4FbkObKkPmEhFJ63_lUKcXTejjKbe8r7AnyJHrM1L_Me9TtWr9r0aaRPMvMJttw9S1Q9T5-RsoNz_i88lSTY6PWSFgupjSR-wLHn6VNdwINe3rx9b1chGxnkySBHhsnBObN9wYw0h_rLr48P298__fYAT3UAS--JnTu_nJQm7527R-3StLl6R-fEWk1BePkwRHljMVA8BdRk0xCDqay-nlJ3aTjUlrlTTpxy53A_VZWo0HCGX-AozHdIYSc4kpYqFmcspT5rpQ2k8DOLuMMXkSNXERaZdu_YFLl3ed9M7cr9AmK_N7gX9HYLqOs6GFh-lorQWWu__hcrTwFYVE0isdDOlPbAH1dsOLtovcp8j9SEpI24zYTCWZu72UEUBapGPri2whZnVmhzFEr-67oFkZG70rlSddGG9FsYRE9cYeyNay9neKo5ZTeT-TZsLWIkHo7Ld4nCKbxecxrCeUyHFk2hvdvdhujvCkv7KC1BSqZEZ3v-Q7b95vkh-77CjQ-LH_Kh688fst8J39iebGbj7f-u0Z7UjbXJvjc2Vu7a8mRuLE02xpthdddMI-BQJ_vl2MS7C_wm47CTD2NfJ-dd6E7EIU9Wf28ADzE9ptuJJmt_ZILfaShXEYc82QfGF4Gb8XRvm5us9ZGV4j1wJ-KQJyu4v0_cLAYel0dXsxZ_JbdUdrvxi8TXkzbUTqvlLFkmm1W8ihbJKknixI2p9Wy1WW7izSpcJPMk2myCZspAGs6iOFwk6ySO4uU8nofzuBvi_K9EpUtekxXXUXe-uuDI6QXsQb9-bpf2Z6Es1nX9Hw">
+      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="7"/><path d="M2 9h14"/><path d="M9 2c-2 2-3 4.5-3 7s1 5 3 7"/><path d="M9 2c2 2 3 4.5 3 7s-1 5-3 7"/></svg></span>
+      <span class="arm-tile-text"><span class="arm-tile-label">Country</span><span class="arm-tile-sub">Geographic spread of AI research</span></span>
+    </a>
+
+    <a class="arm-tile" href="https://leefischman.github.io/ai-research-atlas-staging/#?state=rVZZj5swEP4r1aiPNIIcBHirqq1UaVv1eqtWkQOziVsHI9vsJo3479UYWAwhy2rVlwTP8c14PNcZHlBpLnNIwJ8F65kPHhh-QG3YoYAkWK-DtR_GYTRbxnMP0j1TRkNyhoB-zKlASAAPW8wynu-sshFEu3FoGTOMxI-QQKHkb0wNl_nmCB6c-qQTIeDRQAKpKLVBtRFsiwI8SJnBnVSkwHNtuCmthnWhqjyYOw4VCjNOCtrx6Me32zdfO0blwcJRMWwr0JH-2ZxTKcpDriH51bA8YFttFEsNeFAqco1nRC3NXqpNKsvcdEfDUdURwA3LMiRJWWDOBB437j1ydrDejjItqOLXBegSPWZjnmc96h88PUrVpxlZ8NQl6HJ7z1H0PL1Hk-6t89-xKA0jo90lNeZcKm7o9S7dHlJtwL1e0jx9b1Y-GRkkySBBhplBCbN5wNRICvXHT7c3my_vP9_AXeXB0nli6867QkjjvHP7qG2O1ldv6ZRYqykIJx-GKE8sAgqngOpsGmIQldTXU-o2DYfaPLPKkVVuHe6nqhIlGs7wMxyF-Q0x7ARH0lLJ4oyl1CettIEY3rOIO3wWKXIVYZZo9451hXcu3zVTuVo_g9jvDe4FvdwCqqryBpYfpSJ01pqv_8XKgwcWVZ1ILLQzhT3wxwUbTi5azzLdI9UhaSJuE6Fw1uRuchBZhqqW9y59sMGZZdochZL_um5BZOSucK6UbbQh_uV7wQNXGHvj2ssJHipO2c1kvg1bixiJh-PyXQJ_Cq_XnIZwHaZDC6bQXu1uQ_RXhaW9l5YgJlOgsz3_I9vd5vkm-12FKx8Wf-RD25_fZL8VvrI92czG2_9Noz2pK2uTfW9srNy01ZG5sjTZGK-G1U0ztYBDneyXYxPvJvCLjMOO3ox9mZw3oVsRhzxZ_b0BPMTsMN1ONFn7IxP8RkMZbFuTfWB8EbgaTyNSDn-y1kdWitfAnYhDnqzg_j5xtRh0uDy66p34J7mlsl2MnyQ-59pQM62Ws2gZbVbhKlhEqygKIzem1rPVZrkJLyt_Ec2jYLPx6ikDsT8LQn8RraMwCJfzcO7Pw3aI878SpS54R1ZcR-366oITJ2ewe_36sZnVn4WyWFXV_w">
+      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="14" width="14" height="2" rx="0.5"/><rect x="6" y="7" width="2" height="7"/><rect x="10" y="7" width="2" height="7"/><path d="M2 7h14"/><path d="M5 7L9 3l4 4"/></svg></span>
+      <span class="arm-tile-text"><span class="arm-tile-label">Institution</span><span class="arm-tile-sub">Academic vs industry research</span></span>
+    </a>
+
+    <a class="arm-tile" href="https://leefischman.github.io/ai-research-atlas-staging/#?state=rVZLj9s2EP4rxaBH1ZC8a-txC4INUGBbtElvwcKgpVmbCS0a5GjXjqH_Xgwl2ZQsrxZBLrY4j2-Gw3md4AWNlbqEDMJZFM9CCIDkDi2J3R6yKI6jOIzD-3CWzO8DyLfCkIXsBBH_0HGPkAHu1lgUstw4ZVJMe_BohSDB4gfIYG_0N8xJ6nJ1gACOfdKREfBAkEGuKktoVkqsUUEAuSDcaMMKeo-lUHhY2Wr9LFEVUNcBzD2P9gYLyRrWc-nLv4-__XNh1AHceSok1go96f_ac65VtSstZF9bVgBibcmInCCAyrBvsmBqRVttVrmuSrocSaJpQoArURTIkmf_ZWlJUuWuXoqd83aU6UCNvC3Al-gxW_Oy6FG_4_FVmz6N9F7mPuEcVY_2jJRvnfOfcV-RYKOXS1ospTaS-Pmu3R5SXcCDXtacv1eLkI0MsmSQIcPU4IxZvWBOmkP96c_Hh9XfH_56gKc6gHvviZ07f-yVJu-du0ftkrS5ekfnxFpMQXj5MEQ5sxhoOQXUZNMQg6msHk-puzQcasumOhKn3DncT1Uljmg4w0-wE-Y7ZLAWHElLRxZnLKU-aqUNZPA7i7jDJ1EgVxGWuXbv2JS4d3nfTO2K_QRiszG4EXS-BdR1HQwsP0tF6Ky1X7_EylMAFlWTSCy0NpXd8scFGw4uWq-y2CA1IWkjbnOhcNbmbr4VZYmqkQ8ujbDFmZXa7ISSP1y3IDJyXTlXjl20IfsaBtETVxh749rLAZ5qTtl0Mt-GrUWMxMNx-S5ROIXXa05DOI_p0KIptDe72xD9TWFpH6UlyMhU6GzPf8q23zzfZd9XuPLh7qd86Przu-x3wle2J5vZePu_abQndWVtsu-NjZWbtjyZK0uTjfFqWN000wg41Ml-OTbxbgL3do0oeTf2ZXLehO5EHPJk9fcG8BDTY7qdaLL2Ryb4jYZyEXHIk31gfBG4Gk8jUg5_stZHVoq3wJ2IQ56s4P4-cbUYeFweXc1S_IXcUtltxi8SX_faUDut7mfpfBHFy2SRpGGUxvHCzal4tozTMA3ju2SeLhdhGjRjBrJwFiVhcrdMwjRN5tE8XXZDnP-VOOqKl2TFddSdLy44cnYCu9WvH9uV_Vkoi3Vd_w">
+      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h8l4 4-4 4H3V5z"/><line x1="7" y1="9" x2="7" y2="9" stroke-width="2" stroke-linecap="round"/></svg></span>
+      <span class="arm-tile-text"><span class="arm-tile-label">OpenAlex subfield</span><span class="arm-tile-sub">OpenAlex taxonomy</span></span>
+    </a>
+
+    <a class="arm-tile" href="https://leefischman.github.io/ai-research-atlas-staging/">
+      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="14" height="12" rx="1.5"/><line x1="2" y1="8" x2="16" y2="8"/><line x1="6" y1="2" x2="6" y2="6"/><line x1="12" y1="2" x2="12" y2="6"/></svg></span>
+      <span class="arm-tile-text"><span class="arm-tile-label">Release date</span></span>
+    </a>
+
+  </div>
+  <div class="arm-footer">
+    <div class="arm-status-dot"></div>
+    <span class="arm-status-text">Last updated <strong>""" + run_date + """ UTC</strong></span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ABOUT PANEL
+═══════════════════════════════════════════════════════════ -->
+<div id="arm-about-panel" class="arm-panel" role="complementary" aria-label="About this atlas">
+  <div class="arm-body">
     <div class="arm-header">
       <p class="arm-title">The <span>AI Research</span> Atlas</p>
-      <button class="arm-close-btn" onclick="armClose('arm-panel-about','arm-tab-about')" aria-label="Close panel">&#x2715;</button>
+      <button class="arm-close" onclick="armClose('arm-about-panel','arm-about-tab')" aria-label="Close panel">&#x2715;</button>
     </div>
     <div class="arm-byline">By <a href="https://www.linkedin.com/in/lee-fischman/" target="_blank" rel="noopener">Lee Fischman</a></div>
 
-    <p class="arm-p">A live semantic map of recent AI research from arXiv (cs.AI), rebuilt every day at 14:00 UTC. Each point is a paper. The map shows a rolling 4-day window &mdash; up to 250 papers per day.</p>
+    <p class="arm-p">A live mostly semantic map of recent AI research from arXiv (cs.AI), rebuilt every day across a rolling 4-day window. Each point is a paper.</p>
+    <p class="arm-p"><a href="https://github.com/LeeFischman/AI-research-atlas" target="_blank" rel="noopener">More...</a></p>
 
     <hr class="arm-divider">
 
-    <p class="arm-section">How the map is organized</p>
-    <p class="arm-p">Papers are embedded with <a href="https://allenai.org/blog/specter" target="_blank" rel="noopener">SPECTER2</a>, a model trained on scientific citation graphs. <strong>Nearby points are papers a researcher in that subfield would read together</strong> &mdash; they cluster by intellectual proximity, not just surface keywords. A paper on RL safety and one on multi-agent coordination may sit close even if they share few words.</p>
-    <p class="arm-p">Cluster labels are extracted with KeyBERT, finding the most distinctive 2-word phrase in each group's titles.</p>
-
-    <hr class="arm-divider">
-
-    <p class="arm-section">Color dimensions</p>
-    <div class="arm-legend-row">
-      <div class="arm-dot arm-dot-enhanced"></div>
-      <div><span class="arm-legend-label">Reputation Enhanced</span><br>Paper is from a recognized institution, lab, or has a public codebase.</div>
-    </div>
-    <div class="arm-legend-row">
-      <div class="arm-dot arm-dot-std"></div>
-      <div><span class="arm-legend-label">Reputation Std</span><br>No strong institutional signal detected in the abstract text.</div>
-    </div>
-    <p class="arm-p" style="margin-top:8px;">Switch the <strong>Color by</strong> dropdown to <strong>author_tier</strong> to see team size (1–3, 4–7, 8+ authors), which loosely correlates with resource backing.</p>
-
-    <hr class="arm-divider">
-
-    <p class="arm-section">Powered by</p>
-    <p class="arm-p"><a href="https://apple.github.io/embedding-atlas/" target="_blank" rel="noopener">Apple Embedding Atlas</a> &bull; SPECTER2 &bull; UMAP &bull; HDBSCAN &bull; KeyBERT &bull; arXiv API</p>
+    <p class="arm-section">How to use</p>
+    <p class="arm-p">Click any point to read its abstract and open the PDF on arXiv. Use the search bar to find papers by keyword or phrase. Drag to pan; scroll or pinch to zoom.</p>
 
     <hr class="arm-divider">
 
     <p class="arm-section">Books by the author</p>
     <a class="arm-book" href="https://www.amazon.com/dp/B0GMVH6P2W" target="_blank" rel="noopener">
       <span class="arm-book-icon">&#x1F4D8;</span>
-      <span class="arm-book-text">
-        <span class="arm-book-title">Building Deep Learning Products</span>
-        <span class="arm-book-sub">Available on Amazon &#x2192;</span>
-      </span>
+      <span class="arm-book-text"><span class="arm-book-title">Building Deep Learning Products</span><span class="arm-book-sub">Available on Amazon &#x2192;</span></span>
     </a>
+    <p class="arm-p" style="margin-top:4px;"><a href="https://donate.stripe.com/6oU5kD9sE17y87J3gI1ck00" target="_blank" rel="noopener">Buy me a bagel &#x1F96F;</a></p>
 
+    <hr class="arm-divider">
+
+    <p class="arm-section">Powered by</p>
+    <p class="arm-p"><a href="https://apple.github.io/embedding-atlas/" target="_blank" rel="noopener">Apple Embedding Atlas</a>, <a href="https://openalex.org" target="_blank" rel="noopener">OpenAlex</a>, and <a href="https://allenai.org/blog/specter2-adapting-scientific-document-embeddings-to-multiple-fields-and-task-formats-c95686c06567" target="_blank" rel="noopener">SPECTER2</a></p>
   </div>
-  <div class="arm-panel-footer">
+  <div class="arm-footer">
     <div class="arm-status-dot"></div>
     <span class="arm-status-text">Last updated <strong>""" + run_date + """ UTC</strong></span>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════
-     SHORTCUTS PANEL
-═══════════════════════════════════════════════════════════════ -->
-<div id="arm-panel-shortcuts" class="arm-panel" role="complementary" aria-label="Keyboard and mouse shortcuts">
-  <div class="arm-body">
-
-    <div class="arm-header">
-      <p class="arm-title"><span>Shortcuts</span> &amp; Controls</p>
-      <button class="arm-close-btn" onclick="armClose('arm-panel-shortcuts','arm-tab-shortcuts')" aria-label="Close panel">&#x2715;</button>
-    </div>
-
-    <p class="arm-section" style="margin-top:6px;">Navigation</p>
-
-    <div class="arm-shortcut-row">
-      <div class="arm-key-group"><span class="arm-shortcut-icon">🖱️</span><span class="arm-key">Drag</span></div>
-      <div class="arm-shortcut-desc"><strong>Pan</strong> the map</div>
-    </div>
-    <div class="arm-shortcut-row">
-      <div class="arm-key-group"><span class="arm-shortcut-icon">🖱️</span><span class="arm-key">Scroll</span></div>
-      <div class="arm-shortcut-desc"><strong>Zoom</strong> in / out</div>
-    </div>
-    <div class="arm-shortcut-row">
-      <div class="arm-key-group"><span class="arm-shortcut-icon">🤌</span><span class="arm-key">Pinch</span></div>
-      <div class="arm-shortcut-desc"><strong>Zoom</strong> on touch / trackpad</div>
-    </div>
-    <div class="arm-shortcut-row">
-      <div class="arm-key-group"><span class="arm-key">Dbl&nbsp;click</span></div>
-      <div class="arm-shortcut-desc"><strong>Reset</strong> zoom &amp; pan to fit</div>
-    </div>
-
-    <hr class="arm-divider">
-    <p class="arm-section">Selecting papers</p>
-
-    <div class="arm-shortcut-row">
-      <div class="arm-key-group"><span class="arm-shortcut-icon">🖱️</span><span class="arm-key">Click</span></div>
-      <div class="arm-shortcut-desc"><strong>Select</strong> a paper — shows title, abstract, and PDF link</div>
-    </div>
-    <div class="arm-shortcut-row">
-      <div class="arm-key-group"><span class="arm-key">Click</span><span class="arm-key-sep">+</span><span class="arm-key">empty</span></div>
-      <div class="arm-shortcut-desc"><strong>Deselect</strong> — click any blank area</div>
-    </div>
-    <div class="arm-shortcut-row">
-      <div class="arm-key-group"><span class="arm-key">Esc</span></div>
-      <div class="arm-shortcut-desc"><strong>Dismiss</strong> the detail panel</div>
-    </div>
-
-    <hr class="arm-divider">
-    <p class="arm-section">Search &amp; filter</p>
-
-    <div class="arm-shortcut-row">
-      <div class="arm-key-group"><span class="arm-shortcut-icon">🔍</span><span class="arm-key">Search&nbsp;bar</span></div>
-      <div class="arm-shortcut-desc"><strong>Filter by keyword</strong> — matches titles and abstracts; non-matching points dim</div>
-    </div>
-    <div class="arm-shortcut-row">
-      <div class="arm-key-group"><span class="arm-key">Enter</span></div>
-      <div class="arm-shortcut-desc"><strong>Commit search</strong> &amp; highlight matches</div>
-    </div>
-    <div class="arm-shortcut-row">
-      <div class="arm-key-group"><span class="arm-key">Esc</span></div>
-      <div class="arm-shortcut-desc"><strong>Clear search</strong> and restore all points</div>
-    </div>
-
-    <hr class="arm-divider">
-    <p class="arm-section">Color &amp; labels</p>
-
-    <div class="arm-shortcut-row">
-      <div class="arm-key-group"><span class="arm-key">Color&nbsp;by</span></div>
-      <div class="arm-shortcut-desc">Switch between <strong>Reputation</strong>, <strong>author_tier</strong>, or other columns to recolor the map</div>
-    </div>
-    <div class="arm-shortcut-row">
-      <div class="arm-key-group"><span class="arm-key">Labels</span></div>
-      <div class="arm-shortcut-desc">Floating cluster labels appear automatically; zoom in to reveal more granular ones</div>
-    </div>
-
-  </div>
-  <div class="arm-panel-footer">
-    <div class="arm-status-dot"></div>
-    <span class="arm-status-text">Tip: open <strong>About</strong> for color legend details</span>
   </div>
 </div>
 """
@@ -846,6 +788,8 @@ def build_panel_html(run_date: str) -> str:
 # 9. MAIN
 # ──────────────────────────────────────────────
 if __name__ == "__main__":
+    clear_docs_contents("docs")
+
     now      = datetime.now(timezone.utc)
     run_date = now.strftime("%B %d, %Y")
 
@@ -881,47 +825,40 @@ if __name__ == "__main__":
 
     results = fetch_arxiv(client, search)
     if not results:
-        if existing_df.empty:
-            print("  No results from arXiv and no existing DB. Cannot build. Exiting.")
-            exit(0)
-        print(f"  No new papers from arXiv (weekend or dry spell). "
-              f"Rebuilding atlas from {len(existing_df)} existing papers.")
+        print("  No results returned from arXiv. Skipping build.")
+        exit(0)
 
-    if results:
-        print(f"  Fetched {len(results)} papers from arXiv.")
+    print(f"  Fetched {len(results)} papers from arXiv.")
 
-        # Build new-papers DataFrame
-        today_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-        rows = []
-        for r in results:
-            title    = r.title
-            abstract = r.summary
-            scrubbed = scrub_model_words(f"{title}. {title}. {abstract}")
-            # label_text: title only (repeated for TF-IDF weight), used for cluster
-            # labels in incremental mode where --text doesn't affect embeddings.
-            label_text = scrub_model_words(f"{title}. {title}. {title}.")
-            rows.append({
-                "title":        title,
-                "abstract":     abstract,
-                "text":         scrubbed,
-                "label_text":   label_text,
-                "url":          r.pdf_url,
-                "id":           r.entry_id.split("/")[-1],
-                "author_count": len(r.authors),
-                "author_tier":  categorize_authors(len(r.authors)),
-                "date_added":   today_str,
-            })
+    # Build new-papers DataFrame
+    today_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    rows = []
+    for r in results:
+        title    = r.title
+        abstract = r.summary
+        scrubbed = scrub_model_words(f"{title}. {title}. {abstract}")
+        # label_text: title only (repeated for TF-IDF weight), used for cluster
+        # labels in incremental mode where --text doesn't affect embeddings.
+        label_text = scrub_model_words(f"{title}. {title}. {title}.")
+        rows.append({
+            "title":        title,
+            "abstract":     abstract,
+            "text":         scrubbed,
+            "label_text":   label_text,
+            "url":          r.pdf_url,
+            "id":           r.entry_id.split("/")[-1],
+            "author_count": len(r.authors),
+            "author_tier":  categorize_authors(len(r.authors)),
+            "date_added":   today_str,
+        })
 
-        new_df = pd.DataFrame(rows)
-        new_df["Reputation"] = new_df.apply(calculate_reputation, axis=1)
+    new_df = pd.DataFrame(rows)
+    new_df["Reputation"] = new_df.apply(calculate_reputation, axis=1)
 
-        # Merge into rolling DB
-        df = merge_papers(existing_df, new_df)
-        df = df.drop(columns=["group"], errors="ignore")  # remove legacy column name
-        print(f"  Rolling DB: {len(df)} papers after merge.")
-    else:
-        # No new arXiv papers — use existing DB as-is (weekend / dry spell rebuild)
-        df = existing_df.drop(columns=["group"], errors="ignore")
+    # Merge into rolling DB
+    df = merge_papers(existing_df, new_df)
+    df = df.drop(columns=["group"], errors="ignore")  # remove legacy column name
+    print(f"  Rolling DB: {len(df)} papers after merge.")
 
     # Backfill Reputation for older rows that predate the column.
     if "Reputation" not in df.columns or df["Reputation"].isna().any():
@@ -929,17 +866,6 @@ if __name__ == "__main__":
         if missing.any():
             print(f"  Backfilling Reputation for {missing.sum()} older rows...")
             df.loc[missing, "Reputation"] = df.loc[missing].apply(calculate_reputation, axis=1)
-
-
-    # Backfill label_text for older rows that predate the column (e.g. weekend
-    # rebuilds from existing DB, or rows added before label_text was introduced).
-    if "label_text" not in df.columns or df["label_text"].isna().any():
-        missing_lt = df["label_text"].isna() if "label_text" in df.columns else pd.Series([True] * len(df))
-        if missing_lt.any():
-            print(f"  Backfilling label_text for {missing_lt.sum()} older rows...")
-            df.loc[missing_lt, "label_text"] = df.loc[missing_lt, "title"].apply(
-                lambda t: scrub_model_words(f"{t}. {t}. {t}.")
-            )
 
     # Embed & project (incremental mode only)
     labels_path = None
@@ -964,10 +890,8 @@ if __name__ == "__main__":
     save_df.to_parquet(DB_PATH, index=False)
     print(f"  Saved {len(save_df)} papers to {DB_PATH}.")
 
-    # Build the atlas — clear docs immediately before so the site is never
-    # left in a broken state if an earlier step fails or exits early.
+    # Build the atlas
     print(f"  Building atlas ({EMBEDDING_MODE} mode)...")
-    clear_docs_contents("docs")
 
     if EMBEDDING_MODE == "incremental":
         # Incremental mode: embeddings are pre-computed via --x/--y.
@@ -1027,17 +951,17 @@ if __name__ == "__main__":
     else:
         print("  docs/data/config.json not found — skipping config override.")
 
-    # Inject About + Shortcuts pop-out panels
+    # Inject pop-out panel
     index_file = "docs/index.html"
     if os.path.exists(index_file):
-        panels_html = build_panel_html(run_date)
+        panel_html = build_panel_html(run_date)
         with open(index_file, "r", encoding="utf-8") as f:
             content = f.read()
-        content = content.replace("</body>", panels_html + "\n</body>") \
-            if "</body>" in content else content + panels_html
+        content = content.replace("</body>", panel_html + "\n</body>") \
+            if "</body>" in content else content + panel_html
         with open(index_file, "w", encoding="utf-8") as f:
             f.write(content)
-        print("  About + Shortcuts panels injected into index.html.")
+        print("  Info panel injected into index.html.")
     else:
         print("  docs/index.html not found — skipping panel injection.")
 
