@@ -671,7 +671,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
                 diversity=0.5,
                 top_n=5,
             )
-            print(f"    Sub-group {sub_idx} (level={label_level}, {len(sub_abstracts)} papers) keywords: {keywords}")
+            print(f"    Sub-group {sub_idx} (priority={label_priority}, {len(sub_abstracts)} papers) keywords: {keywords}")
 
             if not keywords:
                 continue
