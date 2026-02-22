@@ -9,191 +9,79 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 4.412821224757603,
-                "y": 0.5979382517814104,
-                "text": "Submissions Innoeval",
+                "x": 2.5630522652839622,
+                "y": 2.36567489306132,
+                "text": "Geometric Representation Learning For Complex Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 4.016037570578711,
-                "y": 0.857755573200328,
-                "text": "Scaffolded Introspective",
+                "x": 2.6752628882726035,
+                "y": 0.5704868699113528,
+                "text": "Trustworthy Ai Systems With Interpretable Reasoning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.065044181687491,
-                "y": 0.7984031417540141,
-                "text": "Inspect Ai",
+                "x": 4.260879913965861,
+                "y": -0.7601348400115967,
+                "text": "Llm Evaluation Methodology And Bias Assessment",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 5.072589914695077,
-                "y": -1.2362954797952073,
-                "text": "Fl Exposes",
+                "x": 4.45486332820012,
+                "y": 0.14105142567020196,
+                "text": "Uncertainty-Aware Multilingual Nlp Annotation",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 4.472085121255484,
-                "y": -0.2820335765432867,
-                "text": "Adversarial Prompts",
+                "x": 0.5114241424819519,
+                "y": 2.753996285898932,
+                "text": "Long-Form Visual Content Temporal Consistency",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.1346497416496275,
-                "y": 2.3598915219306944,
-                "text": "Reparametrization Symmetry",
+                "x": 0.26135485450781526,
+                "y": -0.23613045404532126,
+                "text": "Multi-Agent Reasoning Long Horizon Tasks",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.1212910294532774,
-                "y": 1.7429035544395446,
-                "text": "Transition Memorization",
+                "x": 1.869433856010437,
+                "y": 3.5013374487559,
+                "text": "Parameter-Efficient Model Adaptation And Fusion",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.3916513383388525,
-                "y": 1.4935139179229737,
-                "text": "Prior Finetuning",
+                "x": 1.7020205089024134,
+                "y": 2.5966559818812778,
+                "text": "Internal Representation Refinement Across Architectures",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.665398579835892,
-                "y": 1.869873046875,
-                "text": "Pretrained Bidirectional",
+                "x": 1.7633542484707303,
+                "y": -1.027819843755828,
+                "text": "Llm Agents Evaluation And Deployment",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.702033780515194,
-                "y": 2.295115575194359,
-                "text": "Optimization Generative",
+                "x": 3.2328946590423584,
+                "y": -1.868963822722435,
+                "text": "Agent Safety And Real-World Harm Evaluation",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 5.503544605695284,
-                "y": 1.4873947317783647,
-                "text": "Uncovers Annotator",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 4.3918838271727925,
-                "y": 1.3985193933431919,
-                "text": "Crafted Questions",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 5.076890118916829,
-                "y": 0.3681939554356393,
-                "text": "Moderation Decisions",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 5.901263662179311,
-                "y": 0.6273116961742441,
-                "text": "Development Workflows",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 3.5478615760803223,
-                "y": -1.0558116626704024,
-                "text": "Backend Workflow",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 2.639868442217509,
-                "y": -0.22898569089316184,
-                "text": "Scalable Longhorizon",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 3.5010004440943403,
-                "y": -0.0002354442895877995,
-                "text": "Pipelines Search",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 1.9543259508079953,
-                "y": -0.04514910218616325,
-                "text": "Learn Goal",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 1.9240927315420575,
-                "y": -1.1775455848158647,
-                "text": "Autonomously Climb",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 1.2612562477588654,
-                "y": 0.6857560233038384,
-                "text": "Reward Posteriors",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 1.340837174654007,
-                "y": -0.3283366393938195,
-                "text": "Offline Reinforcement",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 0.4567983567714691,
-                "y": 2.010256147384644,
-                "text": "Information Loss",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 1.2890042409300804,
-                "y": 2.4827079236507417,
-                "text": "Regularizes Weight",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 1.1084689076130205,
-                "y": 2.9233402096308194,
-                "text": "Distillation Generative",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 2.3371132471404232,
-                "y": 3.8808155551061527,
-                "text": "Leveraging Unlabelled",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 0.4026910904999618,
-                "y": 3.1899758898294888,
-                "text": "Leveraging Saliency",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 1.0831885848726546,
-                "y": 2.0169876473290578,
-                "text": "Deepseek Moe",
+                "x": 2.7508153120676675,
+                "y": -1.010271880361769,
+                "text": "Adversarial Robustness And Safety In Language Models",
                 "level": 0,
                 "priority": 10
             }
