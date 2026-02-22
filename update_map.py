@@ -671,8 +671,19 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
                 print(f"    Sub-group {sub_idx}: no clean candidate found, using raw top keyword '{winner}'")
 
             label_text = winner.title()
+            # Place the label at the sub-group centroid, nudged outward from
+            # the overall cluster center. This increases spatial separation
+            # between sibling sub-labels, making Atlas less likely to cull them
+            # as density duplicates.
+            # NUDGE_FACTOR: 0.0 = centroid only, 1.0 = full step away from center.
+            # Recommended range: 0.15–0.35. Default: 0.2.
+            NUDGE_FACTOR = 0.2
+            cluster_cx = float(cluster_coords[:, 0].mean())
+            cluster_cy = float(cluster_coords[:, 1].mean())
             cx = float(sub_coords[:, 0].mean())
             cy = float(sub_coords[:, 1].mean())
+            cx = cx + NUDGE_FACTOR * (cx - cluster_cx)
+            cy = cy + NUDGE_FACTOR * (cy - cluster_cy)
             label_rows.append({"x": cx, "y": cy, "text": label_text})
 
     labels_df = pd.DataFrame(label_rows)
@@ -1074,7 +1085,10 @@ if __name__ == "__main__":
         # a floating label. Value is relative to the max density (0.0–1.0).
         # Raise it to suppress labels on small/sparse clusters.
         # Lower it to label more clusters including sparse ones.
-        # conf["labelDensityThreshold"] = 0.1  # default is ~0.05
+        # Set low so Atlas doesn't cull sub-labels that are spatially close
+        # to their sibling labels within the same HDBSCAN cluster.
+        # Default is ~0.05. Raise toward 0.1 if too many labels appear.
+        conf["labelDensityThreshold"] = 0.02
 
         conf.setdefault("column_mappings", {}).update({
             "title":        "title",
