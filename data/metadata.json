@@ -9,124 +9,165 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 4.440743936811174,
-                "y": 6.658053683186625,
-                "text": "Llm Evaluator"
+                "x": 3.657961365243663,
+                "y": 9.277094044892685,
+                "text": "Collusive Actions",
+                "level": 0,
+                "priority": 10
             },
             {
-                "x": 4.999975109100341,
-                "y": 7.760954365363488,
-                "text": "Underexplored Medclarify"
+                "x": 4.748618942758311,
+                "y": 5.905746835507221,
+                "text": "Adversarial Prompts",
+                "level": 1,
+                "priority": 5
             },
             {
-                "x": 4.412567774454753,
-                "y": 6.3737963755925495,
-                "text": "Llm Judgments"
+                "x": 5.497923314571381,
+                "y": 6.790553629398346,
+                "text": "Emerging Quantum",
+                "level": 0,
+                "priority": 10
             },
             {
-                "x": 4.4023728768030805,
-                "y": 5.641497238477071,
-                "text": "Uncovers Annotator"
+                "x": 5.5513410568237305,
+                "y": 4.159893751144409,
+                "text": "Pretraining Tokamak",
+                "level": 0,
+                "priority": 10
             },
             {
-                "x": 3.5231983335394608,
-                "y": 6.302977948439748,
-                "text": "Assessment Llm"
+                "x": 3.62516849102912,
+                "y": 7.208451090849839,
+                "text": "Assessment Llm",
+                "level": 0,
+                "priority": 10
             },
             {
-                "x": 3.2012005861181962,
-                "y": 5.797398171675833,
-                "text": "Conceptualize Documentation"
+                "x": 3.4690707110739374,
+                "y": 8.033544932402574,
+                "text": "Inherently Counterfactual",
+                "level": 1,
+                "priority": 5
             },
             {
-                "x": 6.9830833288339464,
-                "y": 7.899536675673264,
-                "text": "Graph Kernels"
+                "x": 2.8587022412906995,
+                "y": 7.761622183973139,
+                "text": "Workarounds Collection",
+                "level": 1,
+                "priority": 5
             },
             {
-                "x": 7.634388445759867,
-                "y": 8.952136391859788,
-                "text": "Optimization Generative"
+                "x": 3.615076116153172,
+                "y": 6.5561895847320555,
+                "text": "Lingual Pipelines",
+                "level": 0,
+                "priority": 10
             },
             {
-                "x": 7.705699861617315,
-                "y": 8.350649729229154,
-                "text": "Drift Regularizer"
+                "x": 3.0820256471633916,
+                "y": 6.818705034255982,
+                "text": "Uncovers Annotator",
+                "level": 1,
+                "priority": 5
             },
             {
-                "x": 7.282966118767147,
-                "y": 7.523185952504476,
-                "text": "Pretrained Bidirectional"
+                "x": 6.366139041052924,
+                "y": 7.134539604187012,
+                "text": "Finetuned Reward",
+                "level": 0,
+                "priority": 10
             },
             {
-                "x": 6.653114106920031,
-                "y": 7.020799901750353,
-                "text": "Linear Rnn"
+                "x": 8.017129634221394,
+                "y": 5.258049125671386,
+                "text": "Leveraging Unlabelled",
+                "level": 0,
+                "priority": 10
             },
             {
-                "x": 7.806914301232978,
-                "y": 6.454380650572724,
-                "text": "Omics Finetuning"
+                "x": 5.341632178000041,
+                "y": 7.991637460674558,
+                "text": "Llm Agents",
+                "level": 0,
+                "priority": 10
             },
             {
-                "x": 7.320396217933068,
-                "y": 6.361847239274245,
-                "text": "Leveraging Unlabelled"
+                "x": 5.433290098110835,
+                "y": 8.557584212223688,
+                "text": "Agent Orchestration",
+                "level": 1,
+                "priority": 5
             },
             {
-                "x": 8.469632098674776,
-                "y": 7.637933504581452,
-                "text": "Leveraging Saliency"
+                "x": 7.648659916270862,
+                "y": 7.878241926366632,
+                "text": "Offline Reinforcement",
+                "level": 0,
+                "priority": 10
             },
             {
-                "x": 8.01817601485686,
-                "y": 7.1209663206880744,
-                "text": "Representation Leveraging"
+                "x": 6.626106938362121,
+                "y": 7.906924045562744,
+                "text": "Grained Vqa",
+                "level": 1,
+                "priority": 5
             },
             {
-                "x": 1.97350870837336,
-                "y": 7.190020730489355,
-                "text": "Collusive Actions"
+                "x": 7.418072208404541,
+                "y": 7.100991523742676,
+                "text": "Reward Posteriors",
+                "level": 1,
+                "priority": 5
             },
             {
-                "x": 5.5436356233513875,
-                "y": 6.764613132891448,
-                "text": "Adversarial Prompts"
+                "x": 7.00015003897927,
+                "y": 9.030986525795676,
+                "text": "Autonomously Climb",
+                "level": 0,
+                "priority": 10
             },
             {
-                "x": 3.0394717621803284,
-                "y": 8.316901591618855,
-                "text": "Enables Workflows"
+                "x": 6.66226845481179,
+                "y": 8.541989638588646,
+                "text": "Replanning Vlm",
+                "level": 1,
+                "priority": 5
             },
             {
-                "x": 3.7056773781776426,
-                "y": 7.972246712730045,
-                "text": "Gamestore Scalable"
+                "x": 5.964744031429291,
+                "y": 5.140290975570679,
+                "text": "Optimization Generative",
+                "level": 0,
+                "priority": 10
             },
             {
-                "x": 4.602733567555745,
-                "y": 9.437682075500488,
-                "text": "Jointly Optimizes"
+                "x": 6.509626431558646,
+                "y": 4.268758749494365,
+                "text": "Regularizes Weight",
+                "level": 0,
+                "priority": 10
             },
             {
-                "x": 5.244330799507372,
-                "y": 10.11980421933261,
-                "text": "Offline Reinforcement"
+                "x": 7.091893803372103,
+                "y": 4.807721463371726,
+                "text": "Multifaceted Learnable",
+                "level": 1,
+                "priority": 5
             },
             {
-                "x": 5.840610711688087,
-                "y": 9.415650618416922,
-                "text": "Reward Posteriors"
+                "x": 7.932772904350644,
+                "y": 4.375113968622117,
+                "text": "Challenging Gigapixel",
+                "level": 0,
+                "priority": 10
             },
             {
-                "x": 3.938264554919619,
-                "y": 9.842709626862497,
-                "text": "Autonomously Climb"
-            },
-            {
-                "x": 3.3424617926279705,
-                "y": 8.924048188527426,
-                "text": "Aiaas Setting"
+                "x": 7.346432775769915,
+                "y": 5.011541453770229,
+                "text": "Distillation Generative",
+                "level": 1,
+                "priority": 5
             }
         ],
         "initialState": {
@@ -141,7 +182,6 @@
     "name_column": "title",
     "label_column": "title",
     "color_by": "Reputation",
-    "labelDensityThreshold": 0.02,
     "column_mappings": {
         "title": "title",
         "abstract": "abstract",
