@@ -9,158 +9,200 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 6.3955458998680115,
-                "y": 11.852949261665344,
-                "text": "Underexplored Theoretical",
+                "x": 2.208179181814194,
+                "y": 3.5399879693984984,
+                "text": "Underexplored Medclarify",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 4.388392150402069,
-                "y": 10.838737964630127,
-                "text": "Operationalize Rfeval",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 6.5170159990137275,
-                "y": 12.62804686072823,
-                "text": "Imaging Leveraging",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 6.293219709396363,
-                "y": 14.128717160836244,
-                "text": "Leveraging Saliency",
+                "x": 1.398940733075142,
+                "y": 3.2513542056083677,
+                "text": "Vqa Retrieves",
                 "level": 0,
                 "priority": 5
             },
             {
-                "x": 6.654051446914672,
-                "y": 13.16383265715379,
-                "text": "Neural Cnns",
+                "x": 2.9995594705854143,
+                "y": 2.8261400631495883,
+                "text": "Submissions Innoeval",
                 "level": 0,
-                "priority": 5
+                "priority": 10
             },
             {
-                "x": 3.8611451840400695,
-                "y": 9.500122423171996,
+                "x": 2.2721154540777206,
+                "y": 1.9185624718666077,
+                "text": "Generalizability Orchestration",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 2.6873283982276917,
+                "y": 4.431456338275562,
                 "text": "Adversarial Prompts",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.8510005688667297,
-                "y": 8.205971689224244,
+                "x": 4.5447722247668665,
+                "y": 4.535786946098526,
                 "text": "Cybercriminals Ai",
                 "level": 0,
                 "priority": 5
             },
             {
-                "x": 3.2174802231788635,
-                "y": 8.677645845413208,
-                "text": "Collusive Actions",
+                "x": 3.697257339954376,
+                "y": 5.431795925805063,
+                "text": "Crescendo Actorattack",
                 "level": 0,
                 "priority": 5
             },
             {
-                "x": 4.70603673734163,
-                "y": 9.279097219768323,
-                "text": "Underexplored Llm",
+                "x": 1.5838711251105582,
+                "y": 3.661126012248652,
+                "text": "Proofs Succinctly",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 5.080182734706946,
-                "y": 8.711940504375256,
-                "text": "Development Workflows",
+                "x": 3.01534790545702,
+                "y": 3.73026388635238,
+                "text": "Scaffolded Introspective",
                 "level": 0,
                 "priority": 5
             },
             {
-                "x": 5.261072724660237,
-                "y": 10.092379430135091,
-                "text": "Crafted Questions",
+                "x": 1.0938557471547807,
+                "y": 2.620443139757429,
+                "text": "Grained Vqa",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 5.663508885701498,
-                "y": 9.458584772745768,
-                "text": "Uncovers Annotator",
-                "level": 0,
-                "priority": 5
-            },
-            {
-                "x": 4.599122398240226,
-                "y": 12.86796088899885,
+                "x": 0.6602272058526675,
+                "y": 4.985903461774191,
                 "text": "Pretrained Bidirectional",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 5.98866948400225,
-                "y": 13.810633237021309,
-                "text": "Distillation Generative",
+                "x": 0.485788826343196,
+                "y": 2.0518970733339135,
+                "text": "Learned Goal",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.2792533834144706,
+                "y": 3.638102108781988,
+                "text": "Reward Posteriors",
                 "level": 0,
                 "priority": 5
             },
             {
-                "x": 5.412793219089508,
-                "y": 12.927514791488647,
-                "text": "Distillation Frameworks",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 3.3208707571029663,
-                "y": 10.679874300956726,
-                "text": "Llm Agents",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 2.6519696950912475,
-                "y": 10.657965350151063,
-                "text": "Backend Workflow",
+                "x": 0.006675053133221808,
+                "y": 2.6214849000627343,
+                "text": "Offline Reinforcement",
                 "level": 0,
                 "priority": 5
             },
             {
-                "x": 5.044396127973284,
-                "y": 13.893365042550224,
-                "text": "Multifaceted Learnable",
+                "x": 4.252838856134659,
+                "y": 2.689077964195838,
+                "text": "Uncovers Annotator",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 4.948803157806396,
-                "y": 13.466746131352016,
-                "text": "Regularizes Weight",
+                "x": 3.292686567856715,
+                "y": 3.018397202858558,
+                "text": "Crafted Questions",
+                "level": 0,
+                "priority": 5
+            },
+            {
+                "x": 3.9585232466459277,
+                "y": 3.750050626695156,
+                "text": "Unifying Conceptual",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.9681312772962782,
-                "y": 12.020893414815268,
+                "x": 4.828928276896477,
+                "y": 3.3074983581900597,
+                "text": "Conceptualize Documentation",
+                "level": 0,
+                "priority": 5
+            },
+            {
+                "x": 0.10459184518882209,
+                "y": 4.075374259267534,
+                "text": "Optimization Generative",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 1.2133662104606628,
+                "y": 5.709578514099121,
+                "text": "Untapped Timeomni",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 1.66112626515902,
+                "y": 1.736064907220694,
+                "text": "Substantially Outperforming",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 2.388711983194718,
+                "y": 2.2459971331633053,
+                "text": "Unifies Api",
+                "level": 0,
+                "priority": 5
+            },
+            {
+                "x": 0.6448606086628779,
+                "y": 1.7826083643095831,
                 "text": "Autonomously Climb",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.684120283126831,
-                "y": 12.701775112152099,
-                "text": "Sparse Reward",
+                "x": -0.08383149984810087,
+                "y": 5.118938975863987,
+                "text": "Multifaceted Learnable",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.1073415660858155,
-                "y": 12.895061931610108,
-                "text": "Regret Minimization",
+                "x": 0.8534723954563518,
+                "y": 6.39477478038697,
+                "text": "Leveraging Unlabelled",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.029286616373186303,
+                "y": 6.509274860223135,
+                "text": "Vits Resnet",
                 "level": 0,
                 "priority": 5
+            },
+            {
+                "x": -0.6915489865673913,
+                "y": 5.84042681588067,
+                "text": "Leveraging Saliency",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.5588965701560179,
+                "y": 4.748343149820964,
+                "text": "Information Loss",
+                "level": 0,
+                "priority": 10
             }
         ],
         "initialState": {
