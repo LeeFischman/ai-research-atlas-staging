@@ -646,18 +646,18 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
         # top_n: candidates extracted; only the top-1 is used per sub-group.
         #   Set higher than needed so MMR has room to diversify.
         # ── level and priority ───────────────────────────────────────────
-        # Atlas supports two optional label columns:
-        #   level    (int) — zoom level at which the label appears.
-        #                    0 = always visible, 1 = visible when zoomed in.
-        #                    Sub-labels use level=1 so the map stays clean at
-        #                    full zoom and reveals detail as the user zooms in.
-        #   priority (int) — when labels overlap, higher priority wins.
-        #                    Primary labels get priority=10, sub-labels get
-        #                    priority=5 so primaries always win ties.
+        # Atlas passes `level` directly into its WebAssembly renderer as a
+        # zoom threshold — labels only appear when zoom >= level. On a static
+        # exported site the initial zoom never triggers level=1, so ALL labels
+        # must use level=0 to be visible.
+        #
+        # Overlap between sibling labels is handled by `priority` instead:
+        # when two labels would visually collide, the higher priority wins.
+        # Primary labels (10) beat sub-labels (5) in a tie, but sub-labels
+        # in spatially distinct positions appear freely regardless.
         print(f"  Cluster {cid} ({n_papers} papers) → {n_labels} label(s)")
         for sub_idx, (sub_abstracts, sub_coords) in enumerate(sub_groups):
-            is_primary = (n_labels == 1) or (sub_idx == 0)
-            label_level    = 0 if is_primary else 1
+            is_primary     = (n_labels == 1) or (sub_idx == 0)
             label_priority = 10 if is_primary else 5
 
             # Strip URLs and citation-key tokens before KeyBERT sees the text.
@@ -697,7 +697,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
             cx = cx + NUDGE_FACTOR * (cx - cluster_cx)
             cy = cy + NUDGE_FACTOR * (cy - cluster_cy)
             label_rows.append({"x": cx, "y": cy, "text": label_text,
-                                "level": label_level, "priority": label_priority})
+                                "level": 0, "priority": label_priority})
 
     labels_df = pd.DataFrame(label_rows)
     labels_path = "labels.parquet"
