@@ -684,22 +684,26 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
                 print(f"    Sub-group {sub_idx}: no clean candidate found, using raw top keyword '{winner}'")
 
             label_text = winner.title()
-            # Nudge sub-labels outward from the cluster center so they sit
-            # clearly within their spatial sub-region rather than bunched at
-            # the overall centroid. Has no effect on single-label clusters.
+            # Nudge sub-labels outward from the cluster center.
             # NUDGE_FACTOR: 0.0 = centroid only, 1.0 = full step away from center.
-            # Recommended range: 0.15–0.35. Default: 0.2.
-            NUDGE_FACTOR = 0.2
+            # Needs to be large enough that sub-labels don't collide with their
+            # primary label and get culled by Atlas's overlap detection.
+            # Recommended range: 0.3–0.7. Default: 0.5.
+            NUDGE_FACTOR = 0.5
             cluster_cx = float(cluster_coords[:, 0].mean())
             cluster_cy = float(cluster_coords[:, 1].mean())
             cx = float(sub_coords[:, 0].mean())
             cy = float(sub_coords[:, 1].mean())
             cx = cx + NUDGE_FACTOR * (cx - cluster_cx)
             cy = cy + NUDGE_FACTOR * (cy - cluster_cy)
+            print(f"    Sub-group {sub_idx} placed at ({cx:.3f}, {cy:.3f}), cluster center ({cluster_cx:.3f}, {cluster_cy:.3f})")
             label_rows.append({"x": cx, "y": cy, "text": label_text,
                                 "level": 0, "priority": label_priority})
 
     labels_df = pd.DataFrame(label_rows)
+    print(f"  Label coordinate summary ({len(labels_df)} total):")
+    for _, row in labels_df.iterrows():
+        print(f"    priority={int(row['priority'])}  ({row['x']:.3f}, {row['y']:.3f})  '{row['text']}'")
     labels_path = "labels.parquet"
     labels_df.to_parquet(labels_path, index=False)
     print(f"  Wrote {len(labels_df)} labels to {labels_path}.")
