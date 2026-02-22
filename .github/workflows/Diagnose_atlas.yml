@@ -1,4 +1,4 @@
-name: Diagnose Atlas Labels Schema
+name: Diagnose Atlas Level and Priority Behavior
 
 on:
   workflow_dispatch:
@@ -19,89 +19,130 @@ jobs:
       - name: Install dependencies
         run: pip install embedding-atlas pandas pyarrow
 
-      - name: Atlas version
+      - name: Build test atlas and inspect JS for level/priority handling
         run: |
-          echo "=== embedding-atlas version ==="
-          python3 -c "import embedding_atlas; print(embedding_atlas.__version__)" \
-            || embedding-atlas --version \
-            || pip show embedding-atlas
-
-      - name: Atlas labels schema — what columns does it expect?
-        run: |
-          echo "=== embedding_atlas module help (first 80 lines) ==="
-          python3 -c "import embedding_atlas; help(embedding_atlas)" 2>&1 | head -80 || true
-
-          echo ""
-          echo "=== Search source for 'level' and 'label' column references ==="
           python3 -c "
-          import embedding_atlas, inspect, pathlib
-          src_dir = pathlib.Path(inspect.getfile(embedding_atlas)).parent
-          print('Source dir:', src_dir)
-          for f in src_dir.rglob('*.py'):
-              text = f.read_text(errors='ignore')
-              if any(kw in text for kw in ['level', 'label_column', 'labels']):
-                  print(f'\n--- {f.relative_to(src_dir)} ---')
-                  for i, line in enumerate(text.splitlines(), 1):
-                      if any(kw in line.lower() for kw in ['level', 'label']):
-                          print(f'  {i:4d}: {line}')
-          "
+          import pandas as pd
+          import numpy as np
 
-      - name: Inspect current labels.parquet (if present)
-        run: |
-          echo "=== labels.parquet contents ==="
-          python3 -c "
-          import pandas as pd, os
-          path = 'labels.parquet'
-          if os.path.exists(path):
-              df = pd.read_parquet(path)
-              print('Shape:', df.shape)
-              print('Columns:', df.columns.tolist())
-              print('Dtypes:\n', df.dtypes)
-              print('Sample:\n', df.head(10).to_string())
-          else:
-              print('labels.parquet not found — run a build first')
-          "
-
-      - name: Write a test labels.parquet with level column and run Atlas
-        run: |
-          echo "=== Testing --labels with level column ==="
-          python3 -c "
-          import pandas as pd, numpy as np
-
-          # Minimal fake dataset
-          n = 30
+          # Minimal fake dataset — points in two clear spatial groups
+          np.random.seed(42)
+          n = 40
+          # Group A: points around (2, 2)
+          # Group B: points around (8, 8)
+          xs = np.concatenate([np.random.normal(2, 0.5, n//2), np.random.normal(8, 0.5, n//2)])
+          ys = np.concatenate([np.random.normal(2, 0.5, n//2), np.random.normal(8, 0.5, n//2)])
           df = pd.DataFrame({
               'title':        [f'Paper {i}' for i in range(n)],
-              'abstract':     [f'Abstract text for paper {i}.' for i in range(n)],
-              'projection_x': np.random.uniform(0, 10, n),
-              'projection_y': np.random.uniform(0, 10, n),
+              'projection_x': xs,
+              'projection_y': ys,
           })
           df.to_parquet('test_data.parquet', index=False)
-
-          # Labels: 2 primary + 4 sub-labels with level column
-          labels = pd.DataFrame([
-              {'x': 2.5, 'y': 2.5, 'text': 'Primary A',   'level': 0},
-              {'x': 7.5, 'y': 7.5, 'text': 'Primary B',   'level': 0},
-              {'x': 1.5, 'y': 3.5, 'text': 'Sub A1',      'level': 1},
-              {'x': 3.5, 'y': 1.5, 'text': 'Sub A2',      'level': 1},
-              {'x': 6.5, 'y': 8.5, 'text': 'Sub B1',      'level': 1},
-              {'x': 8.5, 'y': 6.5, 'text': 'Sub B2',      'level': 1},
-          ])
-          labels.to_parquet('test_labels.parquet', index=False)
-          print('test_labels.parquet written:')
-          print(labels.to_string())
+          print('Data written.')
           "
 
+          echo ""
+          echo "=== TEST 1: all level=0, varying priority ==="
+          python3 -c "
+          import pandas as pd
+          labels = pd.DataFrame([
+              {'x': 2.0, 'y': 2.0, 'text': 'Primary A',  'level': 0, 'priority': 10},
+              {'x': 8.0, 'y': 8.0, 'text': 'Primary B',  'level': 0, 'priority': 10},
+              {'x': 1.2, 'y': 2.8, 'text': 'Sub A1',     'level': 0, 'priority': 5},
+              {'x': 2.8, 'y': 1.2, 'text': 'Sub A2',     'level': 0, 'priority': 5},
+              {'x': 7.2, 'y': 8.8, 'text': 'Sub B1',     'level': 0, 'priority': 5},
+              {'x': 8.8, 'y': 7.2, 'text': 'Sub B2',     'level': 0, 'priority': 5},
+          ])
+          labels.to_parquet('test_labels_1.parquet', index=False)
+          print(labels.to_string())
+          "
           embedding-atlas test_data.parquet \
-            --x projection_x \
-            --y projection_y \
-            --labels test_labels.parquet \
-            --export-application test_site.zip \
-            && echo "Atlas build succeeded" \
-            || echo "Atlas build FAILED — level column may not be supported"
+            --x projection_x --y projection_y \
+            --labels test_labels_1.parquet \
+            --export-application test1.zip
+          echo "--- metadata.json (test 1) ---"
+          unzip -p test1.zip "*/metadata.json" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          labels=d['props'].get('embeddingViewLabels',[])
+          print(f'{len(labels)} labels in output:')
+          for l in labels: print(' ', l)
+          "
 
           echo ""
-          echo "=== Inspect generated metadata.json for label-related keys ==="
-          unzip -p test_site.zip "*/metadata.json" 2>/dev/null \
-            | python3 -c "import json,sys; d=json.load(sys.stdin); print(json.dumps(d, indent=2))" \
-            || echo "Could not extract metadata.json from zip"
+          echo "=== TEST 2: level=0 primary, level=1 sub (current approach) ==="
+          python3 -c "
+          import pandas as pd
+          labels = pd.DataFrame([
+              {'x': 2.0, 'y': 2.0, 'text': 'Primary A',  'level': 0, 'priority': 10},
+              {'x': 8.0, 'y': 8.0, 'text': 'Primary B',  'level': 0, 'priority': 10},
+              {'x': 1.2, 'y': 2.8, 'text': 'Sub A1',     'level': 1, 'priority': 5},
+              {'x': 2.8, 'y': 1.2, 'text': 'Sub A2',     'level': 1, 'priority': 5},
+              {'x': 7.2, 'y': 8.8, 'text': 'Sub B1',     'level': 1, 'priority': 5},
+              {'x': 8.8, 'y': 7.2, 'text': 'Sub B2',     'level': 1, 'priority': 5},
+          ])
+          labels.to_parquet('test_labels_2.parquet', index=False)
+          print(labels.to_string())
+          "
+          embedding-atlas test_data.parquet \
+            --x projection_x --y projection_y \
+            --labels test_labels_2.parquet \
+            --export-application test2.zip
+          echo "--- metadata.json (test 2) ---"
+          unzip -p test2.zip "*/metadata.json" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          labels=d['props'].get('embeddingViewLabels',[])
+          print(f'{len(labels)} labels in output:')
+          for l in labels: print(' ', l)
+          "
+
+          echo ""
+          echo "=== TEST 3: labels far apart, level=1 sub — do spacing issues cause culling? ==="
+          python3 -c "
+          import pandas as pd
+          labels = pd.DataFrame([
+              {'x':  2.0, 'y':  2.0, 'text': 'Primary A',  'level': 0, 'priority': 10},
+              {'x':  8.0, 'y':  8.0, 'text': 'Primary B',  'level': 0, 'priority': 10},
+              {'x':  0.0, 'y':  4.0, 'text': 'Sub A1 far', 'level': 1, 'priority': 5},
+              {'x':  4.0, 'y':  0.0, 'text': 'Sub A2 far', 'level': 1, 'priority': 5},
+              {'x':  6.0, 'y': 10.0, 'text': 'Sub B1 far', 'level': 1, 'priority': 5},
+              {'x': 10.0, 'y':  6.0, 'text': 'Sub B2 far', 'level': 1, 'priority': 5},
+          ])
+          labels.to_parquet('test_labels_3.parquet', index=False)
+          print(labels.to_string())
+          "
+          embedding-atlas test_data.parquet \
+            --x projection_x --y projection_y \
+            --labels test_labels_3.parquet \
+            --export-application test3.zip
+          echo "--- metadata.json (test 3) ---"
+          unzip -p test3.zip "*/metadata.json" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          labels=d['props'].get('embeddingViewLabels',[])
+          print(f'{len(labels)} labels in output:')
+          for l in labels: print(' ', l)
+          "
+
+      - name: Search Atlas JS bundle for level and priority handling
+        run: |
+          echo "=== Searching JS bundle for level/priority logic ==="
+          # Extract the JS from the built site and search for relevant terms
+          unzip -p test2.zip "*.js" 2>/dev/null | tr ';' '\n' | tr ',' '\n' | \
+            grep -i 'level\|priority\|zoom\|cull\|label' | \
+            grep -v '^\s*$' | head -60 || true
+
+          echo ""
+          echo "=== Atlas Python source: how are level/priority passed to JS? ==="
+          python3 -c "
+          import embedding_atlas, pathlib, inspect
+          src = pathlib.Path(inspect.getfile(embedding_atlas)).parent
+          for f in src.rglob('*.py'):
+              text = f.read_text(errors='ignore')
+              if 'priority' in text or 'level' in text:
+                  lines = text.splitlines()
+                  for i, line in enumerate(lines):
+                      if 'priority' in line.lower() or ('level' in line.lower() and 'label' in lines[max(0,i-3):i+3]):
+                          print(f'{f.name}:{i+1}: {line.rstrip()}')
+          "
