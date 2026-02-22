@@ -366,15 +366,39 @@ def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
 def generate_keybert_labels(df: pd.DataFrame) -> str:
     """
     Cluster the 2D projection with HDBSCAN, then use KeyBERT + SPECTER2
-    to extract the best 1-2 word phrase for each cluster. Writes a
-    labels.parquet file and returns its path for the --labels CLI flag.
+    to extract keyword phrases for each cluster. Writes a labels.parquet
+    file and returns its path for the --labels CLI flag.
+
+    LABELING STRATEGY
+    -----------------
+    Input text: full abstracts (not titles). Abstracts are ~10x longer and
+    contain the shared methodology vocabulary that explains *why* SPECTER2
+    grouped papers together, rather than just what they're named.
+
+    Multiple labels per cluster: each cluster is spatially sub-divided
+    using k-means on 2D display coords so each label describes a distinct
+    region. Sub-label count scales with cluster size:
+      < SUB_LABEL_MIN_PAPERS  → 1 label  (too small to split reliably)
+      < SUB_LABEL_MED_PAPERS  → 2 labels
+      otherwise               → 3 labels
     """
     from keybert import KeyBERT
-    from sklearn.cluster import HDBSCAN
+    from sklearn.cluster import HDBSCAN, KMeans
 
     print("  Generating KeyBERT cluster labels...")
 
-    # 2D coords used only for computing label centroid positions for display.
+    # ── Sub-label thresholds ─────────────────────────────────────────────
+    # SUB_LABEL_MIN_PAPERS: clusters smaller than this get exactly 1 label.
+    #   Splitting tiny clusters produces unreliable sub-group keywords.
+    #   Recommended range: 8–12. Default: 10.
+    SUB_LABEL_MIN_PAPERS = 10
+    #
+    # SUB_LABEL_MED_PAPERS: clusters between MIN and MED get 2 labels.
+    #   Clusters at or above this threshold get 3 labels.
+    #   Recommended range: 18–25. Default: 20.
+    SUB_LABEL_MED_PAPERS = 20
+
+    # 2D coords used for sub-cluster centroid positions and k-means splitting.
     coords_2d = df[["projection_x", "projection_y"]].values.astype(np.float64)
 
     # ── Clustering input: 50D cosine space ──────────────────────────────
@@ -409,36 +433,6 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
         cluster_metric = "euclidean"
         print("  Clustering on 2D coords (fallback — embedding_50d not available).")
 
-    # ── HDBSCAN clustering settings ─────────────────────────────────────
-    # min_cluster_size: minimum papers for a group to become a cluster.
-    #   Higher → fewer, larger, more general clusters (fewer labels).
-    #   Lower  → more, smaller, more specific clusters (more labels).
-    #   Recommended range: 3–15. Default: 5.
-    #
-    # min_samples: how conservative cluster assignment is.
-    #   Lower  → more points assigned to clusters (less noise/unlabelled).
-    #   Higher → stricter, more points treated as noise.
-    #   Recommended range: 1–5. Default: 3.
-    #
-    # cluster_selection_method:
-    #   "eom"  (default) — Excess of Mass; finds clusters of varying sizes.
-    #   "leaf" — selects leaf nodes of the condensed tree; smaller, more
-    #            granular clusters. Try this if clusters feel too coarse.
-    #   To enable leaf mode: add cluster_selection_method="leaf" below.
-    #
-    # Adaptive min_cluster_size (scales with corpus size):
-    #   Rather than a fixed value, scale to corpus size so the number of
-    #   clusters stays roughly proportional as the rolling DB grows/shrinks.
-    #   To enable: replace min_cluster_size=5 with:
-    #     min_cluster_size=max(5, len(df) // 40)
-    #
-    # Soft clustering (reduces unlabelled noise points):
-    #   HDBSCAN supports fuzzy cluster membership — points near boundaries
-    #   get fractional membership rather than being forced into one cluster
-    #   or marked as noise. Requires prediction_data=True and a separate
-    #   soft assignment step via hdbscan.all_points_membership_vectors().
-    #   Note: soft clustering is not currently implemented here; enable
-    #   prediction_data=True below as a first step if you want to explore it.
     # ════════════════════════════════════════════════════════════════════
     # HDBSCAN SETTINGS — all changes take effect on the next build.
     # These settings do not affect database.parquet in any way.
@@ -458,10 +452,9 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
     # Syntax:   HDBSCAN(..., min_samples=4, ...)
     # Range:    1–5 recommended.
     #
-    # ── cluster_selection_method (str, default: "eom") ──────────────────
-    # "eom"  — Excess of Mass; finds clusters of varying sizes (default).
-    # "leaf" — Selects leaf nodes; smaller, more granular clusters.
-    #          Try "leaf" if clusters feel too coarse.
+    # ── cluster_selection_method (str, default: "leaf") ─────────────────
+    # "eom"  — Excess of Mass; finds clusters of varying sizes.
+    # "leaf" — Selects leaf nodes; smaller, more granular clusters (current).
     # Syntax:   HDBSCAN(..., cluster_selection_method="leaf")
     #
     # ── metric (str, set automatically above) ───────────────────────────
@@ -495,63 +488,134 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
     # KeyBERT with SPECTER2 — reuses the cached HuggingFace download.
     kw_model = KeyBERT(model="allenai/specter2_base")
 
+    # ── Abstract-aware stop words ────────────────────────────────────────
+    # When using full abstracts (vs. titles), generic academic boilerplate
+    # dominates TF-IDF scores unless explicitly suppressed. This list extends
+    # scikit-learn's English stop words with:
+    #   - AI/ML topic-agnostic terms that appear in almost every abstract
+    #   - Process verbs that describe what any paper does ("propose", "show")
+    #   - Quality adjectives that describe any paper ("effective", "novel")
+    #   - Measurement / evaluation words ("accuracy", "benchmark", "score")
+    #   - Abstract structure words ("section", "paper", "experiment")
+    # Add to this list whenever you see a word winning labels that shouldn't.
+    from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+    KEYBERT_STOP_WORDS = list(ENGLISH_STOP_WORDS) + [
+        # ── model variants (handled by scrub_model_words but belt+suspenders)
+        "model", "models", "modeling", "modeled", "modelling",
+        # ── process verbs — what any paper does
+        "propose", "proposed", "proposes", "proposing",
+        "present", "presented", "presents", "presenting",
+        "introduce", "introduced", "introduces", "introducing",
+        "develop", "developed", "develops", "developing",
+        "show", "shows", "shown", "showing",
+        "demonstrate", "demonstrated", "demonstrates", "demonstrating",
+        "achieve", "achieved", "achieves", "achieving",
+        "improve", "improved", "improves", "improving",
+        "evaluate", "evaluated", "evaluates", "evaluating",
+        "explore", "explored", "explores", "exploring",
+        "study", "studies", "studied", "studying",
+        "address", "addressed", "addresses", "addressing",
+        # ── structural / meta words
+        "paper", "work", "approach", "method", "methods",
+        "framework", "system", "technique", "techniques",
+        "task", "tasks", "problem", "problems",
+        "experiment", "experiments", "experimental",
+        "result", "results", "finding", "findings",
+        "section", "figure", "table", "appendix",
+        # ── quality adjectives — describe every paper
+        "new", "novel", "effective", "efficient", "robust",
+        "state", "art", "better", "best", "strong", "large",
+        "simple", "general", "unified", "comprehensive",
+        # ── measurement / evaluation words
+        "performance", "accuracy", "score", "scores",
+        "benchmark", "baseline", "baselines", "metric", "metrics",
+        "dataset", "datasets", "data", "corpus", "corpora",
+        # ── generic ML infrastructure
+        "training", "train", "trained", "inference",
+        "deep", "learning", "based", "using", "via",
+        "network", "networks", "layer", "layers",
+        # ── common numeric / size words
+        "large", "small", "scale", "high", "low",
+    ]
+
     label_rows = []
     for cid in sorted(set(cluster_ids)):
         if cid == -1:
             continue  # HDBSCAN noise points get no label
+
         mask = cluster_ids == cid
-        # Use label_text (scrubbed, title-only) rather than raw title so
-        # "model/models" variants are already stripped before KeyBERT sees them.
-        titles = df.loc[mask, "label_text"].tolist()
-        combined = " ".join(titles)
+        n_papers = int(mask.sum())
+        cluster_coords = coords_2d[mask]            # 2D positions for this cluster
+        cluster_abstracts = df.loc[mask, "abstract"].tolist()
 
-        # Extend scikit-learn English stop words with AI boilerplate that
-        # KeyBERT would otherwise rank highly across all clusters.
-        # Note: stop_words="english" passes a string to CountVectorizer which
-        # uses sklearn's list internally — we extend that list explicitly here.
-        from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
-        KEYBERT_STOP_WORDS = list(ENGLISH_STOP_WORDS) + [
-            "model", "models", "modeling", "modeled",
-            "paper", "propose", "proposed", "approach",
-            "method", "methods", "task", "tasks", "performance", "results",
-            "result", "work", "framework", "system", "learning", "deep",
-            "based", "using", "show", "new", "novel", "training", "dataset",
-            "data", "benchmark", "improve", "improved", "state", "art",
-            "effective", "efficient", "robust", "demonstrate", "achieve",
-        ]
+        # ── Determine sub-label count ────────────────────────────────────
+        # Scale to cluster size so small clusters get one clean label and
+        # large clusters get up to 3 labels covering distinct sub-regions.
+        if n_papers < SUB_LABEL_MIN_PAPERS:
+            n_labels = 1
+        elif n_papers < SUB_LABEL_MED_PAPERS:
+            n_labels = 2
+        else:
+            n_labels = 3
 
-        # ── KeyBERT keyword extraction settings ─────────────────────────
+        # ── Sub-divide the cluster spatially ────────────────────────────
+        # k-means on 2D display coords splits the cluster into n_labels
+        # spatial regions. Each region gets its own KeyBERT label placed
+        # at that region's centroid. When n_labels == 1 we skip k-means.
+        if n_labels == 1:
+            sub_groups = [(cluster_abstracts, cluster_coords)]
+        else:
+            km = KMeans(n_clusters=n_labels, random_state=42, n_init=10)
+            sub_ids = km.fit_predict(cluster_coords)
+            sub_groups = []
+            for sid in range(n_labels):
+                sub_mask = sub_ids == sid
+                if sub_mask.sum() == 0:
+                    continue
+                sub_abstracts = [cluster_abstracts[i] for i, m in enumerate(sub_mask) if m]
+                sub_coords    = cluster_coords[sub_mask]
+                sub_groups.append((sub_abstracts, sub_coords))
+
+        # ── Extract one KeyBERT keyword per sub-group ────────────────────
+        #
         # keyphrase_ngram_range: (min, max) words per keyword phrase.
-        #   (1, 1) → single words only e.g. "robotics", "safety" — more general.
-        #   (1, 2) → single words and bigrams e.g. "medical imaging" — more specific.
+        #   (1, 1) → single words only — more general.
+        #   (1, 2) → words and bigrams — more specific (current).
         #   (2, 2) → bigrams only — specific but can produce odd pairings.
         #
-        # use_mmr: Maximal Marginal Relevance reduces redundancy between keywords.
-        #   True  → picks broader, more diverse terms across the cluster.
-        #   False → picks the highest-scoring terms regardless of similarity.
+        # use_mmr: Maximal Marginal Relevance — reduces redundancy.
+        #   True  → broader, more diverse terms (current).
+        #   False → highest-scoring terms regardless of overlap.
         #
         # diversity: only applies when use_mmr=True. Range 0.0–1.0.
-        #   Lower  → keywords closer to cluster centroid (more representative).
-        #   Higher → keywords more spread out (more diverse but less focused).
+        #   Lower  → keywords closer to centroid (more representative).
+        #   Higher → keywords more spread out (more diverse).
+        #   0.5 is used here (vs. 0.3 for title mode) because abstracts are
+        #   longer and higher diversity is needed to avoid repetition.
         #
-        # top_n: how many candidate keywords to extract (kept for debug printing).
-        keywords = kw_model.extract_keywords(
-            combined,
-            keyphrase_ngram_range=(2, 2),
-            stop_words=KEYBERT_STOP_WORDS,
-            use_mmr=True,
-            diversity=0.3,
-            top_n=3,
-        )
-        print(f"  Cluster {cid} ({mask.sum()} papers) top keywords: {keywords}")
-        print(f"  Sample input (first 200 chars): {combined[:200]}")
-        if not keywords:
-            continue
+        # top_n: candidates extracted; only the top-1 is used per sub-group.
+        #   Set higher than needed so MMR has room to diversify.
+        print(f"  Cluster {cid} ({n_papers} papers) → {n_labels} label(s)")
+        for sub_idx, (sub_abstracts, sub_coords) in enumerate(sub_groups):
+            combined = " ".join(sub_abstracts)
 
-        label_text = keywords[0][0].title()
-        cx = float(coords_2d[mask, 0].mean())
-        cy = float(coords_2d[mask, 1].mean())
-        label_rows.append({"x": cx, "y": cy, "text": label_text})
+            keywords = kw_model.extract_keywords(
+                combined,
+                keyphrase_ngram_range=(1, 2),
+                stop_words=KEYBERT_STOP_WORDS,
+                use_mmr=True,
+                diversity=0.5,
+                top_n=5,
+            )
+            print(f"    Sub-group {sub_idx} ({len(sub_abstracts)} papers) keywords: {keywords}")
+
+            if not keywords:
+                continue
+
+            label_text = keywords[0][0].title()
+            cx = float(sub_coords[:, 0].mean())
+            cy = float(sub_coords[:, 1].mean())
+            label_rows.append({"x": cx, "y": cy, "text": label_text})
 
     labels_df = pd.DataFrame(label_rows)
     labels_path = "labels.parquet"
