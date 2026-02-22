@@ -657,8 +657,6 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
         # in spatially distinct positions appear freely regardless.
         print(f"  Cluster {cid} ({n_papers} papers) → {n_labels} label(s)")
         for sub_idx, (sub_abstracts, sub_coords) in enumerate(sub_groups):
-            is_primary     = (n_labels == 1) or (sub_idx == 0)
-            label_priority = 10 if is_primary else 5
 
             # Strip URLs and citation-key tokens before KeyBERT sees the text.
             combined = _strip_urls(" ".join(sub_abstracts))
@@ -671,7 +669,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
                 diversity=0.5,
                 top_n=5,
             )
-            print(f"    Sub-group {sub_idx} (priority={label_priority}, {len(sub_abstracts)} papers) keywords: {keywords}")
+            print(f"    Sub-group {sub_idx} ({len(sub_abstracts)} papers) keywords: {keywords}")
 
             if not keywords:
                 continue
@@ -698,7 +696,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
             cy = cy + NUDGE_FACTOR * (cy - cluster_cy)
             print(f"    Sub-group {sub_idx} placed at ({cx:.3f}, {cy:.3f}), cluster center ({cluster_cx:.3f}, {cluster_cy:.3f})")
             label_rows.append({"x": cx, "y": cy, "text": label_text,
-                                "level": 0, "priority": label_priority})
+                                "level": 0, "priority": 10})
 
     labels_df = pd.DataFrame(label_rows)
     print(f"  Label coordinate summary ({len(labels_df)} total):")
