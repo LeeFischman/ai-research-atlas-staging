@@ -645,8 +645,21 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
         #
         # top_n: candidates extracted; only the top-1 is used per sub-group.
         #   Set higher than needed so MMR has room to diversify.
+        # ── level and priority ───────────────────────────────────────────
+        # Atlas supports two optional label columns:
+        #   level    (int) — zoom level at which the label appears.
+        #                    0 = always visible, 1 = visible when zoomed in.
+        #                    Sub-labels use level=1 so the map stays clean at
+        #                    full zoom and reveals detail as the user zooms in.
+        #   priority (int) — when labels overlap, higher priority wins.
+        #                    Primary labels get priority=10, sub-labels get
+        #                    priority=5 so primaries always win ties.
         print(f"  Cluster {cid} ({n_papers} papers) → {n_labels} label(s)")
         for sub_idx, (sub_abstracts, sub_coords) in enumerate(sub_groups):
+            is_primary = (n_labels == 1) or (sub_idx == 0)
+            label_level    = 0 if is_primary else 1
+            label_priority = 10 if is_primary else 5
+
             # Strip URLs and citation-key tokens before KeyBERT sees the text.
             combined = _strip_urls(" ".join(sub_abstracts))
 
@@ -658,7 +671,7 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
                 diversity=0.5,
                 top_n=5,
             )
-            print(f"    Sub-group {sub_idx} ({len(sub_abstracts)} papers) keywords: {keywords}")
+            print(f"    Sub-group {sub_idx} (level={label_level}, {len(sub_abstracts)} papers) keywords: {keywords}")
 
             if not keywords:
                 continue
@@ -671,10 +684,9 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
                 print(f"    Sub-group {sub_idx}: no clean candidate found, using raw top keyword '{winner}'")
 
             label_text = winner.title()
-            # Place the label at the sub-group centroid, nudged outward from
-            # the overall cluster center. This increases spatial separation
-            # between sibling sub-labels, making Atlas less likely to cull them
-            # as density duplicates.
+            # Nudge sub-labels outward from the cluster center so they sit
+            # clearly within their spatial sub-region rather than bunched at
+            # the overall centroid. Has no effect on single-label clusters.
             # NUDGE_FACTOR: 0.0 = centroid only, 1.0 = full step away from center.
             # Recommended range: 0.15–0.35. Default: 0.2.
             NUDGE_FACTOR = 0.2
@@ -684,7 +696,8 @@ def generate_keybert_labels(df: pd.DataFrame) -> str:
             cy = float(sub_coords[:, 1].mean())
             cx = cx + NUDGE_FACTOR * (cx - cluster_cx)
             cy = cy + NUDGE_FACTOR * (cy - cluster_cy)
-            label_rows.append({"x": cx, "y": cy, "text": label_text})
+            label_rows.append({"x": cx, "y": cy, "text": label_text,
+                                "level": label_level, "priority": label_priority})
 
     labels_df = pd.DataFrame(label_rows)
     labels_path = "labels.parquet"
@@ -1081,14 +1094,11 @@ if __name__ == "__main__":
         conf["label_column"] = "title"
         conf["color_by"]     = "Reputation"
 
-        # labelDensityThreshold controls how dense a cluster must be to receive
-        # a floating label. Value is relative to the max density (0.0–1.0).
-        # Raise it to suppress labels on small/sparse clusters.
-        # Lower it to label more clusters including sparse ones.
-        # Set low so Atlas doesn't cull sub-labels that are spatially close
-        # to their sibling labels within the same HDBSCAN cluster.
-        # Default is ~0.05. Raise toward 0.1 if too many labels appear.
-        conf["labelDensityThreshold"] = 0.02
+        # labelDensityThreshold controls label culling in Embedding Atlas.
+        # WARNING: setting this too low (e.g. 0.02) kills all label display.
+        # Leave unset to use Atlas defaults unless you understand the exact
+        # semantics of this field in your installed Atlas version.
+        # conf["labelDensityThreshold"] = 0.1
 
         conf.setdefault("column_mappings", {}).update({
             "title":        "title",
