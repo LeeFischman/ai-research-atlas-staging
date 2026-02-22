@@ -930,6 +930,17 @@ if __name__ == "__main__":
             print(f"  Backfilling Reputation for {missing.sum()} older rows...")
             df.loc[missing, "Reputation"] = df.loc[missing].apply(calculate_reputation, axis=1)
 
+
+    # Backfill label_text for older rows that predate the column (e.g. weekend
+    # rebuilds from existing DB, or rows added before label_text was introduced).
+    if "label_text" not in df.columns or df["label_text"].isna().any():
+        missing_lt = df["label_text"].isna() if "label_text" in df.columns else pd.Series([True] * len(df))
+        if missing_lt.any():
+            print(f"  Backfilling label_text for {missing_lt.sum()} older rows...")
+            df.loc[missing_lt, "label_text"] = df.loc[missing_lt, "title"].apply(
+                lambda t: scrub_model_words(f"{t}. {t}. {t}.")
+            )
+
     # Embed & project (incremental mode only)
     labels_path = None
     if EMBEDDING_MODE == "incremental":
