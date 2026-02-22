@@ -788,8 +788,6 @@ def build_panel_html(run_date: str) -> str:
 # 9. MAIN
 # ──────────────────────────────────────────────
 if __name__ == "__main__":
-    clear_docs_contents("docs")
-
     now      = datetime.now(timezone.utc)
     run_date = now.strftime("%B %d, %Y")
 
@@ -825,40 +823,47 @@ if __name__ == "__main__":
 
     results = fetch_arxiv(client, search)
     if not results:
-        print("  No results returned from arXiv. Skipping build.")
-        exit(0)
+        if existing_df.empty:
+            print("  No results from arXiv and no existing DB. Cannot build. Exiting.")
+            exit(0)
+        print(f"  No new papers from arXiv (weekend or dry spell). "
+              f"Rebuilding atlas from {len(existing_df)} existing papers.")
 
-    print(f"  Fetched {len(results)} papers from arXiv.")
+    if results:
+        print(f"  Fetched {len(results)} papers from arXiv.")
 
-    # Build new-papers DataFrame
-    today_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    rows = []
-    for r in results:
-        title    = r.title
-        abstract = r.summary
-        scrubbed = scrub_model_words(f"{title}. {title}. {abstract}")
-        # label_text: title only (repeated for TF-IDF weight), used for cluster
-        # labels in incremental mode where --text doesn't affect embeddings.
-        label_text = scrub_model_words(f"{title}. {title}. {title}.")
-        rows.append({
-            "title":        title,
-            "abstract":     abstract,
-            "text":         scrubbed,
-            "label_text":   label_text,
-            "url":          r.pdf_url,
-            "id":           r.entry_id.split("/")[-1],
-            "author_count": len(r.authors),
-            "author_tier":  categorize_authors(len(r.authors)),
-            "date_added":   today_str,
-        })
+        # Build new-papers DataFrame
+        today_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+        rows = []
+        for r in results:
+            title    = r.title
+            abstract = r.summary
+            scrubbed = scrub_model_words(f"{title}. {title}. {abstract}")
+            # label_text: title only (repeated for TF-IDF weight), used for cluster
+            # labels in incremental mode where --text doesn't affect embeddings.
+            label_text = scrub_model_words(f"{title}. {title}. {title}.")
+            rows.append({
+                "title":        title,
+                "abstract":     abstract,
+                "text":         scrubbed,
+                "label_text":   label_text,
+                "url":          r.pdf_url,
+                "id":           r.entry_id.split("/")[-1],
+                "author_count": len(r.authors),
+                "author_tier":  categorize_authors(len(r.authors)),
+                "date_added":   today_str,
+            })
 
-    new_df = pd.DataFrame(rows)
-    new_df["Reputation"] = new_df.apply(calculate_reputation, axis=1)
+        new_df = pd.DataFrame(rows)
+        new_df["Reputation"] = new_df.apply(calculate_reputation, axis=1)
 
-    # Merge into rolling DB
-    df = merge_papers(existing_df, new_df)
-    df = df.drop(columns=["group"], errors="ignore")  # remove legacy column name
-    print(f"  Rolling DB: {len(df)} papers after merge.")
+        # Merge into rolling DB
+        df = merge_papers(existing_df, new_df)
+        df = df.drop(columns=["group"], errors="ignore")  # remove legacy column name
+        print(f"  Rolling DB: {len(df)} papers after merge.")
+    else:
+        # No new arXiv papers — use existing DB as-is (weekend / dry spell rebuild)
+        df = existing_df.drop(columns=["group"], errors="ignore")
 
     # Backfill Reputation for older rows that predate the column.
     if "Reputation" not in df.columns or df["Reputation"].isna().any():
@@ -866,6 +871,16 @@ if __name__ == "__main__":
         if missing.any():
             print(f"  Backfilling Reputation for {missing.sum()} older rows...")
             df.loc[missing, "Reputation"] = df.loc[missing].apply(calculate_reputation, axis=1)
+
+    # Backfill label_text for older rows that predate the column (e.g. weekend
+    # rebuilds from existing DB, or rows added before label_text was introduced).
+    if "label_text" not in df.columns or df["label_text"].isna().any():
+        missing_lt = df["label_text"].isna() if "label_text" in df.columns else pd.Series([True] * len(df))
+        if missing_lt.any():
+            print(f"  Backfilling label_text for {missing_lt.sum()} older rows...")
+            df.loc[missing_lt, "label_text"] = df.loc[missing_lt, "title"].apply(
+                lambda t: scrub_model_words(f"{t}. {t}. {t}.")
+            )
 
     # Embed & project (incremental mode only)
     labels_path = None
@@ -891,6 +906,9 @@ if __name__ == "__main__":
     print(f"  Saved {len(save_df)} papers to {DB_PATH}.")
 
     # Build the atlas
+    # Clear docs immediately before the build so the site is never left broken
+    # if an earlier step fails or exits early (e.g. empty arXiv on weekends).
+    clear_docs_contents("docs")
     print(f"  Building atlas ({EMBEDDING_MODE} mode)...")
 
     if EMBEDDING_MODE == "incremental":
