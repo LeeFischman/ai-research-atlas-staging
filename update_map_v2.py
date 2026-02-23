@@ -13,21 +13,27 @@
 # 2. EMBED       SPECTER2 incremental embed + UMAP → projection_x/y for direction vectors
 # 3. GROUP       Single Haiku call → group_id_v2 + group_name per paper (12-18 groups)
 #                Haiku names the groups as it forms them; no second labeling call needed.
-# 4. LAYOUT      MDS on group-to-group SPECTER2 distances → 2D group centroids
+#                If Haiku returns > GROUP_COUNT_MAX groups, excess groups are merged
+#                by repeatedly absorbing the closest pair (SPECTER2 distance).
+# 4. LAYOUT      MDS on group-to-group SPECTER2 distances → 2D group centroids,
+#                multiplied by LAYOUT_SCALE for human-readable coordinate range.
 #                Within each group: scatter papers using SPECTER2 direction vectors
-#                + variance-proportional scatter scale.
+#                + variance-proportional scatter scale, also × LAYOUT_SCALE.
 #                Writes projection_v2_x / projection_v2_y.
 # 5. BUILD       embedding-atlas CLI + deploy
 #
 # Projection columns written (coexist with v1 columns in database.parquet):
-#   group_id_v2     — Haiku group assignment (int)
+#   group_id_v2     — Haiku group assignment (int, post-merge)
 #   projection_v2_x — v2 layout x
 #   projection_v2_y — v2 layout y
 #
-# Run standalone:
-#   ANTHROPIC_API_KEY=sk-... python update_map_v2.py
+# Offline mode (re-runs layout + build only, skipping all API/embed work):
+#   OFFLINE_MODE=true python update_map_v2.py
+#   Requires: database.parquet with group_id_v2 + embedding columns, and
+#             group_names_v2.json saved from a previous normal run.
 #
-# Or via GitHub Actions workflow_dispatch with EMBEDDING_MODEL=v2.
+# Normal run:
+#   ANTHROPIC_API_KEY=sk-... python update_map_v2.py
 # ──────────────────────────────────────────────────────────────────────────────
 
 import json
@@ -64,43 +70,66 @@ from atlas_utils import (
 # CONFIGURATION — all tuning knobs in one place
 # ══════════════════════════════════════════════════════════════════════════════
 
+# ── Offline mode ─────────────────────────────────────────────────────────────
+# When True: skip arXiv fetch, SPECTER2 embedding, and Haiku API calls entirely.
+# Re-runs MDS layout, scatter, and Atlas build using data already in the parquet.
+# Set via env var:  OFFLINE_MODE=true python update_map_v2.py
+OFFLINE_MODE = os.environ.get("OFFLINE_MODE", "false").strip().lower() == "true"
+
+# Cache file written after every successful Haiku grouping call.
+# Loaded automatically in offline mode.
+GROUP_NAMES_CACHE = "group_names_v2.json"
+
 # ── Haiku grouping ───────────────────────────────────────────────────────────
 
-# Target number of groups Haiku will produce.
-# Haiku receives "between GROUP_COUNT_MIN and GROUP_COUNT_MAX groups".
-# Recommended range: 10-20.  Lower = more general labels; higher = more specific.
+# Target group count range sent to Haiku in the prompt.
+# If Haiku returns more than GROUP_COUNT_MAX groups, excess groups are merged
+# down automatically — no retry needed for over-grouping.
+# Recommended range: 10-20.
 GROUP_COUNT_MIN = 12
 GROUP_COUNT_MAX = 18
 
-# Characters of each abstract sent to Haiku during the grouping call.
-# Haiku reads title + first ABSTRACT_GROUPING_CHARS characters of abstract.
-# Recommended range: 250-400.  Shorter = cheaper; longer = better grouping.
+# Characters of each abstract sent to Haiku.
+# Recommended range: 150-400.  Shorter = cheaper; longer = better grouping.
 ABSTRACT_GROUPING_CHARS = 300
 
-# Maximum Haiku retries for the grouping call (covers both 529 overload and
-# JSON parse / validation errors). Each retry waits GROUPING_RETRY_BASE_WAIT
-# seconds, doubling each time. With base=60 and 5 retries: 60, 120, 240, 480.
-# Recommended: 5 retries. Fewer risks giving up during API load spikes.
+# Retry policy for the Haiku grouping call.
+# Covers both 529 overload errors and hard parse failures.
+# Wait schedule: GROUPING_RETRY_BASE_WAIT * 2^(attempt-1) seconds.
+# With base=60 and 5 retries: 60, 120, 240, 480 s between attempts.
 GROUPING_MAX_RETRIES     = 5
 GROUPING_RETRY_BASE_WAIT = 60   # seconds; recommended range: 30-120
 
+# ── Layout scaling ────────────────────────────────────────────────────────────
+# MDS raw output is in a small range (typically ±0.15 for ~15 groups on
+# SPECTER2 cosine distances, which cluster between 0.05 and 0.25).
+# LAYOUT_SCALE multiplies ALL v2 coordinates — centroid positions AND
+# within-group scatter distances — so the final layout is visible in Atlas.
+#
+# With the run that produced the attached log:
+#   Raw centroid range: ±0.17   →  ×20  →  ±3.4
+#   Scatter radius:     ~0.06   →  ×20  →  ~1.2
+#   Total canvas:       ~0.34   →  ×20  →  ~6.8  (comfortably label-able)
+#
+# Recommended range: 15-30.  Increase if clusters still look cramped in Atlas.
+LAYOUT_SCALE = 20.0
+
 # ── Within-group scatter ─────────────────────────────────────────────────────
-
-# Base scatter scale in 2D MDS coordinate space.
-# Papers at mean cosine distance D from their group centroid are placed
-# SCATTER_SCALE_BASE * (1 + group_variance * VARIANCE_AMPLIFIER) * D from
-# the MDS centroid.  Tune SCATTER_SCALE_BASE so clusters don't overlap.
-# Recommended range: 1.0-4.0.  Start at 2.0 and adjust.
+# Scatter radius formula (before LAYOUT_SCALE):
+#   radius = mean_intra_group_cosine_dist
+#           * SCATTER_SCALE_BASE
+#           * (1 + group_variance * VARIANCE_AMPLIFIER)
+#
+# With typical values from the log (mean_dist ≈ 0.03, variance ≈ 0.03):
+#   radius ≈ 0.03 * 2.0 * (1 + 0.03 * 3.0) ≈ 0.067
+#   after LAYOUT_SCALE=20: radius ≈ 1.34  (good separation)
+#
+# SCATTER_SCALE_BASE: recommended range 1.0-4.0
+# VARIANCE_AMPLIFIER: recommended range 1.0-5.0
 SCATTER_SCALE_BASE = 2.0
-
-# Amplifies scatter for high-variance (loosely-coupled) groups.
-# A group with pairwise cosine-distance std of 0.3 gets scatter scale
-# SCATTER_SCALE_BASE * (1 + 0.3 * VARIANCE_AMPLIFIER).
-# Recommended range: 1.0-5.0.
 VARIANCE_AMPLIFIER = 3.0
 
 # ── Atlas CLI ────────────────────────────────────────────────────────────────
-
 # Projection column names written to database.parquet.
 # Must match --x / --y args passed to the Atlas CLI.
 PROJ_X_COL = "projection_v2_x"
@@ -114,13 +143,6 @@ HAIKU_MODEL = "claude-haiku-4-5-20251001"
 # STAGE 3 — HAIKU GROUPING
 # ══════════════════════════════════════════════════════════════════════════════
 
-# System prompt for the grouping call.
-# Key design rationale (from context doc):
-#   - "between N and M groups" lets Haiku reflect natural structure while
-#     keeping the number bounded for reliable JSON parsing.
-#   - "same order as input" + index field makes parsing robust even if Haiku
-#     reorders entries.
-#   - Explicit example structure and "No markdown fences" prevent ```json wrappers.
 _GROUPING_SYSTEM = (
     "You are a research taxonomy expert. You will be given a list of AI research "
     "paper titles and abstracts. Your task is to group them into thematically "
@@ -147,12 +169,11 @@ _GROUPING_SYSTEM = (
 
 
 def _build_grouping_user_message(df: pd.DataFrame) -> str:
-    """Format all papers as the user message for the grouping call."""
     lines = [f"Assign each of the following {len(df)} papers to a group. "
              "Return JSON only.\n"]
     for i, row in df.iterrows():
-        title    = str(row["title"]).strip()
-        abstract = _strip_urls(str(row.get("abstract", ""))).strip()
+        title            = str(row["title"]).strip()
+        abstract         = _strip_urls(str(row.get("abstract", ""))).strip()
         abstract_snippet = abstract[:ABSTRACT_GROUPING_CHARS]
         lines.append(f"[{i}] Title: {title}\nAbstract: {abstract_snippet}")
     return "\n\n".join(lines)
@@ -163,19 +184,17 @@ def _parse_grouping_response(
 ) -> tuple[dict[int, int], dict[int, str]] | None:
     """Parse and validate Haiku's JSON grouping response.
 
-    Returns (index_to_group_id, group_id_to_name) or None if invalid.
+    Hard failures → return None → trigger retry:
+      - Non-JSON or non-list
+      - Wrong entry count
+      - Missing / non-integer fields
+      - Fewer than GROUP_COUNT_MIN groups
 
-    Validates:
-      - Valid JSON list
-      - Exactly n_papers entries
-      - All group_ids are non-negative integers
-      - All indices 0..n_papers-1 are present
-      - group_name present on at least one entry per group_id
+    Soft acceptance → log warning, return result:
+      - More than GROUP_COUNT_MAX groups (caller merges excess groups down)
 
-    group_name consistency: if the same group_id appears with different names
-    (Haiku occasionally drifts), the most common name wins.
+    group_name drift: majority vote across all entries for each group_id.
     """
-    # Strip markdown fences in case Haiku ignores the instruction
     text = re.sub(r"^```(?:json)?\s*", "", text.strip())
     text = re.sub(r"\s*```$", "", text)
 
@@ -194,7 +213,6 @@ def _parse_grouping_response(
         return None
 
     mapping: dict[int, int] = {}
-    # Collect all names seen per group_id to resolve drift with majority vote
     name_votes: dict[int, dict[str, int]] = {}
 
     for entry in data:
@@ -207,24 +225,24 @@ def _parse_grouping_response(
             print(f"    Non-integer or negative values: index={idx}, group_id={gid}")
             return None
         mapping[idx] = gid
-
         name = str(entry.get("group_name", "")).strip().title()
         if name:
             name_votes.setdefault(gid, {})
             name_votes[gid][name] = name_votes[gid].get(name, 0) + 1
 
-    # Check all paper indices are present
     missing = set(range(n_papers)) - set(mapping.keys())
     if missing:
         print(f"    Missing paper indices: {sorted(missing)[:10]}...")
         return None
 
     n_groups = len(set(mapping.values()))
-    if not (GROUP_COUNT_MIN <= n_groups <= GROUP_COUNT_MAX):
-        print(f"    Got {n_groups} groups — outside [{GROUP_COUNT_MIN}, {GROUP_COUNT_MAX}].")
-        print("    Accepting anyway (Haiku's grouping may be more natural than the target range).")
+    if n_groups < GROUP_COUNT_MIN:
+        print(f"    Got {n_groups} groups — below minimum {GROUP_COUNT_MIN}. Rejecting.")
+        return None
+    if n_groups > GROUP_COUNT_MAX:
+        print(f"    Got {n_groups} groups — above maximum {GROUP_COUNT_MAX}. "
+              "Will merge excess groups after parsing.")
 
-    # Resolve group names: majority-vote winner per group_id; fallback if absent
     group_names: dict[int, str] = {}
     for gid in set(mapping.values()):
         votes = name_votes.get(gid, {})
@@ -241,31 +259,83 @@ def _parse_grouping_response(
     return mapping, group_names
 
 
+def _merge_excess_groups(
+    mapping: dict[int, int],
+    group_names: dict[int, str],
+    df: pd.DataFrame,
+    target_max: int,
+) -> tuple[dict[int, int], dict[int, str]]:
+    """Merge excess groups down to target_max by repeatedly absorbing the
+    closest pair (smallest mean inter-group SPECTER2 cosine distance).
+    The larger group keeps its name; remaps group_ids to 0..n-1 afterward.
+    """
+    from sklearn.metrics.pairwise import cosine_distances
+    from sklearn.preprocessing import normalize as sk_normalize
+
+    n_groups = len(set(mapping.values()))
+    if n_groups <= target_max:
+        return mapping, group_names
+
+    print(f"\n  Merging {n_groups} → {target_max} groups (absorbing closest pairs)...")
+
+    all_vecs     = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
+    all_pairwise = cosine_distances(all_vecs)
+
+    # group_id → list of integer row positions
+    active: dict[int, list[int]] = {}
+    for pos, gid in enumerate(mapping.values()):
+        active.setdefault(gid, []).append(pos)
+
+    def mean_inter(a, b):
+        return float(all_pairwise[np.ix_(a, b)].mean())
+
+    while len(active) > target_max:
+        gids = sorted(active.keys())
+        best_dist, best_pair = float("inf"), None
+        for i in range(len(gids)):
+            for j in range(i + 1, len(gids)):
+                d = mean_inter(active[gids[i]], active[gids[j]])
+                if d < best_dist:
+                    best_dist, best_pair = d, (gids[i], gids[j])
+
+        ga, gb = best_pair
+        keep   = ga if len(active[ga]) >= len(active[gb]) else gb
+        absorb = gb if keep == ga else ga
+        print(f"    Merge group {absorb} ('{group_names[absorb]}', n={len(active[absorb])}) "
+              f"→ group {keep} ('{group_names[keep]}', n={len(active[keep])})  "
+              f"dist={best_dist:.4f}")
+
+        active[keep].extend(active.pop(absorb))
+        del group_names[absorb]
+        for pos in active[keep]:
+            mapping[pos] = keep
+
+    # Remap group_ids to clean 0..n-1
+    id_remap    = {old: new for new, old in enumerate(sorted(active.keys()))}
+    new_mapping = {pos: id_remap[g] for pos, g in mapping.items()}
+    new_names   = {id_remap[old]: name for old, name in group_names.items()}
+    print(f"  Merge complete: {len(active)} groups remaining.")
+    return new_mapping, new_names
+
+
 def haiku_group_papers(
     df: pd.DataFrame,
     client,
 ) -> tuple[pd.DataFrame, dict[int, str]]:
-    """Stage 3: Send all papers to Haiku in a single call.
+    """Stage 3: Haiku assigns every paper to a group and names each group.
 
-    Returns (df, group_names) where:
-      df          — original dataframe with group_id_v2 column added
-      group_names — {group_id: label_text} ready for write_labels_parquet
+    Returns (df, group_names):
+      df          — with group_id_v2 column added
+      group_names — {group_id: label_text}
 
-    The DataFrame index must be a clean integer range (0..n-1).
-    Call df.reset_index(drop=True) before this function if needed.
-
-    Adds column: group_id_v2 (int)
-
-    Falls back to HDBSCAN clustering from atlas_utils if all Haiku attempts fail,
-    with generic "Group N" names.
+    Saves group_names to GROUP_NAMES_CACHE for offline mode reuse.
+    Falls back to HDBSCAN if all Haiku attempts hard-fail.
     """
     df = df.reset_index(drop=True)
     n  = len(df)
     print(f"\n▶  Stage 3 — Haiku grouping + naming ({n} papers)...")
 
-    user_msg = _build_grouping_user_message(df)
-
-    # Estimate token count roughly (4 chars ≈ 1 token)
+    user_msg      = _build_grouping_user_message(df)
     approx_tokens = len(user_msg) // 4
     print(f"  Grouping prompt ≈ {approx_tokens:,} tokens "
           f"(abstracts truncated to {ABSTRACT_GROUPING_CHARS} chars each).")
@@ -276,7 +346,7 @@ def haiku_group_papers(
         try:
             response = client.messages.create(
                 model=HAIKU_MODEL,
-                max_tokens=8192,  # 250 entries × ~50 chars ≈ 3K tokens; use Haiku max for headroom
+                max_tokens=8192,   # 250 entries × ~55 chars ≈ 3.4K tokens; Haiku max for headroom
                 system=_GROUPING_SYSTEM,
                 messages=[{"role": "user", "content": user_msg}],
             )
@@ -285,94 +355,100 @@ def haiku_group_papers(
             result = _parse_grouping_response(raw, n)
             if result is not None:
                 mapping, group_names = result
-                print(f"  ✓ Grouping parsed successfully "
-                      f"({len(set(mapping.values()))} groups).")
+                print(f"  ✓ Grouping parsed ({len(set(mapping.values()))} groups "
+                      f"before any merging).")
                 break
         except Exception as e:
             err_str = str(e)
             is_529  = "529" in err_str or "overloaded" in err_str.lower()
-            label   = "API overloaded (529)" if is_529 else f"API error"
+            label   = "API overloaded (529)" if is_529 else "API error"
             print(f"  {label} on attempt {attempt}: {e}")
 
         if attempt < GROUPING_MAX_RETRIES:
-            # Use a long base wait so 529 overload errors have time to clear.
-            # 2 ** (attempt-1) doubles the wait each retry: 60, 120, 240, 480s.
             wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
             print(f"  Retrying in {wait}s...")
             time.sleep(wait)
 
     if result is None:
-        print("  ✗ All Haiku grouping attempts failed. "
-              "Falling back to HDBSCAN clustering.")
+        print("  ✗ All Haiku attempts failed. Falling back to HDBSCAN.")
         mapping     = _hdbscan_fallback_grouping(df)
         group_names = {gid: f"Group {gid}" for gid in set(mapping.values())}
+    else:
+        # Merge down if Haiku returned more groups than the maximum
+        if len(set(mapping.values())) > GROUP_COUNT_MAX:
+            mapping, group_names = _merge_excess_groups(
+                mapping, group_names, df, target_max=GROUP_COUNT_MAX
+            )
 
     df["group_id_v2"] = [mapping[i] for i in range(n)]
     group_counts = df["group_id_v2"].value_counts().sort_index()
     for gid, count in group_counts.items():
         print(f"    Group {gid:>2} ({count:>3} papers): '{group_names.get(gid, '?')}'")
     print(f"  Total: {len(group_counts)} groups, {n} papers assigned.")
+
+    # Cache for offline mode
+    with open(GROUP_NAMES_CACHE, "w") as f:
+        json.dump({str(k): v for k, v in group_names.items()}, f, indent=2)
+    print(f"  Group names cached to {GROUP_NAMES_CACHE}.")
+
     return df, group_names
 
 
-def _hdbscan_fallback_grouping(df: pd.DataFrame) -> dict[int, int]:
-    """Fallback: HDBSCAN on 50D SPECTER2 embeddings if Haiku grouping fails.
+def _load_group_names_cache() -> dict[int, str]:
+    """Load group names from cache (used in offline mode)."""
+    if not os.path.exists(GROUP_NAMES_CACHE):
+        raise FileNotFoundError(
+            f"Group names cache '{GROUP_NAMES_CACHE}' not found. "
+            "Run once in normal mode first to generate it."
+        )
+    with open(GROUP_NAMES_CACHE) as f:
+        raw = json.load(f)
+    names = {int(k): v for k, v in raw.items()}
+    print(f"  Loaded {len(names)} group names from {GROUP_NAMES_CACHE}.")
+    return names
 
-    Produces 12-18 groups approximately by tuning min_cluster_size.
-    Papers in noise cluster (-1) are assigned to the nearest cluster centroid.
-    """
+
+def _hdbscan_fallback_grouping(df: pd.DataFrame) -> dict[int, int]:
+    """Fallback HDBSCAN grouping if all Haiku calls fail."""
     from sklearn.cluster import HDBSCAN
-    import numpy as np
     from sklearn.metrics.pairwise import cosine_distances
     from sklearn.preprocessing import normalize as sk_normalize
 
     print("  Fallback HDBSCAN grouping...")
 
     if "embedding_50d" in df.columns and df["embedding_50d"].notna().all():
-        X = np.array(df["embedding_50d"].tolist(), dtype=np.float32)
-        metric = "cosine"
+        X, metric = np.array(df["embedding_50d"].tolist(), dtype=np.float32), "cosine"
         print("  Clustering on 50D SPECTER2 (cosine).")
     elif "embedding" in df.columns and df["embedding"].notna().all():
         X = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
         metric = "cosine"
         print("  Clustering on 768D SPECTER2 (cosine).")
     else:
-        # Worst-case: random assignment into GROUP_COUNT_MIN groups
         print("  No embedding available — random group assignment.")
-        n_groups = GROUP_COUNT_MIN
-        return {i: i % n_groups for i in range(len(df))}
+        return {i: i % GROUP_COUNT_MIN for i in range(len(df))}
 
-    # Try progressively smaller min_cluster_size to hit the target group count
     for mcs in [max(3, len(df) // 30), max(3, len(df) // 40), 3]:
-        clusterer = HDBSCAN(
-            min_cluster_size=mcs, min_samples=3,
-            metric=metric, cluster_selection_method="leaf",
-        )
-        labels = clusterer.fit_predict(X)
+        clusterer  = HDBSCAN(min_cluster_size=mcs, min_samples=3,
+                             metric=metric, cluster_selection_method="leaf")
+        labels     = clusterer.fit_predict(X)
         n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
         print(f"  HDBSCAN min_cluster_size={mcs} → {n_clusters} clusters.")
         if GROUP_COUNT_MIN <= n_clusters <= GROUP_COUNT_MAX + 5:
             break
 
-    # Assign noise points (-1) to nearest cluster centroid
     unique_clusters = [c for c in sorted(set(labels)) if c != -1]
     if not unique_clusters:
-        print("  HDBSCAN produced no clusters — assigning all to group 0.")
         return {i: 0 for i in range(len(df))}
 
-    centroids = np.array([
-        X[labels == c].mean(axis=0) for c in unique_clusters
-    ])
+    centroids  = np.array([X[labels == c].mean(axis=0) for c in unique_clusters])
     noise_mask = labels == -1
     if noise_mask.any():
-        noise_vecs = X[noise_mask]
-        dists_to_centroids = cosine_distances(noise_vecs, centroids)
-        nearest = dists_to_centroids.argmin(axis=1)
-        labels = labels.copy()
+        from sklearn.metrics.pairwise import cosine_distances as _cd
+        nearest = _cd(X[noise_mask], centroids).argmin(axis=1)
+        labels  = labels.copy()
         labels[noise_mask] = [unique_clusters[j] for j in nearest]
-        print(f"  Reassigned {noise_mask.sum()} noise points to nearest cluster.")
+        print(f"  Reassigned {noise_mask.sum()} noise points.")
 
-    # Remap cluster IDs to 0..n_clusters-1
     id_map = {old: new for new, old in enumerate(unique_clusters)}
     return {i: id_map.get(int(labels[i]), 0) for i in range(len(df))}
 
@@ -382,14 +458,12 @@ def _hdbscan_fallback_grouping(df: pd.DataFrame) -> dict[int, int]:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def compute_mds_centroids(df: pd.DataFrame) -> dict[int, tuple[float, float]]:
-    """Stage 4a: MDS on group-to-group SPECTER2 distances → 2D centroids.
+    """Stage 4a: MDS on group-to-group SPECTER2 distances → scaled 2D centroids.
 
-    Uses classical MDS (metric=True) which preserves global distance ratios.
-    Appropriate here because:
-      - We have few points (~15 groups) so MDS is fast and stable.
-      - We want the between-group distances to be faithfully represented in 2D.
+    Raw MDS output is multiplied by LAYOUT_SCALE so centroid coordinates land
+    in a useful range for Atlas rendering (see LAYOUT_SCALE config comment).
 
-    Returns: {group_id: (centroid_x, centroid_y)}
+    Returns: {group_id: (cx, cy)} — coordinates already include LAYOUT_SCALE.
     """
     from sklearn.manifold import MDS
     from sklearn.metrics.pairwise import cosine_distances
@@ -397,69 +471,50 @@ def compute_mds_centroids(df: pd.DataFrame) -> dict[int, tuple[float, float]]:
 
     print("\n▶  Stage 4a — MDS between-group layout...")
 
-    # Use raw 768D SPECTER2 vectors for distance computation (most precise)
     if "embedding" not in df.columns or df["embedding"].isna().any():
-        raise RuntimeError(
-            "SPECTER2 'embedding' column missing or has NaNs. "
-            "Run embed_and_project() before compute_mds_centroids()."
-        )
+        raise RuntimeError("SPECTER2 'embedding' column missing or has NaNs.")
 
-    all_vecs = sk_normalize(
-        np.array(df["embedding"].tolist(), dtype=np.float32)
-    )  # shape (n, 768)
-
+    all_vecs  = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
     group_ids = sorted(df["group_id_v2"].unique())
     n_groups  = len(group_ids)
     print(f"  Computing {n_groups}×{n_groups} group distance matrix...")
 
-    # Build positional index lookup: group_id → list of integer row positions
-    group_positions: dict[int, list[int]] = {gid: [] for gid in group_ids}
+    # group_id → list of integer row positions in df
+    group_pos: dict[int, list[int]] = {gid: [] for gid in group_ids}
     for pos, gid in enumerate(df["group_id_v2"].tolist()):
-        group_positions[gid].append(pos)
+        group_pos[gid].append(pos)
 
-    # Full pairwise cosine distance matrix (reused for per-pair means)
-    all_pairwise = cosine_distances(all_vecs)  # shape (n, n)
+    all_pairwise = cosine_distances(all_vecs)
 
-    # Group-to-group distance matrix: mean inter-group pairwise cosine distance
     group_dist = np.zeros((n_groups, n_groups), dtype=np.float32)
     for i, gid_i in enumerate(group_ids):
         for j, gid_j in enumerate(group_ids):
             if i == j:
                 continue
-            pos_i = group_positions[gid_i]
-            pos_j = group_positions[gid_j]
-            sub   = all_pairwise[np.ix_(pos_i, pos_j)]
-            group_dist[i, j] = float(sub.mean())
-
-    # Ensure exact symmetry (floating-point drift)
+            group_dist[i, j] = float(
+                all_pairwise[np.ix_(group_pos[gid_i], group_pos[gid_j])].mean()
+            )
     group_dist = (group_dist + group_dist.T) / 2
     np.fill_diagonal(group_dist, 0.0)
 
-    print(f"  Group dist matrix: min={group_dist.min():.4f}, "
+    print(f"  Group dist: min={group_dist.min():.4f}, "
           f"max={group_dist.max():.4f}, mean={group_dist.mean():.4f}")
 
-    # Classical MDS — fit group centroids in 2D
-    mds = MDS(
-        n_components=2,
-        metric=True,           # classical / metric MDS
-        dissimilarity="precomputed",
-        random_state=42,
-        n_init=4,              # run 4 initialisations, keep best
-        max_iter=500,
-        normalized_stress="auto",
-    )
-    group_coords = mds.fit_transform(group_dist)   # shape (n_groups, 2)
-    stress = mds.stress_
-    print(f"  MDS stress: {stress:.6f}  "
-          f"(lower is better; < 0.05 is excellent for ~15 points)")
+    mds = MDS(n_components=2, metric=True, dissimilarity="precomputed",
+              random_state=42, n_init=4, max_iter=500, normalized_stress="auto")
+    raw_coords   = mds.fit_transform(group_dist)          # shape (n_groups, 2)
+    group_coords = raw_coords * LAYOUT_SCALE               # ← scale applied here
+    print(f"  MDS stress: {mds.stress_:.6f}  (lower is better)")
+    print(f"  LAYOUT_SCALE={LAYOUT_SCALE}×  raw range "
+          f"[{raw_coords.min():.3f}, {raw_coords.max():.3f}] → "
+          f"scaled [{group_coords.min():.2f}, {group_coords.max():.2f}]")
 
     centroids: dict[int, tuple[float, float]] = {}
     for i, gid in enumerate(group_ids):
         cx, cy = float(group_coords[i, 0]), float(group_coords[i, 1])
-        n_papers = len(group_positions[gid])
         centroids[gid] = (cx, cy)
-        print(f"  Group {gid:>2}: centroid=({cx:+.3f}, {cy:+.3f}), "
-              f"n={n_papers}")
+        print(f"  Group {gid:>2}: centroid=({cx:+.2f}, {cy:+.2f}), "
+              f"n={len(group_pos[gid])}")
 
     return centroids
 
@@ -467,117 +522,86 @@ def compute_mds_centroids(df: pd.DataFrame) -> dict[int, tuple[float, float]]:
 def scatter_within_groups(
     df: pd.DataFrame,
     centroids: dict[int, tuple[float, float]],
+    group_names: dict[int, str],
 ) -> pd.DataFrame:
     """Stage 4b: Place each paper around its MDS centroid.
 
-    Position formula
-    ────────────────
-    For each paper p in group g:
-      1. Direction: unit vector from the SPECTER2 group centroid toward
-         paper p's existing SPECTER2 UMAP position (projection_x/y).
-         Papers at group edges in SPECTER2 space drift further from the MDS
-         centroid — naturally placing straddlers between groups.
-      2. Distance: paper's mean cosine distance to other group members,
-         scaled by a group-specific scatter factor:
-           scatter_scale = SCATTER_SCALE_BASE
-                         * (1 + group_variance * VARIANCE_AMPLIFIER)
-         Tight groups (low variance) → tight scatter.
-         Loose groups (high variance) → more spread.
-      3. final_pos = mds_centroid + direction * distance * scatter_scale
+    Position formula (all terms in scaled coordinate space):
+      direction    = unit vector from SPECTER2 group centroid → paper's UMAP pos
+      scatter_dist = mean_intra_cosine_dist
+                   * SCATTER_SCALE_BASE * (1 + variance * VARIANCE_AMPLIFIER)
+                   * LAYOUT_SCALE
+      final_pos    = mds_centroid + direction * scatter_dist
 
-    Requires columns: embedding (768D), projection_x, projection_y, group_id_v2
-    Writes columns:   projection_v2_x, projection_v2_y
+    Writes: projection_v2_x, projection_v2_y
     """
     from sklearn.metrics.pairwise import cosine_distances
     from sklearn.preprocessing import normalize as sk_normalize
 
-    print("\n▶  Stage 4b — Within-group scatter (variance-proportional scale)...")
+    print("\n▶  Stage 4b — Within-group scatter...")
 
     df = df.copy()
     df["projection_v2_x"] = np.nan
     df["projection_v2_y"] = np.nan
 
-    # Normalised 768D SPECTER2 vectors (whole corpus, for cosine distance)
-    all_vecs = sk_normalize(
-        np.array(df["embedding"].tolist(), dtype=np.float32)
-    )
-
-    # SPECTER2 UMAP positions — used as scatter direction hints
+    all_vecs   = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
     specter2_x = df["projection_x"].values
     specter2_y = df["projection_y"].values
 
-    group_ids = sorted(df["group_id_v2"].unique())
-
-    for gid in group_ids:
+    for gid in sorted(df["group_id_v2"].unique()):
         mask      = df["group_id_v2"] == gid
-        positions = df.index[mask].tolist()   # DataFrame index values
-        pos_array = [df.index.get_loc(p) for p in positions]  # integer positions
+        positions = df.index[mask].tolist()
+        pos_array = [df.index.get_loc(p) for p in positions]
+        n_g       = len(positions)
+        name      = group_names.get(gid, f"Group {gid}")
+        mds_cx, mds_cy = centroids[gid]
 
-        g_vecs = all_vecs[pos_array]   # shape (n_group, 768)
-        n_g    = len(positions)
-
-        # ── Per-group cosine distance matrix ────────────────────────────────
         if n_g == 1:
-            # Singleton group — place at centroid
-            cx, cy = centroids[gid]
-            df.at[positions[0], "projection_v2_x"] = cx
-            df.at[positions[0], "projection_v2_y"] = cy
-            print(f"  Group {gid:>2}: singleton paper placed at centroid.")
+            df.at[positions[0], "projection_v2_x"] = mds_cx
+            df.at[positions[0], "projection_v2_y"] = mds_cy
+            print(f"  Group {gid:>2} ('{name}'): singleton at centroid "
+                  f"({mds_cx:+.2f}, {mds_cy:+.2f}).")
             continue
 
-        pairwise = cosine_distances(g_vecs)  # shape (n_g, n_g)
-
-        # Mean distance of each paper to its group peers
-        mean_dists = pairwise.mean(axis=1)   # shape (n_g,)
-
-        # Group variance = std of upper-triangle pairwise distances
-        upper = pairwise[np.triu_indices(n_g, k=1)]
+        g_vecs         = all_vecs[pos_array]
+        pairwise       = cosine_distances(g_vecs)
+        mean_dists     = pairwise.mean(axis=1)
+        upper          = pairwise[np.triu_indices(n_g, k=1)]
         group_variance = float(upper.std()) if len(upper) > 0 else 0.0
+        scatter_scale  = SCATTER_SCALE_BASE * (1.0 + group_variance * VARIANCE_AMPLIFIER)
 
-        scatter_scale = SCATTER_SCALE_BASE * (1.0 + group_variance * VARIANCE_AMPLIFIER)
+        print(f"  Group {gid:>2} ('{name}'): "
+              f"n={n_g:>3}, var={group_variance:.4f}, "
+              f"scale={scatter_scale:.3f}, "
+              f"centroid=({mds_cx:+.2f}, {mds_cy:+.2f})")
 
-        print(f"  Group {gid:>2}: n={n_g:>3}, "
-              f"variance={group_variance:.4f}, "
-              f"scatter_scale={scatter_scale:.3f}")
-
-        # ── SPECTER2 group centroid in 2D UMAP space ─────────────────────
         sp_cx = specter2_x[pos_array].mean()
         sp_cy = specter2_y[pos_array].mean()
 
-        # ── MDS centroid for this group ──────────────────────────────────
-        mds_cx, mds_cy = centroids[gid]
-
-        # ── Place each paper ─────────────────────────────────────────────
         for local_i, (df_idx, pos_i) in enumerate(zip(positions, pos_array)):
-            # Direction: from SPECTER2 group centroid toward this paper's UMAP pos
-            dx = specter2_x[pos_i] - sp_cx
-            dy = specter2_y[pos_i] - sp_cy
+            dx     = specter2_x[pos_i] - sp_cx
+            dy     = specter2_y[pos_i] - sp_cy
             length = sqrt(dx * dx + dy * dy)
-
             if length < 1e-8:
-                # Paper sits at exact SPECTER2 centroid → random direction
                 angle  = random.uniform(0, 2 * 3.14159265)
-                dx, dy = np.cos(angle), np.sin(angle)
+                dx, dy = float(np.cos(angle)), float(np.sin(angle))
                 length = 1.0
-
-            scatter_dist = float(mean_dists[local_i]) * scatter_scale
-
+            # LAYOUT_SCALE applied so scatter radius is proportional to centroid spacing
+            scatter_dist = float(mean_dists[local_i]) * scatter_scale * LAYOUT_SCALE
             df.at[df_idx, "projection_v2_x"] = mds_cx + (dx / length) * scatter_dist
             df.at[df_idx, "projection_v2_y"] = mds_cy + (dy / length) * scatter_dist
 
     n_placed = df["projection_v2_x"].notna().sum()
-    print(f"  Placed {n_placed}/{len(df)} papers in v2 layout.")
-
-    x_range = (df["projection_v2_x"].min(), df["projection_v2_x"].max())
-    y_range = (df["projection_v2_y"].min(), df["projection_v2_y"].max())
-    print(f"  Layout bounds: x=[{x_range[0]:.3f}, {x_range[1]:.3f}], "
-          f"y=[{y_range[0]:.3f}, {y_range[1]:.3f}]")
-
+    x_range  = (df["projection_v2_x"].min(), df["projection_v2_x"].max())
+    y_range  = (df["projection_v2_y"].min(), df["projection_v2_y"].max())
+    print(f"\n  Placed {n_placed}/{len(df)} papers.")
+    print(f"  Final layout bounds: x=[{x_range[0]:.2f}, {x_range[1]:.2f}], "
+          f"y=[{y_range[0]:.2f}, {y_range[1]:.2f}]")
     return df
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# STAGE 4b/5 — WRITE LABELS PARQUET
+# WRITE LABELS PARQUET
 # ══════════════════════════════════════════════════════════════════════════════
 
 def write_labels_parquet(
@@ -588,27 +612,20 @@ def write_labels_parquet(
 ) -> str:
     """Write labels.parquet for the Atlas CLI --labels flag.
 
-    Label positions are the MDS centroids (in v2 coordinate space),
-    which is where the cluster visually lives after scatter.
-
-    Returns the path to the written file.
+    Label x/y are the scaled MDS centroids — the visual centre of each cluster.
     """
+    print(f"\n▶  Writing labels parquet ({len(centroids)} labels)...")
     rows = []
-    for gid, (cx, cy) in centroids.items():
+    for gid, (cx, cy) in sorted(centroids.items()):
         label_text = labels.get(gid, f"Group {gid}")
         n_papers   = int((df["group_id_v2"] == gid).sum())
-        rows.append({
-            "x":        cx,
-            "y":        cy,
-            "text":     label_text,
-            "level":    0,
-            "priority": 10,
-        })
-        print(f"  Label '{label_text}' → ({cx:.3f}, {cy:.3f}), {n_papers} papers")
+        rows.append({"x": cx, "y": cy, "text": label_text,
+                     "level": 0, "priority": 10})
+        print(f"  [{gid:>2}] '{label_text}' @ ({cx:+.2f}, {cy:+.2f}), {n_papers} papers")
 
     labels_df = pd.DataFrame(rows)
     labels_df.to_parquet(labels_path, index=False)
-    print(f"  Wrote {len(labels_df)} labels to {labels_path}.")
+    print(f"  Wrote {len(labels_df)} labels → {labels_path}.")
     return labels_path
 
 
@@ -624,148 +641,184 @@ if __name__ == "__main__":
 
     print("=" * 60)
     print(f"  AI Research Atlas v2 — {run_date} UTC")
-    print(f"  GROUP_COUNT_MIN={GROUP_COUNT_MIN}, GROUP_COUNT_MAX={GROUP_COUNT_MAX}")
-    print(f"  SCATTER_SCALE_BASE={SCATTER_SCALE_BASE}, VARIANCE_AMPLIFIER={VARIANCE_AMPLIFIER}")
+    print(f"  OFFLINE_MODE       : {OFFLINE_MODE}")
+    print(f"  GROUP_COUNT        : {GROUP_COUNT_MIN}–{GROUP_COUNT_MAX}")
+    print(f"  LAYOUT_SCALE       : {LAYOUT_SCALE}")
+    print(f"  SCATTER_SCALE_BASE : {SCATTER_SCALE_BASE}")
+    print(f"  VARIANCE_AMPLIFIER : {VARIANCE_AMPLIFIER}")
     print("=" * 60)
 
-    # ── Anthropic client ────────────────────────────────────────────────────
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
-    if not api_key:
-        raise RuntimeError(
-            "ANTHROPIC_API_KEY is not set. Add it to GitHub repo secrets "
-            "and expose it in the workflow YAML under env:."
-        )
-    haiku_client = anthropic.Anthropic(api_key=api_key)
+    # ══════════════════════════════════════════════════════════════════════════
+    # OFFLINE MODE — re-run layout + build only
+    # ══════════════════════════════════════════════════════════════════════════
+    if OFFLINE_MODE:
+        print("\n▶  OFFLINE MODE — loading existing data, skipping all API calls...")
 
-    # ── Stage 1: Load & prune existing DB ───────────────────────────────────
-    print("\n▶  Stage 1 — Loading rolling database...")
-    existing_df  = load_existing_db()
-    is_first_run = existing_df.empty and not os.path.exists(DB_PATH)
-    days_back    = 5 if is_first_run else 2
-
-    if is_first_run:
-        print("  First run — pre-filling with last 5 days of arXiv papers.")
-    else:
-        print(f"  Loaded {len(existing_df)} existing papers from rolling DB.")
-
-    # ── Stage 1b: arXiv fetch ───────────────────────────────────────────────
-    print("\n▶  Stage 1b — Fetching from arXiv...")
-
-    # Set descriptive User-Agent as required by arXiv API policy
-    opener = urllib.request.build_opener()
-    opener.addheaders = [("User-Agent",
-        "ai-research-atlas/2.0 (https://github.com/LeeFischman/ai-research-atlas; "
-        "mailto:lee.fischman@gmail.com)")]
-    urllib.request.install_opener(opener)
-
-    arxiv_client = arxiv.Client(page_size=100, delay_seconds=10)
-    search = arxiv.Search(
-        query=(
-            f"cat:cs.AI AND submittedDate:"
-            f"[{(now - timedelta(days=days_back)).strftime('%Y%m%d%H%M')}"
-            f" TO {now.strftime('%Y%m%d%H%M')}]"
-        ),
-        max_results=ARXIV_MAX,
-    )
-
-    results = fetch_arxiv(arxiv_client, search)
-
-    if not results:
-        if existing_df.empty:
-            print("  No results from arXiv and no existing DB. Cannot build. Exiting.")
-            exit(0)
-        print(f"  No new papers from arXiv (weekend or dry spell). "
-              f"Rebuilding atlas from {len(existing_df)} existing papers.")
-
-    if results:
-        print(f"  Fetched {len(results)} papers from arXiv.")
-        today_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-        rows = []
-        for r in results:
-            title    = r.title
-            abstract = r.summary
-            scrubbed = scrub_model_words(f"{title}. {title}. {abstract}")
-            label_text = scrub_model_words(f"{title}. {title}. {title}.")
-            rows.append({
-                "title":        title,
-                "abstract":     abstract,
-                "text":         scrubbed,
-                "label_text":   label_text,
-                "url":          r.pdf_url,
-                "id":           r.entry_id.split("/")[-1],
-                "author_count": len(r.authors),
-                "author_tier":  categorize_authors(len(r.authors)),
-                "date_added":   today_str,
-            })
-
-        new_df = pd.DataFrame(rows)
-        new_df["Reputation"] = new_df.apply(calculate_reputation, axis=1)
-        df = merge_papers(existing_df, new_df)
-        # Remove legacy grouping columns from v1 (group, group_id_v2 if stale)
-        df = df.drop(columns=["group", "group_id_v2"], errors="ignore")
-        print(f"  Rolling DB: {len(df)} papers after merge.")
-    else:
-        df = existing_df.drop(columns=["group", "group_id_v2"], errors="ignore")
-
-    # Backfill reputation for older rows
-    if "Reputation" not in df.columns or df["Reputation"].isna().any():
-        missing = (df["Reputation"].isna()
-                   if "Reputation" in df.columns
-                   else pd.Series([True] * len(df)))
-        if missing.any():
-            print(f"  Backfilling Reputation for {missing.sum()} rows...")
-            df.loc[missing, "Reputation"] = df.loc[missing].apply(
-                calculate_reputation, axis=1
+        df = load_existing_db()
+        if df.empty:
+            raise RuntimeError(
+                "No database.parquet found. Run once in normal mode first."
+            )
+        if "group_id_v2" not in df.columns:
+            raise RuntimeError(
+                "database.parquet has no group_id_v2 column. "
+                "Run once in normal mode to populate it, then retry offline."
+            )
+        if "embedding" not in df.columns or df["embedding"].isna().any():
+            raise RuntimeError(
+                "database.parquet is missing SPECTER2 embeddings. "
+                "Run once in normal mode to embed, then retry offline."
+            )
+        if "projection_x" not in df.columns or df["projection_x"].isna().any():
+            raise RuntimeError(
+                "database.parquet is missing projection_x/y (SPECTER2 UMAP). "
+                "Run once in normal mode first."
             )
 
-    # ── Stage 2: SPECTER2 embed + UMAP ──────────────────────────────────────
-    print("\n▶  Stage 2 — SPECTER2 embedding + UMAP...")
-    df = embed_and_project(df, model_name="specter2")
-    # After this:
-    #   df["embedding"]     — 768D SPECTER2 vectors (for cosine distances)
-    #   df["embedding_50d"] — 50D UMAP (for potential future use)
-    #   df["projection_x"]  — 2D UMAP x (for scatter direction vectors)
-    #   df["projection_y"]  — 2D UMAP y (for scatter direction vectors)
+        group_names = _load_group_names_cache()
 
-    # ── Stage 3: Haiku grouping + naming ────────────────────────────────────
-    df, group_names = haiku_group_papers(df, haiku_client)
+        # Patch any group IDs in the parquet that are missing from the cache
+        parquet_gids  = set(int(g) for g in df["group_id_v2"].unique())
+        missing_names = parquet_gids - set(group_names.keys())
+        if missing_names:
+            print(f"  WARNING: {len(missing_names)} group IDs have no cached name "
+                  f"{missing_names} — using 'Group N' fallback.")
+            for gid in missing_names:
+                group_names[gid] = f"Group {gid}"
 
-    # ── Stage 4a: MDS between-group layout ──────────────────────────────────
+        print(f"  Loaded {len(df)} papers, "
+              f"{df['group_id_v2'].nunique()} groups, "
+              f"{len(group_names)} cached names.")
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # NORMAL MODE — full pipeline
+    # ══════════════════════════════════════════════════════════════════════════
+    else:
+        api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+        if not api_key:
+            raise RuntimeError(
+                "ANTHROPIC_API_KEY is not set. Add it to GitHub repo secrets "
+                "and expose it in the workflow YAML under env:."
+            )
+        haiku_client = anthropic.Anthropic(api_key=api_key)
+
+        # ── Stage 1: Load & prune rolling DB ────────────────────────────────
+        print("\n▶  Stage 1 — Loading rolling database...")
+        existing_df  = load_existing_db()
+        is_first_run = existing_df.empty and not os.path.exists(DB_PATH)
+        days_back    = 5 if is_first_run else 2
+
+        if is_first_run:
+            print("  First run — pre-filling with last 5 days of arXiv papers.")
+        else:
+            print(f"  Loaded {len(existing_df)} existing papers.")
+
+        # ── Stage 1b: arXiv fetch ────────────────────────────────────────────
+        print("\n▶  Stage 1b — Fetching from arXiv...")
+        opener = urllib.request.build_opener()
+        opener.addheaders = [("User-Agent",
+            "ai-research-atlas/2.0 (https://github.com/LeeFischman/ai-research-atlas; "
+            "mailto:lee.fischman@gmail.com)")]
+        urllib.request.install_opener(opener)
+
+        arxiv_client = arxiv.Client(page_size=100, delay_seconds=10)
+        search = arxiv.Search(
+            query=(
+                f"cat:cs.AI AND submittedDate:"
+                f"[{(now - timedelta(days=days_back)).strftime('%Y%m%d%H%M')}"
+                f" TO {now.strftime('%Y%m%d%H%M')}]"
+            ),
+            max_results=ARXIV_MAX,
+        )
+        results = fetch_arxiv(arxiv_client, search)
+
+        if not results:
+            if existing_df.empty:
+                print("  No arXiv results and no existing DB. Exiting.")
+                exit(0)
+            print(f"  No new papers (weekend / dry spell). "
+                  f"Rebuilding from {len(existing_df)} existing papers.")
+
+        if results:
+            print(f"  Fetched {len(results)} papers from arXiv.")
+            today_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+            rows = []
+            for r in results:
+                title      = r.title
+                abstract   = r.summary
+                scrubbed   = scrub_model_words(f"{title}. {title}. {abstract}")
+                label_text = scrub_model_words(f"{title}. {title}. {title}.")
+                rows.append({
+                    "title":        title,
+                    "abstract":     abstract,
+                    "text":         scrubbed,
+                    "label_text":   label_text,
+                    "url":          r.pdf_url,
+                    "id":           r.entry_id.split("/")[-1],
+                    "author_count": len(r.authors),
+                    "author_tier":  categorize_authors(len(r.authors)),
+                    "date_added":   today_str,
+                })
+            new_df = pd.DataFrame(rows)
+            new_df["Reputation"] = new_df.apply(calculate_reputation, axis=1)
+            df = merge_papers(existing_df, new_df)
+            df = df.drop(columns=["group", "group_id_v2"], errors="ignore")
+            print(f"  Rolling DB: {len(df)} papers after merge.")
+        else:
+            df = existing_df.drop(columns=["group", "group_id_v2"], errors="ignore")
+
+        # Backfill reputation for older rows
+        if "Reputation" not in df.columns or df["Reputation"].isna().any():
+            missing = (df["Reputation"].isna() if "Reputation" in df.columns
+                       else pd.Series([True] * len(df)))
+            if missing.any():
+                print(f"  Backfilling Reputation for {missing.sum()} rows...")
+                df.loc[missing, "Reputation"] = df.loc[missing].apply(
+                    calculate_reputation, axis=1)
+
+        # ── Stage 2: SPECTER2 embed + UMAP ──────────────────────────────────
+        print("\n▶  Stage 2 — SPECTER2 embedding + UMAP...")
+        df = embed_and_project(df, model_name="specter2")
+
+        # ── Stage 3: Haiku grouping + naming ────────────────────────────────
+        df, group_names = haiku_group_papers(df, haiku_client)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # STAGES 4-5: Layout + build — run in both normal AND offline modes
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # ── Stage 4a: MDS centroids ──────────────────────────────────────────────
     centroids = compute_mds_centroids(df)
 
-    # ── Stage 4b: Within-group scatter ──────────────────────────────────────
-    df = scatter_within_groups(df, centroids)
+    # ── Stage 4b: Within-group scatter ───────────────────────────────────────
+    df = scatter_within_groups(df, centroids, group_names)
 
     # ── Write labels parquet ─────────────────────────────────────────────────
-    # group_names came from Stage 3 — no second API call needed.
-    print("\n▶  Writing labels parquet...")
     labels_path = write_labels_parquet(df, group_names, centroids)
 
-    # ── Save rolling DB ──────────────────────────────────────────────────────
+    # ── Save rolling DB ───────────────────────────────────────────────────────
     print("\n▶  Saving rolling database...")
     save_df = df.copy()
     save_df["date_added"] = pd.to_datetime(
         save_df["date_added"], utc=True
     ).dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    # Sanity check: ensure v2 projection columns are present
     if "projection_v2_x" not in save_df.columns:
         raise RuntimeError("projection_v2_x missing — layout step failed.")
 
     save_df.to_parquet(DB_PATH, index=False)
     print(f"  Saved {len(save_df)} papers to {DB_PATH}.")
+    proj_cols = [c for c in save_df.columns if "projection" in c or "group_id" in c]
+    print(f"  Projection / group columns: {proj_cols}")
 
-    cols = [c for c in save_df.columns if "projection" in c or "embedding" in c]
-    print(f"  Projection / embedding columns in parquet: {cols}")
-
-    # ── Stage 6: Build + deploy ──────────────────────────────────────────────
-    print("\n▶  Stage 6 — Building atlas...")
+    # ── Stage 5: Build + deploy ───────────────────────────────────────────────
+    print("\n▶  Stage 5 — Building atlas...")
     build_and_deploy_atlas(
-        db_path    = DB_PATH,
-        proj_x_col = PROJ_X_COL,
-        proj_y_col = PROJ_Y_COL,
+        db_path     = DB_PATH,
+        proj_x_col  = PROJ_X_COL,
+        proj_y_col  = PROJ_Y_COL,
         labels_path = labels_path,
-        run_date   = run_date,
+        run_date    = run_date,
     )
 
     print("\n✓  update_map_v2.py complete.")
