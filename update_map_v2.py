@@ -77,8 +77,12 @@ GROUP_COUNT_MAX = 18
 # Recommended range: 250-400.  Shorter = cheaper; longer = better grouping.
 ABSTRACT_GROUPING_CHARS = 300
 
-# Maximum Haiku retries for the grouping call (JSON parse / validation errors).
-GROUPING_MAX_RETRIES = 3
+# Maximum Haiku retries for the grouping call (covers both 529 overload and
+# JSON parse / validation errors). Each retry waits GROUPING_RETRY_BASE_WAIT
+# seconds, doubling each time. With base=60 and 5 retries: 60, 120, 240, 480.
+# Recommended: 5 retries. Fewer risks giving up during API load spikes.
+GROUPING_MAX_RETRIES     = 5
+GROUPING_RETRY_BASE_WAIT = 60   # seconds; recommended range: 30-120
 
 # ── Within-group scatter ─────────────────────────────────────────────────────
 
@@ -285,10 +289,15 @@ def haiku_group_papers(
                       f"({len(set(mapping.values()))} groups).")
                 break
         except Exception as e:
-            print(f"  Haiku API error on attempt {attempt}: {e}")
+            err_str = str(e)
+            is_529  = "529" in err_str or "overloaded" in err_str.lower()
+            label   = "API overloaded (529)" if is_529 else f"API error"
+            print(f"  {label} on attempt {attempt}: {e}")
 
         if attempt < GROUPING_MAX_RETRIES:
-            wait = 2 ** attempt
+            # Use a long base wait so 529 overload errors have time to clear.
+            # 2 ** (attempt-1) doubles the wait each retry: 60, 120, 240, 480s.
+            wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
             print(f"  Retrying in {wait}s...")
             time.sleep(wait)
 
