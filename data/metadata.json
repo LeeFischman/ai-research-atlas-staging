@@ -3,85 +3,99 @@
         "data": {
             "id": "__row_index__",
             "projection": {
-                "x": "projection_x",
-                "y": "projection_y"
+                "x": "projection_sbert_x",
+                "y": "projection_sbert_y"
             }
         },
         "embeddingViewLabels": [
             {
-                "x": 2.5630522652839622,
-                "y": 2.36567489306132,
-                "text": "Geometric Representation Learning For Complex Systems",
+                "x": 2.2467511551720754,
+                "y": 5.341053009033203,
+                "text": "Ai-Driven Molecular And Materials Design Optimization",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.6752628882726035,
-                "y": 0.5704868699113528,
-                "text": "Trustworthy Ai Systems With Interpretable Reasoning",
+                "x": 3.249792734781901,
+                "y": 4.569099386533101,
+                "text": "Graph Neural Networks Geometric Structure Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 4.260879913965861,
-                "y": -0.7601348400115967,
-                "text": "Llm Evaluation Methodology And Bias Assessment",
+                "x": 1.2761635903654427,
+                "y": 3.9810663009512015,
+                "text": "Parameter Efficient Fine Tuning Adaptation",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 4.45486332820012,
-                "y": 0.14105142567020196,
-                "text": "Uncertainty-Aware Multilingual Nlp Annotation",
+                "x": -0.4520992831814857,
+                "y": 5.348419212159657,
+                "text": "Language Model Safety And Alignment Challenges",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.5114241424819519,
-                "y": 2.753996285898932,
-                "text": "Long-Form Visual Content Temporal Consistency",
+                "x": 2.9415972530841827,
+                "y": 1.941444307565689,
+                "text": "Foundation Models For Time Series Understanding",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.26135485450781526,
-                "y": -0.23613045404532126,
-                "text": "Multi-Agent Reasoning Long Horizon Tasks",
+                "x": 3.5875274538993835,
+                "y": 2.9419640779495237,
+                "text": "Multimodal Foundation Models Medical Imaging",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.869433856010437,
-                "y": 3.5013374487559,
-                "text": "Parameter-Efficient Model Adaptation And Fusion",
+                "x": 2.5293121267767513,
+                "y": 3.0286739714005413,
+                "text": "Efficient Attention Mechanisms For Long-Sequence Models",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.7020205089024134,
-                "y": 2.5966559818812778,
-                "text": "Internal Representation Refinement Across Architectures",
+                "x": -0.09745198984940846,
+                "y": 3.985685666402181,
+                "text": "Uncertainty Quantification Verification Language Models",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.7633542484707303,
-                "y": -1.027819843755828,
-                "text": "Llm Agents Evaluation And Deployment",
+                "x": 0.7798593454062939,
+                "y": 2.3672105073928833,
+                "text": "Multimodal Reasoning For Fine-Grained Visual Understanding",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.2328946590423584,
-                "y": -1.868963822722435,
-                "text": "Agent Safety And Real-World Harm Evaluation",
+                "x": -1.6860568838960983,
+                "y": 3.92896403985865,
+                "text": "Llm Agent Evaluation And Development",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.7508153120676675,
-                "y": -1.010271880361769,
-                "text": "Adversarial Robustness And Safety In Language Models",
+                "x": -1.9722802506552801,
+                "y": 5.058689382341173,
+                "text": "Ai System Safety Under Adversarial Deployment",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.3038896839799626,
+                "y": 1.555587351322174,
+                "text": "Multi-Feedback Heterogeneous Signal Integration Learning",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.7185303437457021,
+                "y": 2.278970718383789,
+                "text": "Multi-Agent Long-Horizon Task Coordination",
                 "level": 0,
                 "priority": 10
             }
