@@ -27,13 +27,13 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           EMBEDDING_MODEL: sbert
           # Comment the below line when in production or recalcs are needed 
-          OFFLINE_MODE: "true"
+          # OFFLINE_MODE: "true"
         run: python update_map_v2.py
       - name: Commit and Push Database Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add database.parquet run_state.json author_stats_cache.json label_diagnostics.json 2>/dev/null || true
+          git add database.parquet run_state.json author_stats_cache.json label_diagnostics.json group_names_v2.json labels_v2.parquet 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
