@@ -9,79 +9,72 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 4.924101889133453,
-                "y": 6.005177617073059,
-                "text": "Foundation Models For Time Series Analysis",
+                "x": 8.675562763214112,
+                "y": 8.042141017913819,
+                "text": "Machine Learning For Scientific Discovery And Design",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.218843552801344,
-                "y": 5.899237394332886,
-                "text": "Graph Neural Network Representation Learning",
+                "x": 8.604640928904216,
+                "y": 9.44921604792277,
+                "text": "Parameter-Efficient Model Adaptation And Scaling",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.6326964785975795,
-                "y": 4.476201149725145,
-                "text": "Foundation Model Scaling Laws And Adaptation",
+                "x": 7.633739411830902,
+                "y": 10.977563381195068,
+                "text": "Agentic Multimodal Reasoning For Complex Visual Tasks",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 4.3134399354457855,
-                "y": 5.128858745098114,
-                "text": "Interpretability And Robustness In Machine Learning",
+                "x": 6.06197452545166,
+                "y": 9.317300796508789,
+                "text": "Time Series Foundation Models And Representation Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.6154772341251373,
-                "y": 3.562365631262461,
-                "text": "Uncertainty And Verification In Language Model Reasoning",
+                "x": 10.423575024855765,
+                "y": 11.883603246588455,
+                "text": "Llm Agent Evaluation Real-World Environments",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 4.756421006642855,
-                "y": 4.389681641872112,
-                "text": "Hierarchical Multimodal Processing For Long-Sequence Visual Data",
+                "x": 6.183840919943417,
+                "y": 8.378733606899486,
+                "text": "Multimodal Foundation Models Medical Imaging",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 4.539897139867147,
-                "y": 4.012674935658773,
-                "text": "Scalable Generative Model Optimization",
+                "x": 7.089316368103027,
+                "y": 8.911693719717173,
+                "text": "Scaling Efficiency In Generative Model Architectures",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.0007360712957701512,
-                "y": 4.0197644744600565,
-                "text": "Privacy And Fairness In Large Language Models",
+                "x": 10.930774552481514,
+                "y": 10.320424011775426,
+                "text": "Llm Safety Alignment And Robustness",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.6286222828286034,
-                "y": 4.523519515991211,
-                "text": "Causal Inference From Partial Data",
+                "x": 8.421728474753243,
+                "y": 11.713377516610281,
+                "text": "Long-Horizon Sequential Decision-Making With Multi-Task Management",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.7637082695961,
-                "y": 1.6310369789600372,
-                "text": "Hierarchical Reinforcement Learning Long-Horizon Tasks",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 0.49496224758331664,
-                "y": 2.2798307202756405,
-                "text": "Real-World Agent Task Evaluation Benchmarks",
+                "x": 10.546374865940638,
+                "y": 9.896544865199498,
+                "text": "Causal Inference From Observational Data",
                 "level": 0,
                 "priority": 10
             }
