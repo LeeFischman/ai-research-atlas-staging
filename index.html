@@ -129,53 +129,24 @@
   }
 
   // ── Shortcut color-by handler ─────────────────────────────────────────────
-  // The Atlas is a Svelte web component. We find it by tag name, then set its
-  // colorBy property directly. Svelte components expose reactive props as
-  // direct JS properties on the element. We also try dispatching a custom event
-  // as a fallback in case the Atlas version uses event-driven state.
-  function armSetColor(columnName) {
-    // Close the shortcuts panel
-    armClose('arm-shortcuts-panel', 'arm-shortcuts-tab');
-
-    // Try multiple strategies to set the color dimension
-    var selectors = ['embedding-atlas', '[data-component="embedding-atlas"]', 'canvas'];
-    var el = null;
-    for (var i = 0; i < selectors.length; i++) {
-      el = document.querySelector(selectors[i]);
-      if (el) break;
-    }
-
-    if (!el) {
-      // Last resort: walk the shadow DOM of any custom elements
-      document.querySelectorAll('*').forEach(function(node) {
-        if (node.shadowRoot && !el) {
-          var inner = node.shadowRoot.querySelector('canvas');
-          if (inner) el = node;
-        }
-      });
-    }
-
-    if (el) {
-      // Strategy 1: direct property (Svelte component prop)
-      try { el.colorBy = columnName; } catch(e) {}
-      try { el.color_by = columnName; } catch(e) {}
-      // Strategy 2: setAttribute (web component attribute)
-      try { el.setAttribute('color-by', columnName); } catch(e) {}
-      try { el.setAttribute('colorBy', columnName); } catch(e) {}
-      // Strategy 3: dispatch custom event
-      try {
-        el.dispatchEvent(new CustomEvent('set-color-by',
-          { detail: { column: columnName }, bubbles: true, composed: true }));
-      } catch(e) {}
-    }
-
-    // Highlight the active tile
-    document.querySelectorAll('.arm-tile').forEach(function(t) {
-      t.classList.remove('arm-tile-active');
+  // Atlas renders a <select> whose options have JSON-quoted values like
+  // '"Reputation"', '"author_count"' etc. We find it by checking which
+  // select contains a Reputation option, set its value via the native setter
+  // (required for Svelte to detect the change), and fire a change event.
+  function armSetColor(columnName, tileEl) {
+    var colorSelect = Array.from(document.querySelectorAll('select')).find(function(sel) {
+      return Array.from(sel.options).some(function(o) { return o.text.includes('Reputation'); });
     });
-    if (event && event.currentTarget) {
-      event.currentTarget.classList.add('arm-tile-active');
+    if (colorSelect) {
+      var nativeSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLSelectElement.prototype, 'value'
+      ).set;
+      nativeSetter.call(colorSelect, JSON.stringify(columnName));
+      colorSelect.dispatchEvent(new Event('change', { bubbles: true }));
     }
+    armClose('arm-shortcuts-panel', 'arm-shortcuts-tab');
+    document.querySelectorAll('.arm-tile').forEach(function(t) { t.classList.remove('arm-tile-active'); });
+    if (tileEl) { tileEl.classList.add('arm-tile-active'); }
   }
 </script>
 
@@ -200,17 +171,17 @@
     </div>
     <p class="arm-sc-intro">Click a tile to see points colored by</p>
 
-    <a class="arm-tile" onclick="armSetColor('Reputation')" href="javascript:void(0)">
+    <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('Reputation', this)">
       <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="9,2 11.1,6.6 16.2,7.3 12.6,10.7 13.5,15.8 9,13.4 4.5,15.8 5.4,10.7 1.8,7.3 6.9,6.6"/></svg></span>
       <span class="arm-tile-text"><span class="arm-tile-label">Reputation score</span><span class="arm-tile-sub">Institution &amp; open-source signals</span></span>
     </a>
 
-    <a class="arm-tile" onclick="armSetColor('author_count')" href="javascript:void(0)">
+    <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('author_count', this)">
       <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="6" r="2.5"/><path d="M1 16c0-3.3 2.5-5 5.5-5"/><circle cx="13" cy="6" r="2.5"/><path d="M17 16c0-3.3-2.5-5-5.5-5"/><path d="M10 16c0-2.8-1.8-4.5-4-4.5"/></svg></span>
       <span class="arm-tile-text"><span class="arm-tile-label">Author count</span><span class="arm-tile-sub">More authors tends to be better</span></span>
     </a>
 
-    <a class="arm-tile" onclick="armSetColor('author_tier')" href="javascript:void(0)">
+    <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('author_tier', this)">
       <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5L9 4l5 4.5"/><path d="M5.5 8v5.5h7V8"/><path d="M7 13.5v-3h4v3"/><path d="M3 8.5h12"/></svg></span>
       <span class="arm-tile-text"><span class="arm-tile-label">Author seniority</span><span class="arm-tile-sub">Highlights established researchers</span></span>
     </a>
