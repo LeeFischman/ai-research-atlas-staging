@@ -133,6 +133,29 @@ LAYOUT_SCALE = 20.0
 SCATTER_FRACTION   = 0.35
 VARIANCE_AMPLIFIER = 2.0
 
+# ── Layout tuning guide ──────────────────────────────────────────────────────
+# Quick reference for adjusting the visual appearance of the atlas:
+#
+# Clusters overlap / labels still central:
+#   → Lower SCATTER_FRACTION (0.35 → 0.25)
+#     Clouds tighten; more breathing room between groups.
+#
+# Clusters too sparse / papers far from their label:
+#   → Raise SCATTER_FRACTION (0.35 → 0.45)
+#
+# Merge step absorbing groups that feel semantically distinct:
+#   → Raise GROUP_COUNT_MAX (18 → 20 or 22)
+#     Haiku's natural granularity may warrant a higher ceiling.
+#
+# Haiku consistently returns too few groups (< GROUP_COUNT_MIN):
+#   → Lower GROUP_COUNT_MIN (12 → 10), or reduce ABSTRACT_GROUPING_CHARS
+#     so Haiku sees less detail and forms coarser groups.
+#
+# Ready for production (fresh papers + re-grouping):
+#   → Remove OFFLINE_MODE from the workflow YAML.
+#     First normal run re-embeds, calls Haiku, and commits updated
+#     group_names_v2.json to the repo for future offline runs.
+
 # ── Atlas CLI ────────────────────────────────────────────────────────────────
 # Projection column names written to database.parquet.
 # Must match --x / --y args passed to the Atlas CLI.
