@@ -698,7 +698,7 @@ if __name__ == "__main__":
     print(f"  OFFLINE_MODE       : {OFFLINE_MODE}")
     print(f"  GROUP_COUNT        : {GROUP_COUNT_MIN}–{GROUP_COUNT_MAX}")
     print(f"  LAYOUT_SCALE       : {LAYOUT_SCALE}")
-    print(f"  SCATTER_SCALE_BASE : {SCATTER_SCALE_BASE}")
+    print(f"  SCATTER_FRACTION   : {SCATTER_FRACTION}")
     print(f"  VARIANCE_AMPLIFIER : {VARIANCE_AMPLIFIER}")
     print("=" * 60)
 
