@@ -612,13 +612,20 @@ def write_labels_parquet(
 ) -> str:
     """Write labels.parquet for the Atlas CLI --labels flag.
 
-    Label x/y are the scaled MDS centroids — the visual centre of each cluster.
+    Label x/y are the mean of each group's actual projection_v2_x/y positions —
+    the visual centre of the dot cloud after scatter — not the MDS centroid.
+    This keeps labels anchored to where their papers actually landed, regardless
+    of how far the scatter pushed them from the centroid.
     """
     print(f"\n▶  Writing labels parquet ({len(centroids)} labels)...")
     rows = []
-    for gid, (cx, cy) in sorted(centroids.items()):
+    for gid in sorted(centroids.keys()):
         label_text = labels.get(gid, f"Group {gid}")
-        n_papers   = int((df["group_id_v2"] == gid).sum())
+        mask       = df["group_id_v2"] == gid
+        n_papers   = int(mask.sum())
+        # Mean of actual paper positions — tracks where dots landed after scatter
+        cx = float(df.loc[mask, "projection_v2_x"].mean())
+        cy = float(df.loc[mask, "projection_v2_y"].mean())
         rows.append({"x": cx, "y": cy, "text": label_text,
                      "level": 0, "priority": 10})
         print(f"  [{gid:>2}] '{label_text}' @ ({cx:+.2f}, {cy:+.2f}), {n_papers} papers")
