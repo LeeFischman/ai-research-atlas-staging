@@ -394,18 +394,31 @@ def haiku_group_papers(
     return df, group_names
 
 
-def _load_group_names_cache() -> dict[int, str]:
-    """Load group names from cache (used in offline mode)."""
-    if not os.path.exists(GROUP_NAMES_CACHE):
-        raise FileNotFoundError(
-            f"Group names cache '{GROUP_NAMES_CACHE}' not found. "
-            "Run once in normal mode first to generate it."
-        )
-    with open(GROUP_NAMES_CACHE) as f:
-        raw = json.load(f)
-    names = {int(k): v for k, v in raw.items()}
-    print(f"  Loaded {len(names)} group names from {GROUP_NAMES_CACHE}.")
-    return names
+def _load_group_names_cache(df: pd.DataFrame | None = None) -> dict[int, str]:
+    """Load group names from cache (used in offline mode).
+
+    If the cache file is missing, falls back to deriving generic names from
+    the group_id_v2 column of df (if provided) rather than crashing.
+    """
+    if os.path.exists(GROUP_NAMES_CACHE):
+        with open(GROUP_NAMES_CACHE) as f:
+            raw = json.load(f)
+        names = {int(k): v for k, v in raw.items()}
+        print(f"  Loaded {len(names)} group names from {GROUP_NAMES_CACHE}.")
+        return names
+
+    # Cache missing — fall back to generic names derived from the parquet
+    print(f"  WARNING: Group names cache '{GROUP_NAMES_CACHE}' not found.")
+    if df is not None and "group_id_v2" in df.columns:
+        gids  = sorted(int(g) for g in df["group_id_v2"].unique())
+        names = {gid: f"Group {gid}" for gid in gids}
+        print(f"  Using generic names for {len(names)} groups. "
+              "Run once in normal mode to generate meaningful labels.")
+        return names
+    raise FileNotFoundError(
+        f"Group names cache '{GROUP_NAMES_CACHE}' not found and no dataframe "
+        "provided as fallback. Run once in normal mode first."
+    )
 
 
 def _hdbscan_fallback_grouping(df: pd.DataFrame) -> dict[int, int]:
@@ -682,7 +695,7 @@ if __name__ == "__main__":
                 "Run once in normal mode first."
             )
 
-        group_names = _load_group_names_cache()
+        group_names = _load_group_names_cache(df)
 
         # Patch any group IDs in the parquet that are missing from the cache
         parquet_gids  = set(int(g) for g in df["group_id_v2"].unique())
