@@ -3,78 +3,99 @@
         "data": {
             "id": "__row_index__",
             "projection": {
-                "x": "projection_sbert_x",
-                "y": "projection_sbert_y"
+                "x": "projection_v2_x",
+                "y": "projection_v2_y"
             }
         },
         "embeddingViewLabels": [
             {
-                "x": 8.675562763214112,
-                "y": 8.042141017913819,
-                "text": "Machine Learning For Scientific Discovery And Design",
+                "x": 0.1036891690158661,
+                "y": 0.009331296211887224,
+                "text": "Group 0",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 8.604640928904216,
-                "y": 9.44921604792277,
-                "text": "Parameter-Efficient Model Adaptation And Scaling",
+                "x": 0.07268565739264966,
+                "y": 0.046453659336716364,
+                "text": "Group 1",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 7.633739411830902,
-                "y": 10.977563381195068,
-                "text": "Agentic Multimodal Reasoning For Complex Visual Tasks",
+                "x": 0.0055847040062377,
+                "y": -0.12196417339350546,
+                "text": "Group 2",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 6.06197452545166,
-                "y": 9.317300796508789,
-                "text": "Time Series Foundation Models And Representation Learning",
+                "x": -0.05437254486280967,
+                "y": -0.09397802076069185,
+                "text": "Group 3",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 10.423575024855765,
-                "y": 11.883603246588455,
-                "text": "Llm Agent Evaluation Real-World Environments",
+                "x": 0.001346464380924532,
+                "y": -0.03358626167748132,
+                "text": "Group 4",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 6.183840919943417,
-                "y": 8.378733606899486,
-                "text": "Multimodal Foundation Models Medical Imaging",
+                "x": 0.09159165258976283,
+                "y": -0.06587466137421517,
+                "text": "Group 5",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 7.089316368103027,
-                "y": 8.911693719717173,
-                "text": "Scaling Efficiency In Generative Model Architectures",
+                "x": 0.04344801997677031,
+                "y": -0.07504771766247322,
+                "text": "Group 6",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 10.930774552481514,
-                "y": 10.320424011775426,
-                "text": "Llm Safety Alignment And Robustness",
+                "x": 0.04132532381135751,
+                "y": 0.11750866789724765,
+                "text": "Group 7",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 8.421728474753243,
-                "y": 11.713377516610281,
-                "text": "Long-Horizon Sequential Decision-Making With Multi-Task Management",
+                "x": -0.045018939660118336,
+                "y": 0.0233639733852083,
+                "text": "Group 8",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 10.546374865940638,
-                "y": 9.896544865199498,
-                "text": "Causal Inference From Observational Data",
+                "x": -0.10052485240133266,
+                "y": -0.038874189211649215,
+                "text": "Group 9",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.09979350993924542,
+                "y": 0.041580846643070955,
+                "text": "Group 10",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.0033364236990939358,
+                "y": 0.07334709416048514,
+                "text": "Group 11",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.05662472061096864,
+                "y": 0.11773948644540051,
+                "text": "Group 12",
                 "level": 0,
                 "priority": 10
             }
