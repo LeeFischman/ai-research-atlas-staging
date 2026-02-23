@@ -59,9 +59,9 @@ if EMBEDDING_MODEL not in ("specter2", "sbert", "hybrid"):
 #                          in the parquet from the earlier SBERT build run).
 # HYBRID_WEIGHT_TFIDF    — term frequency overlap. Grounds clusters in shared
 #                          vocabulary. Cheap: computed fresh each run.
-HYBRID_WEIGHT_SPECTER2 = 0.33
-HYBRID_WEIGHT_SBERT    = 0.33
-HYBRID_WEIGHT_TFIDF    = 0.33
+HYBRID_WEIGHT_SPECTER2 = 1.0
+HYBRID_WEIGHT_SBERT    = 0.0
+HYBRID_WEIGHT_TFIDF    = 0.0
 
 print(f"▶  Embedding mode  : {EMBEDDING_MODE.upper()}")
 print(f"▶  Embedding model : {EMBEDDING_MODEL.upper()}")
