@@ -115,19 +115,23 @@ GROUPING_RETRY_BASE_WAIT = 60   # seconds; recommended range: 30-120
 LAYOUT_SCALE = 20.0
 
 # ── Within-group scatter ─────────────────────────────────────────────────────
-# Scatter radius formula (before LAYOUT_SCALE):
-#   radius = mean_intra_group_cosine_dist
-#           * SCATTER_SCALE_BASE
-#           * (1 + group_variance * VARIANCE_AMPLIFIER)
+# Scatter radius is expressed as a fraction of the median nearest-neighbour
+# centroid distance, so it auto-scales to however spread the MDS layout is.
 #
-# With typical values from the log (mean_dist ≈ 0.03, variance ≈ 0.03):
-#   radius ≈ 0.03 * 2.0 * (1 + 0.03 * 3.0) ≈ 0.067
-#   after LAYOUT_SCALE=20: radius ≈ 1.34  (good separation)
+# radius = SCATTER_FRACTION
+#         * median_nearest_centroid_dist
+#         * (1 + group_variance * VARIANCE_AMPLIFIER)
 #
-# SCATTER_SCALE_BASE: recommended range 1.0-4.0
-# VARIANCE_AMPLIFIER: recommended range 1.0-5.0
-SCATTER_SCALE_BASE = 2.0
-VARIANCE_AMPLIFIER = 3.0
+# SCATTER_FRACTION = 0.35 means each paper is placed at most ~35% of the way
+# to its nearest neighbouring cluster centroid.  Papers at the edge of a group
+# (high intra-group cosine distance) get a larger fraction; papers at the core
+# get a smaller fraction.  This prevents clouds from overlapping at any scale.
+# Recommended range: 0.25-0.50.
+#
+# VARIANCE_AMPLIFIER loosely-coupled groups spread a bit wider than tight ones.
+# Recommended range: 1.0-3.0.
+SCATTER_FRACTION   = 0.35
+VARIANCE_AMPLIFIER = 2.0
 
 # ── Atlas CLI ────────────────────────────────────────────────────────────────
 # Projection column names written to database.parquet.
@@ -539,19 +543,28 @@ def scatter_within_groups(
 ) -> pd.DataFrame:
     """Stage 4b: Place each paper around its MDS centroid.
 
-    Position formula (all terms in scaled coordinate space):
+    Scatter radius is expressed as a fraction of the median nearest-neighbour
+    centroid distance, so it auto-scales regardless of LAYOUT_SCALE or how
+    semantically similar the groups are to each other.
+
+    Position formula:
       direction    = unit vector from SPECTER2 group centroid → paper's UMAP pos
-      scatter_dist = mean_intra_cosine_dist
-                   * SCATTER_SCALE_BASE * (1 + variance * VARIANCE_AMPLIFIER)
-                   * LAYOUT_SCALE
+      base_radius  = median_nn_centroid_dist * SCATTER_FRACTION
+      scatter_dist = base_radius
+                   * (paper_mean_intra_dist / group_mean_intra_dist)
+                   * (1 + group_variance * VARIANCE_AMPLIFIER)
       final_pos    = mds_centroid + direction * scatter_dist
+
+    Normalising by group_mean_intra_dist ensures papers at the edge of a group
+    scatter proportionally further than papers at the core, without the raw
+    cosine distance magnitude inflating the radius when groups are loose.
 
     Writes: projection_v2_x, projection_v2_y
     """
     from sklearn.metrics.pairwise import cosine_distances
     from sklearn.preprocessing import normalize as sk_normalize
 
-    print("\n▶  Stage 4b — Within-group scatter...")
+    print("\n▶  Stage 4b — Within-group scatter (fraction of centroid spacing)...")
 
     df = df.copy()
     df["projection_v2_x"] = np.nan
@@ -561,7 +574,24 @@ def scatter_within_groups(
     specter2_x = df["projection_x"].values
     specter2_y = df["projection_y"].values
 
-    for gid in sorted(df["group_id_v2"].unique()):
+    # ── Compute median nearest-neighbour centroid distance ───────────────────
+    # This is the reference scale for scatter radius.
+    gids       = sorted(centroids.keys())
+    c_array    = np.array([centroids[g] for g in gids])   # (n_groups, 2)
+    nn_dists   = []
+    for i in range(len(gids)):
+        dists_to_others = [
+            sqrt((c_array[i,0]-c_array[j,0])**2 + (c_array[i,1]-c_array[j,1])**2)
+            for j in range(len(gids)) if j != i
+        ]
+        nn_dists.append(min(dists_to_others))
+    median_nn_dist = float(np.median(nn_dists))
+    base_radius    = median_nn_dist * SCATTER_FRACTION
+    print(f"  Median nearest-neighbour centroid dist: {median_nn_dist:.3f}")
+    print(f"  Base scatter radius (SCATTER_FRACTION={SCATTER_FRACTION}): "
+          f"{base_radius:.3f}  ({SCATTER_FRACTION*100:.0f}% of centroid spacing)")
+
+    for gid in gids:
         mask      = df["group_id_v2"] == gid
         positions = df.index[mask].tolist()
         pos_array = [df.index.get_loc(p) for p in positions]
@@ -572,20 +602,22 @@ def scatter_within_groups(
         if n_g == 1:
             df.at[positions[0], "projection_v2_x"] = mds_cx
             df.at[positions[0], "projection_v2_y"] = mds_cy
-            print(f"  Group {gid:>2} ('{name}'): singleton at centroid "
-                  f"({mds_cx:+.2f}, {mds_cy:+.2f}).")
+            print(f"  Group {gid:>2} ('{name}'): singleton at centroid.")
             continue
 
         g_vecs         = all_vecs[pos_array]
         pairwise       = cosine_distances(g_vecs)
-        mean_dists     = pairwise.mean(axis=1)
+        mean_dists     = pairwise.mean(axis=1)          # per-paper mean distance
+        group_mean     = float(mean_dists.mean())       # group-level mean
         upper          = pairwise[np.triu_indices(n_g, k=1)]
         group_variance = float(upper.std()) if len(upper) > 0 else 0.0
-        scatter_scale  = SCATTER_SCALE_BASE * (1.0 + group_variance * VARIANCE_AMPLIFIER)
+        variance_boost = 1.0 + group_variance * VARIANCE_AMPLIFIER
 
+        # Effective radius for this group
+        eff_radius = base_radius * variance_boost
         print(f"  Group {gid:>2} ('{name}'): "
               f"n={n_g:>3}, var={group_variance:.4f}, "
-              f"scale={scatter_scale:.3f}, "
+              f"eff_radius={eff_radius:.3f}, "
               f"centroid=({mds_cx:+.2f}, {mds_cy:+.2f})")
 
         sp_cx = specter2_x[pos_array].mean()
@@ -599,8 +631,10 @@ def scatter_within_groups(
                 angle  = random.uniform(0, 2 * 3.14159265)
                 dx, dy = float(np.cos(angle)), float(np.sin(angle))
                 length = 1.0
-            # LAYOUT_SCALE applied so scatter radius is proportional to centroid spacing
-            scatter_dist = float(mean_dists[local_i]) * scatter_scale * LAYOUT_SCALE
+            # Scale per-paper distance relative to group mean so core papers
+            # cluster tightly and edge papers drift proportionally further out
+            rel_dist     = (mean_dists[local_i] / group_mean) if group_mean > 1e-8 else 1.0
+            scatter_dist = eff_radius * rel_dist
             df.at[df_idx, "projection_v2_x"] = mds_cx + (dx / length) * scatter_dist
             df.at[df_idx, "projection_v2_y"] = mds_cy + (dy / length) * scatter_dist
 
