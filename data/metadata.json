@@ -9,128 +9,128 @@
         },
         "embeddingViewLabels": [
             {
-                "x": -1.1210587528106641,
-                "y": -2.323972848541033,
-                "text": "Humanoid Robot Control And Learning",
+                "x": 0.0947829549578626,
+                "y": -0.052739330591920486,
+                "text": "Time Series Forecasting And Prediction",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.9120020114327699,
-                "y": 2.090777123270526,
-                "text": "Stance Detection And Argument Mining",
+                "x": -2.4738667024738255,
+                "y": 0.858762802722781,
+                "text": "Llm Agent Benchmarking And Evaluation",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.7086464922248132,
-                "y": -1.476603186677926,
-                "text": "Geometric Deep Learning Methods",
+                "x": 1.2314237304535884,
+                "y": -0.0268034896675808,
+                "text": "Multimodal Foundation Models",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.9117838500911836,
-                "y": 3.1307094377115323,
-                "text": "Ai Security And Cybercrime",
+                "x": 0.6917453225645731,
+                "y": 0.02958810781426635,
+                "text": "Information Retrieval Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -3.776406466875017,
-                "y": 0.4323785325652847,
-                "text": "Model Serving And Inference Optimization",
+                "x": 1.9017021606849007,
+                "y": 0.17495141313111512,
+                "text": "Generative Models For Molecular Design",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.03461085178425382,
-                "y": 2.126904256375031,
-                "text": "Causal Reasoning Frameworks",
+                "x": -0.7571907230611582,
+                "y": -1.3275155401954035,
+                "text": "Llm Safety And Alignment",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.2804966441780973,
-                "y": -2.7863985317777535,
-                "text": "Video Generation And Consistency",
+                "x": -0.21179517270311157,
+                "y": 2.317500647688889,
+                "text": "Embodied Agent Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.94597631672889,
-                "y": -0.7329775858697303,
-                "text": "Neural Shape And Geometry Modeling",
+                "x": -1.333209031841604,
+                "y": -2.101074171242275,
+                "text": "Model Scaling And Efficiency",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.25321363006856806,
-                "y": 0.9799087727801503,
-                "text": "Knowledge Graph Refinement",
+                "x": -0.8852525731003762,
+                "y": 2.778689818769696,
+                "text": "Memory And Planning In Agents",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.5789396603941475,
-                "y": 2.2431121323506766,
-                "text": "Code Change Classification And Metrics",
+                "x": -0.7295868625112337,
+                "y": 2.567244192831189,
+                "text": "Multi-Agent Coordination And Safety",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.1381422893692417,
-                "y": -1.328443017689249,
-                "text": "Retrieval And Ranking Systems",
+                "x": -1.898945815793509,
+                "y": -1.3033045441926157,
+                "text": "Representational Learning Analysis",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.9403282314499318,
-                "y": -1.1448333648590094,
-                "text": "Multi-Agent Cooperation And Learning",
+                "x": 1.7921476701128152,
+                "y": -2.5647122225067727,
+                "text": "Model Quantization And Compression",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.7030329245806555,
-                "y": 1.5269556922495966,
-                "text": "Machine Learning For Supply Chain",
+                "x": -2.342960848430351,
+                "y": -0.8116058038198507,
+                "text": "Natural Language Understanding Tasks",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.1956448781132678,
-                "y": -2.9521172879205397,
-                "text": "Audio Compression And Processing",
+                "x": 1.1777616444836254,
+                "y": 1.498924928712031,
+                "text": "Geometric Deep Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.9427687004714471,
-                "y": 0.4353116647996169,
-                "text": "Backdoor Detection And Defense",
+                "x": -0.8596577901684673,
+                "y": 0.6348912402696348,
+                "text": "Reinforcement Learning With Verifiable Rewards",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.3392035136323356,
-                "y": -0.23989754117319503,
-                "text": "Distributed Training And Synchronization",
+                "x": -2.4313843455517286,
+                "y": 0.684897192793659,
+                "text": "Scientific Discovery With Ai",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.2959902459382526,
-                "y": -0.6454971510464858,
-                "text": "Graph-Based Medical Diagnosis",
+                "x": 1.9957885498938275,
+                "y": -1.150621053710696,
+                "text": "Medical Image Understanding",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.297418990342119,
-                "y": 0.6646829034525087,
-                "text": "Preference Domain And Social Choice",
+                "x": 3.3604484460233386,
+                "y": -0.09869705693231844,
+                "text": "Graph Neural Networks",
                 "level": 0,
                 "priority": 10
             }
