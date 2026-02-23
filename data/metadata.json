@@ -9,93 +9,79 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 1.428312063217163,
-                "y": 7.6216206550598145,
-                "text": "Adaptive Information Acquisition For Personalization",
+                "x": 4.924101889133453,
+                "y": 6.005177617073059,
+                "text": "Foundation Models For Time Series Analysis",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 4.527242104212443,
-                "y": 8.123379151026407,
-                "text": "Graph Neural Network Architectures And Learning",
+                "x": 3.218843552801344,
+                "y": 5.899237394332886,
+                "text": "Graph Neural Network Representation Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.307540395043113,
-                "y": 7.25070164420388,
-                "text": "Quantum-Classical Hybrid Machine Learning Systems",
+                "x": 2.6326964785975795,
+                "y": 4.476201149725145,
+                "text": "Foundation Model Scaling Laws And Adaptation",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 5.586408317089081,
-                "y": 7.948093771934509,
-                "text": "Time Series Foundation Models And Forecasting",
+                "x": 4.3134399354457855,
+                "y": 5.128858745098114,
+                "text": "Interpretability And Robustness In Machine Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.4566414654254913,
-                "y": 7.638851165771484,
-                "text": "Verification And Uncertainty Assessment In Language Models",
+                "x": 1.6154772341251373,
+                "y": 3.562365631262461,
+                "text": "Uncertainty And Verification In Language Model Reasoning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.10492683540691,
-                "y": 8.391202471473001,
-                "text": "Parameter-Efficient Fine-Tuning Methods And Mechanisms",
+                "x": 4.756421006642855,
+                "y": 4.389681641872112,
+                "text": "Hierarchical Multimodal Processing For Long-Sequence Visual Data",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 5.353117025815523,
-                "y": 6.566461526430571,
-                "text": "Multimodal Foundation Models Medical Imaging",
+                "x": 4.539897139867147,
+                "y": 4.012674935658773,
+                "text": "Scalable Generative Model Optimization",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 4.24659751355648,
-                "y": 6.422145903110504,
-                "text": "Efficient Scaling Compressed Generative Models",
+                "x": -0.0007360712957701512,
+                "y": 4.0197644744600565,
+                "text": "Privacy And Fairness In Large Language Models",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.2645597520627474,
-                "y": 9.133632785395571,
-                "text": "Llm Safety And Alignment Issues",
+                "x": 0.6286222828286034,
+                "y": 4.523519515991211,
+                "text": "Causal Inference From Partial Data",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.027679160041244405,
-                "y": 7.3586773119474715,
-                "text": "Llm Agent Evaluation In Complex Environments",
+                "x": 2.7637082695961,
+                "y": 1.6310369789600372,
+                "text": "Hierarchical Reinforcement Learning Long-Horizon Tasks",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.716638769954443,
-                "y": 7.622381567955017,
-                "text": "Agent Safety And Security Evaluation",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 1.7229434251785278,
-                "y": 5.250335746341282,
-                "text": "Hierarchical Temporal Abstraction Reinforcement Learning",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 0.9610706865787506,
-                "y": 5.999923646450043,
-                "text": "Multi-Agent Long-Horizon Task Coordination",
+                "x": 0.49496224758331664,
+                "y": 2.2798307202756405,
+                "text": "Real-World Agent Task Evaluation Benchmarks",
                 "level": 0,
                 "priority": 10
             }
