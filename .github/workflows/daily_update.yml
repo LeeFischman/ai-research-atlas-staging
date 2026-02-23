@@ -25,6 +25,7 @@ jobs:
       - name: Run Update Script
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EMBEDDING_MODEL: sbert
         run: python update_map.py
       - name: Commit and Push Database Changes
         run: |
