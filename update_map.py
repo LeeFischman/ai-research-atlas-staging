@@ -32,7 +32,21 @@ ARXIV_MAX       = 250     # max papers fetched per arXiv query
 #                 (title-only) is used for sharper cluster labels.
 EMBEDDING_MODE = os.environ.get("EMBEDDING_MODE", "incremental").strip().lower()
 
-print(f"▶  Embedding mode : {EMBEDDING_MODE.upper()}")
+# Embedding model is controlled by the EMBEDDING_MODEL env var.
+# "specter2" — allenai/specter2_base. Groups by citation-graph proximity.
+#              Columns: embedding, embedding_50d, projection_x, projection_y.
+# "sbert"    — all-mpnet-base-v2. Groups by surface semantic similarity.
+#              Columns: embedding_sbert, embedding_sbert_50d,
+#                       projection_sbert_x, projection_sbert_y.
+# Both column sets coexist in database.parquet — switching models does NOT
+# drop or overwrite the other model's vectors. Switching back is a one-line
+# env change with no re-embedding required.
+EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "specter2").strip().lower()
+if EMBEDDING_MODEL not in ("specter2", "sbert"):
+    raise ValueError(f"EMBEDDING_MODEL must be 'specter2' or 'sbert', got: '{EMBEDDING_MODEL}'")
+
+print(f"▶  Embedding mode  : {EMBEDDING_MODE.upper()}")
+print(f"▶  Embedding model : {EMBEDDING_MODEL.upper()}")
 
 
 # ──────────────────────────────────────────────
@@ -276,56 +290,80 @@ def fetch_arxiv(client, search) -> list:
 # 6. INCREMENTAL EMBEDDING
 #    Embeds only papers missing vectors, then re-projects
 #    ALL papers with UMAP for a globally coherent layout.
+#
+#    Supports two embedding models controlled by EMBEDDING_MODEL env var:
+#      "specter2" — allenai/specter2_base (citation-graph proximity)
+#      "sbert"    — all-mpnet-base-v2 (surface semantic similarity)
+#    Each model writes to its own column set and coexists in the parquet.
 # ──────────────────────────────────────────────
-def embed_and_project(df: pd.DataFrame) -> pd.DataFrame:
+def embed_and_project(df: pd.DataFrame, model_name: str = "specter2") -> pd.DataFrame:
     from sentence_transformers import SentenceTransformer
     import umap as umap_lib
 
-    model = SentenceTransformer("allenai/specter2_base")
-
-    if "embedding" in df.columns:
-        needs_embed = df["embedding"].isna()
+    # ── Column names per model ───────────────────────────────────────────
+    # Each model has its own isolated column set so both can coexist in the
+    # parquet without overwriting each other. Switching models is a one-line
+    # env change — the other model's vectors remain intact.
+    if model_name == "specter2":
+        hf_model_id   = "allenai/specter2_base"
+        col_embed      = "embedding"           # raw 768D vectors
+        col_embed_50d  = "embedding_50d"       # UMAP 50D for clustering
+        col_proj_x     = "projection_x"        # UMAP 2D display x
+        col_proj_y     = "projection_y"        # UMAP 2D display y
+        text_col       = "text"                # scrubbed title+abstract
+    elif model_name == "sbert":
+        hf_model_id   = "sentence-transformers/all-mpnet-base-v2"
+        col_embed      = "embedding_sbert"
+        col_embed_50d  = "embedding_sbert_50d"
+        col_proj_x     = "projection_sbert_x"
+        col_proj_y     = "projection_sbert_y"
+        text_col       = "abstract"            # SBERT works well on raw abstracts
     else:
-        df["embedding"] = None
+        raise ValueError(f"Unknown model_name: '{model_name}'")
+
+    print(f"  Loading embedding model: {hf_model_id}")
+    model = SentenceTransformer(hf_model_id)
+
+    # ── Incremental embedding ────────────────────────────────────────────
+    # Only embed papers that don't yet have a vector for this model.
+    # Papers embedded by the other model are left untouched.
+    if col_embed in df.columns:
+        needs_embed = df[col_embed].isna()
+    else:
+        df[col_embed] = None
         needs_embed = pd.Series([True] * len(df))
 
     n_new = needs_embed.sum()
     if n_new:
-        print(f"  Embedding {n_new} new paper(s) with SPECTER2...")
+        print(f"  Embedding {n_new} new paper(s) with {model_name.upper()}...")
         idx     = df.index[needs_embed].tolist()
-        texts   = df.loc[idx, "text"].tolist()
+        texts   = df.loc[idx, text_col].tolist()
         vectors = model.encode(texts, show_progress_bar=True, batch_size=16,
                                convert_to_numpy=True)
-        # Assign row-by-row using integer positions to avoid pandas mixed-type
-        # issues when setting list values into a column containing None.
         for i, pos in enumerate(idx):
-            df.at[pos, "embedding"] = vectors[i].tolist()
+            df.at[pos, col_embed] = vectors[i].tolist()
     else:
-        print("  All papers already embedded — skipping SPECTER2.")
+        print(f"  All papers already embedded with {model_name.upper()} — skipping.")
 
-    all_vectors = np.array(df["embedding"].tolist(), dtype=np.float32)
+    all_vectors = np.array(df[col_embed].tolist(), dtype=np.float32)
     n = len(all_vectors)
-    print(f"  Projecting {n} papers with UMAP (two-stage)...")
+    print(f"  Projecting {n} papers with UMAP (two-stage, {model_name.upper()})...")
 
-    # ── Stage 1: 768D → 50D (for clustering) ────────────────────────────
-    # Reducing to 50D preserves far more structure than going straight to 2D.
-    # HDBSCAN then clusters in this richer space using cosine metric, which
-    # is appropriate for embedding vectors where direction > magnitude.
-    # The 50D coords are stored in the parquet so they don't need recomputing
-    # on every run — only new papers trigger a full re-projection.
+    # ── Stage 1: high-D → 50D (for clustering) ──────────────────────────
+    # Preserves far more structure than going straight to 2D.
+    # HDBSCAN clusters in this richer space using cosine metric.
     reducer_50d = umap_lib.UMAP(n_components=50, metric="cosine",
                                 random_state=42, n_neighbors=15)
     coords_50d = reducer_50d.fit_transform(all_vectors)
-    # Store as a flat list so pyarrow can serialise it into parquet.
-    df["embedding_50d"] = [row.tolist() for row in coords_50d]
+    df[col_embed_50d] = [row.tolist() for row in coords_50d]
 
-    # ── Stage 2: 768D → 2D (for display only) ───────────────────────────
+    # ── Stage 2: high-D → 2D (for display only) ─────────────────────────
     # min_dist controls point spread: lower = tighter clusters visually.
     reducer_2d = umap_lib.UMAP(n_components=2, metric="cosine",
                                random_state=42, n_neighbors=15, min_dist=0.1)
     coords_2d = reducer_2d.fit_transform(all_vectors)
-    df["projection_x"] = coords_2d[:, 0].astype(float)
-    df["projection_y"] = coords_2d[:, 1].astype(float)
+    df[col_proj_x] = coords_2d[:, 0].astype(float)
+    df[col_proj_y] = coords_2d[:, 1].astype(float)
     return df
 
 
@@ -368,31 +406,58 @@ def _strip_urls(text: str) -> str:
     return " ".join(text.split())  # normalise whitespace
 
 
-def generate_cluster_labels(df: pd.DataFrame) -> str:
+def generate_cluster_labels(df: pd.DataFrame, model_name: str = "specter2") -> str:
     """
-    Cluster the 2D projection with HDBSCAN, then use Claude Haiku to generate
-    a concise, meaningful label for each cluster. Writes a labels.parquet file
-    and returns its path for the --labels CLI flag.
+    Cluster papers with HDBSCAN then use Claude Haiku to generate a concise,
+    meaningful label for each cluster. Writes a labels.parquet file and returns
+    its path for the --labels CLI flag.
 
     LABELING STRATEGY
     -----------------
-    Input:  Full abstracts (not titles). Abstracts contain the methodology
-            vocabulary that explains *why* SPECTER2 grouped papers together.
+    Input:  Full abstracts. Abstracts contain the vocabulary that explains
+            *why* papers were grouped together by the embedding model.
 
     Model:  claude-haiku-4-5 — fast and cheap. At ~20 clusters × ~8 abstracts
             per call, a full build costs well under $0.01.
 
-    Prompt: Focused on the *citation thread* — the shared intellectual reason
-            a researcher in this domain would cite these papers together.
-            Asks for 3-6 words capturing methodology or framing, not just topic.
+    Prompt: Asks for 3-6 words capturing the shared methodology or framing.
+            For SPECTER2: focuses on citation thread.
+            For SBERT: focuses on shared research topic/approach.
 
     Requires: ANTHROPIC_API_KEY environment variable. Add to GitHub repo secrets
               as ANTHROPIC_API_KEY, then expose in the workflow YAML:
                 env:
                   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+    Args:
+        df:         Full paper dataframe with projection columns populated.
+        model_name: "specter2" or "sbert" — selects which column set to read.
     """
     import anthropic
     from sklearn.cluster import HDBSCAN
+
+    # ── Column names per model (must match embed_and_project) ───────────
+    if model_name == "specter2":
+        col_embed_50d = "embedding_50d"
+        col_proj_x    = "projection_x"
+        col_proj_y    = "projection_y"
+        prompt_framing = (
+            "Papers in the same cluster were grouped because researchers in "
+            "the same domain tend to cite them together — they share a "
+            "methodology, theoretical framework, or problem formulation even "
+            "if their surface topics differ. Capture the shared citation thread."
+        )
+    elif model_name == "sbert":
+        col_embed_50d = "embedding_sbert_50d"
+        col_proj_x    = "projection_sbert_x"
+        col_proj_y    = "projection_sbert_y"
+        prompt_framing = (
+            "Papers in the same cluster were grouped by semantic similarity — "
+            "they share a common research topic, approach, or application domain. "
+            "Capture the shared topic or methodology concisely."
+        )
+    else:
+        raise ValueError(f"Unknown model_name: '{model_name}'")
 
     api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     if not api_key:
@@ -402,7 +467,7 @@ def generate_cluster_labels(df: pd.DataFrame) -> str:
         )
 
     client = anthropic.Anthropic(api_key=api_key)
-    print("  Generating Claude Haiku cluster labels...")
+    print(f"  Generating Claude Haiku cluster labels (embedding model: {model_name.upper()})...")
 
     # ── How many abstracts to send per cluster ───────────────────────────
     # ABSTRACTS_PER_LABEL: number of abstracts sampled per cluster for the
@@ -416,38 +481,17 @@ def generate_cluster_labels(df: pd.DataFrame) -> str:
     ABSTRACT_CHAR_LIMIT = 450
 
     # 2D coords used for label centroid placement.
-    coords_2d = df[["projection_x", "projection_y"]].values.astype(np.float64)
+    coords_2d = df[[col_proj_x, col_proj_y]].values.astype(np.float64)
 
     # ── Clustering input: 50D cosine space ──────────────────────────────
-    # CURRENT APPROACH: cluster on the 50D UMAP projection (stored in
-    # embedding_50d) using cosine metric. This is far more semantically
-    # accurate than clustering on 2D display coords, which lose structure
-    # during the final compression step.
-    #
-    # ALTERNATIVE A — cluster on raw 768D SPECTER2 vectors:
-    #   More faithful to the original embedding space but slower and
-    #   HDBSCAN struggles with very high dimensions (curse of dimensionality).
-    #   Use 50D as a middle ground (current approach) unless you have
-    #   a strong reason to use the full vectors.
-    #   To enable: replace the embedding_50d block below with:
-    #     all_vectors = np.array(df["embedding"].tolist(), dtype=np.float32)
-    #     cluster_input = all_vectors
-    #     cluster_metric = "cosine"
-    #
-    # ALTERNATIVE B — cluster on 2D display coords (original approach):
-    #   Simple but lossy. Fine for small corpora but misses structure
-    #   compressed away during the 768D → 2D projection.
-    #   To enable: replace the block below with:
-    #     cluster_input = coords_2d
-    #     cluster_metric = "euclidean"
-    if "embedding_50d" in df.columns and df["embedding_50d"].notna().all():
-        cluster_input = np.array(df["embedding_50d"].tolist(), dtype=np.float32)
+    if col_embed_50d in df.columns and df[col_embed_50d].notna().all():
+        cluster_input = np.array(df[col_embed_50d].tolist(), dtype=np.float32)
         cluster_metric = "cosine"
-        print("  Clustering on 50D cosine space (high-fidelity).")
+        print(f"  Clustering on 50D cosine space ({model_name.upper()}).")
     else:
         cluster_input = coords_2d
         cluster_metric = "euclidean"
-        print("  Clustering on 2D coords (fallback — embedding_50d not available).")
+        print(f"  Clustering on 2D coords (fallback — {col_embed_50d} not available).")
 
     # ════════════════════════════════════════════════════════════════════
     # HDBSCAN SETTINGS — all changes take effect on the next build.
@@ -493,15 +537,10 @@ def generate_cluster_labels(df: pd.DataFrame) -> str:
     # rather than just naming the broadest topic. This surfaces SPECTER2's
     # citation-graph groupings as human-readable explanations.
     SYSTEM_PROMPT = (
-        "You are a research cartographer labeling clusters of AI papers "
-        "grouped by a citation-aware embedding model (SPECTER2). Papers in "
-        "the same cluster were grouped because researchers in the same domain "
-        "tend to cite them together — they may share a methodology, theoretical "
-        "framework, problem formulation, or application domain even if their "
-        "surface topics differ.\n\n"
-        "Your task: read the abstracts and return a single label of 3–6 words "
-        "that captures the shared intellectual thread — the reason a researcher "
-        "would cite multiple papers from this group together.\n\n"
+        "You are a research cartographer labeling clusters of AI papers. "
+        + prompt_framing
+        + "\n\nYour task: read the abstracts and return a single label of 3–6 words "
+        "that captures the shared intellectual thread.\n\n"
         "Rules:\n"
         "- Focus on methodology or framing, not just topic keywords.\n"
         "- Prefer noun phrases: 'Sparse Reward Policy Learning' not 'Papers About RL'.\n"
@@ -884,9 +923,9 @@ if __name__ == "__main__":
     # Embed & project (incremental mode only)
     labels_path = None
     if EMBEDDING_MODE == "incremental":
-        print("  Incremental mode: embedding new papers only.")
-        df = embed_and_project(df)
-        labels_path = generate_cluster_labels(df)
+        print(f"  Incremental mode: embedding new papers only ({EMBEDDING_MODEL.upper()}).")
+        df = embed_and_project(df, model_name=EMBEDDING_MODEL)
+        labels_path = generate_cluster_labels(df, model_name=EMBEDDING_MODEL)
 
     # Save rolling DB
     # Full mode: drop projection columns so CLI always recomputes a fresh layout.
@@ -908,7 +947,15 @@ if __name__ == "__main__":
     # Clear docs immediately before the build so the site is never left broken
     # if an earlier step fails or exits early (e.g. empty arXiv on weekends).
     clear_docs_contents("docs")
-    print(f"  Building atlas ({EMBEDDING_MODE} mode)...")
+    print(f"  Building atlas ({EMBEDDING_MODE} mode, {EMBEDDING_MODEL.upper()})...")
+
+    # Select the right projection columns for the Atlas CLI.
+    if EMBEDDING_MODEL == "sbert":
+        proj_x_col = "projection_sbert_x"
+        proj_y_col = "projection_sbert_y"
+    else:
+        proj_x_col = "projection_x"
+        proj_y_col = "projection_y"
 
     if EMBEDDING_MODE == "incremental":
         # Incremental mode: embeddings are pre-computed via --x/--y.
@@ -917,8 +964,8 @@ if __name__ == "__main__":
         # automatic TF-IDF labels that would override our Haiku labels.
         atlas_cmd = [
             "embedding-atlas", DB_PATH,
-            "--x",          "projection_x",
-            "--y",          "projection_y",
+            "--x",          proj_x_col,
+            "--y",          proj_y_col,
             "--labels",     labels_path,
             "--export-application", "site.zip",
         ]
