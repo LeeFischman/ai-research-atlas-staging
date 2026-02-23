@@ -544,16 +544,23 @@ def build_and_deploy_atlas(
         print(f"  {config_path} not found — skipping config override.")
 
     # ── Panel HTML injection ───────────────────────────────────────────────
+    # Font <link> tags go in <head> to avoid FOUT (flash of unstyled text).
+    # Panel HTML (styles, scripts, DOM) goes before </body>.
     index_file = os.path.join(docs_dir, "index.html")
     if os.path.exists(index_file):
-        panel_html = build_panel_html(run_date)
+        font_html, panel_html = build_panel_html(run_date)
         with open(index_file, "r", encoding="utf-8") as f:
             content = f.read()
-        content = (
-            content.replace("</body>", panel_html + "\n</body>")
-            if "</body>" in content
-            else content + panel_html
-        )
+        # Inject font preconnects/stylesheet into <head>
+        if "</head>" in content:
+            content = content.replace("</head>", font_html + "\n</head>")
+        else:
+            content = font_html + "\n" + content
+        # Inject panel DOM + CSS + JS before </body>
+        if "</body>" in content:
+            content = content.replace("</body>", panel_html + "\n</body>")
+        else:
+            content += panel_html
         with open(index_file, "w", encoding="utf-8") as f:
             f.write(content)
         print("  Info panel injected into index.html.")
@@ -567,12 +574,21 @@ def build_and_deploy_atlas(
 # §8  HTML PANELS
 # ══════════════════════════════════════════════════════════════════════════════
 
-def build_panel_html(run_date: str) -> str:
-    return (
+def build_panel_html(run_date: str) -> tuple[str, str]:
+    """Return (font_html, panel_html).
+
+    font_html  — <link> preconnect + stylesheet tags, injected into <head>
+                 so the browser can start the font download before rendering,
+                 eliminating the flash of unstyled text (FOUT).
+    panel_html — CSS, JS, and panel DOM, injected before </body>.
+    """
+    font_html = (
+        '''<link rel="preconnect" href="https://fonts.googleapis.com">'''
+        '''<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'''
+        '''<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">'''
+    )
+    panel_html = (
         """
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --arm-font: 'Inter', system-ui, -apple-system, sans-serif;
@@ -658,6 +674,8 @@ def build_panel_html(run_date: str) -> str:
   }
   .arm-tile:hover { background:rgba(96,165,250,0.07); border-color:rgba(96,165,250,0.3); }
   .arm-tile:hover .arm-tile-label { color:#e2e8f0; }
+  .arm-tile.arm-tile-active { background:rgba(96,165,250,0.12); border-color:rgba(96,165,250,0.4); }
+  .arm-tile.arm-tile-active .arm-tile-label { color:#93c5fd; }
   .arm-tile-icon { flex-shrink:0; width:18px; height:18px; color:#64748b; display:flex; align-items:center; justify-content:center; }
   .arm-tile-text { display:flex; flex-direction:column; gap:1px; }
   .arm-tile-label { font-size:12px; font-weight:600; color:#cbd5e1; line-height:1.3; transition:color 0.15s; }
@@ -680,6 +698,56 @@ def build_panel_html(run_date: str) -> str:
     document.getElementById(panelId).classList.remove('arm-open');
     document.getElementById(tabId).classList.remove('arm-active');
     document.querySelectorAll('.arm-tab').forEach(function(t) { t.style.display = ''; });
+  }
+
+  // ── Shortcut color-by handler ─────────────────────────────────────────────
+  // The Atlas is a Svelte web component. We find it by tag name, then set its
+  // colorBy property directly. Svelte components expose reactive props as
+  // direct JS properties on the element. We also try dispatching a custom event
+  // as a fallback in case the Atlas version uses event-driven state.
+  function armSetColor(columnName) {
+    // Close the shortcuts panel
+    armClose('arm-shortcuts-panel', 'arm-shortcuts-tab');
+
+    // Try multiple strategies to set the color dimension
+    var selectors = ['embedding-atlas', '[data-component="embedding-atlas"]', 'canvas'];
+    var el = null;
+    for (var i = 0; i < selectors.length; i++) {
+      el = document.querySelector(selectors[i]);
+      if (el) break;
+    }
+
+    if (!el) {
+      // Last resort: walk the shadow DOM of any custom elements
+      document.querySelectorAll('*').forEach(function(node) {
+        if (node.shadowRoot && !el) {
+          var inner = node.shadowRoot.querySelector('canvas');
+          if (inner) el = node;
+        }
+      });
+    }
+
+    if (el) {
+      // Strategy 1: direct property (Svelte component prop)
+      try { el.colorBy = columnName; } catch(e) {}
+      try { el.color_by = columnName; } catch(e) {}
+      // Strategy 2: setAttribute (web component attribute)
+      try { el.setAttribute('color-by', columnName); } catch(e) {}
+      try { el.setAttribute('colorBy', columnName); } catch(e) {}
+      // Strategy 3: dispatch custom event
+      try {
+        el.dispatchEvent(new CustomEvent('set-color-by',
+          { detail: { column: columnName }, bubbles: true, composed: true }));
+      } catch(e) {}
+    }
+
+    // Highlight the active tile
+    document.querySelectorAll('.arm-tile').forEach(function(t) {
+      t.classList.remove('arm-tile-active');
+    });
+    if (event && event.currentTarget) {
+      event.currentTarget.classList.add('arm-tile-active');
+    }
   }
 </script>
 
@@ -704,17 +772,17 @@ def build_panel_html(run_date: str) -> str:
     </div>
     <p class="arm-sc-intro">Click a tile to see points colored by</p>
 
-    <a class="arm-tile" href="#">
+    <a class="arm-tile" onclick="armSetColor('Reputation')" href="javascript:void(0)">
       <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="9,2 11.1,6.6 16.2,7.3 12.6,10.7 13.5,15.8 9,13.4 4.5,15.8 5.4,10.7 1.8,7.3 6.9,6.6"/></svg></span>
-      <span class="arm-tile-text"><span class="arm-tile-label">Reputation score</span></span>
+      <span class="arm-tile-text"><span class="arm-tile-label">Reputation score</span><span class="arm-tile-sub">Institution &amp; open-source signals</span></span>
     </a>
 
-    <a class="arm-tile" href="#">
+    <a class="arm-tile" onclick="armSetColor('author_count')" href="javascript:void(0)">
       <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="6" r="2.5"/><path d="M1 16c0-3.3 2.5-5 5.5-5"/><circle cx="13" cy="6" r="2.5"/><path d="M17 16c0-3.3-2.5-5-5.5-5"/><path d="M10 16c0-2.8-1.8-4.5-4-4.5"/></svg></span>
       <span class="arm-tile-text"><span class="arm-tile-label">Author count</span><span class="arm-tile-sub">More authors tends to be better</span></span>
     </a>
 
-    <a class="arm-tile" href="#">
+    <a class="arm-tile" onclick="armSetColor('author_tier')" href="javascript:void(0)">
       <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5L9 4l5 4.5"/><path d="M5.5 8v5.5h7V8"/><path d="M7 13.5v-3h4v3"/><path d="M3 8.5h12"/></svg></span>
       <span class="arm-tile-text"><span class="arm-tile-label">Author seniority</span><span class="arm-tile-sub">Highlights established researchers</span></span>
     </a>
@@ -766,3 +834,4 @@ def build_panel_html(run_date: str) -> str:
 </div>
 """
     )
+    return font_html, panel_html
