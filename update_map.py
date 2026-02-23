@@ -38,15 +38,38 @@ EMBEDDING_MODE = os.environ.get("EMBEDDING_MODE", "incremental").strip().lower()
 # "sbert"    — all-mpnet-base-v2. Groups by surface semantic similarity.
 #              Columns: embedding_sbert, embedding_sbert_50d,
 #                       projection_sbert_x, projection_sbert_y.
-# Both column sets coexist in database.parquet — switching models does NOT
-# drop or overwrite the other model's vectors. Switching back is a one-line
+# "hybrid"   — Blends SPECTER2 + SBERT + TF-IDF distance matrices, then
+#              runs UMAP on the blended matrix. Both model's vectors are
+#              embedded incrementally and stored separately. Projection
+#              written to projection_hybrid_x, projection_hybrid_y.
+#              Weights controlled by HYBRID_WEIGHT_* env vars below.
+# All column sets coexist in database.parquet — switching is a one-line
 # env change with no re-embedding required.
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "specter2").strip().lower()
-if EMBEDDING_MODEL not in ("specter2", "sbert"):
-    raise ValueError(f"EMBEDDING_MODEL must be 'specter2' or 'sbert', got: '{EMBEDDING_MODEL}'")
+if EMBEDDING_MODEL not in ("specter2", "sbert", "hybrid"):
+    raise ValueError(f"EMBEDDING_MODEL must be 'specter2', 'sbert', or 'hybrid', got: '{EMBEDDING_MODEL}'")
+
+# ── Hybrid blend weights ──────────────────────────────────────────────────
+# Only used when EMBEDDING_MODEL=hybrid. Weights are auto-normalised so they
+# don't need to sum to 1.0. Set HYBRID_WEIGHT_SBERT=0.0 to exclude SBERT.
+#
+# HYBRID_WEIGHT_SPECTER2 — citation-graph proximity. Groups by who cites whom.
+# HYBRID_WEIGHT_SBERT    — surface semantic similarity. Groups by topic.
+#                          Set > 0.0 to enable; requires SBERT vectors (already
+#                          in the parquet from the earlier SBERT build run).
+# HYBRID_WEIGHT_TFIDF    — term frequency overlap. Grounds clusters in shared
+#                          vocabulary. Cheap: computed fresh each run.
+HYBRID_WEIGHT_SPECTER2 = 0.75
+HYBRID_WEIGHT_SBERT    = 0.0
+HYBRID_WEIGHT_TFIDF    = 0.25
 
 print(f"▶  Embedding mode  : {EMBEDDING_MODE.upper()}")
 print(f"▶  Embedding model : {EMBEDDING_MODEL.upper()}")
+if EMBEDDING_MODEL == "hybrid":
+    total = HYBRID_WEIGHT_SPECTER2 + HYBRID_WEIGHT_SBERT + HYBRID_WEIGHT_TFIDF
+    print(f"▶  Hybrid weights  : SPECTER2={HYBRID_WEIGHT_SPECTER2/total:.2f}  "
+          f"SBERT={HYBRID_WEIGHT_SBERT/total:.2f}  "
+          f"TF-IDF={HYBRID_WEIGHT_TFIDF/total:.2f}  (normalised)")
 
 
 # ──────────────────────────────────────────────
@@ -368,7 +391,185 @@ def embed_and_project(df: pd.DataFrame, model_name: str = "specter2") -> pd.Data
 
 
 # ──────────────────────────────────────────────
-# 7. CLUSTER LABEL GENERATION
+# 6b. HYBRID DISTANCE MATRIX + PROJECTION
+#     Blends SPECTER2, SBERT, and TF-IDF cosine distances into a single
+#     weighted distance matrix, then runs UMAP on it to produce a layout
+#     that reflects all three signals simultaneously.
+# ──────────────────────────────────────────────
+def compute_hybrid_distances(
+    df: pd.DataFrame,
+    w_specter2: float = 0.75,
+    w_sbert: float    = 0.0,
+    w_tfidf: float    = 0.25,
+) -> np.ndarray:
+    """
+    Build a normalised hybrid distance matrix from up to three sources:
+
+      SPECTER2  — cosine distances between 768D SPECTER2 vectors.
+                  Captures citation-graph proximity.
+      SBERT     — cosine distances between 768D SBERT vectors.
+                  Captures surface semantic similarity.
+      TF-IDF    — cosine distances between TF-IDF abstract vectors.
+                  Captures shared vocabulary / terminology.
+
+    Each source is independently normalised to [0, 1] before blending so
+    that no single source dominates due to scale differences. Weights are
+    also normalised to sum to 1.0 so the output is always in [0, 1].
+
+    Returns:
+        dist_matrix (np.ndarray, shape [n, n], float32): symmetric distance
+        matrix suitable for UMAP(metric="precomputed") and
+        HDBSCAN(metric="precomputed").
+    """
+    from sklearn.metrics.pairwise import cosine_distances
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.preprocessing import normalize as sk_normalize
+
+    n = len(df)
+    total_w = w_specter2 + w_sbert + w_tfidf
+    if total_w == 0:
+        raise ValueError("At least one hybrid weight must be > 0.")
+    w_specter2 /= total_w
+    w_sbert    /= total_w
+    w_tfidf    /= total_w
+
+    dist = np.zeros((n, n), dtype=np.float32)
+
+    def _normalise_dist(d: np.ndarray) -> np.ndarray:
+        """Scale a distance matrix to [0, 1] by its max value."""
+        max_val = d.max()
+        return (d / max_val).astype(np.float32) if max_val > 0 else d.astype(np.float32)
+
+    if w_specter2 > 0:
+        if "embedding" not in df.columns or df["embedding"].isna().any():
+            raise RuntimeError(
+                "SPECTER2 vectors missing — run embed_and_project(model_name='specter2') first."
+            )
+        vecs = np.array(df["embedding"].tolist(), dtype=np.float32)
+        vecs = sk_normalize(vecs)          # unit-normalise for cosine
+        d = cosine_distances(vecs).astype(np.float32)
+        dist += w_specter2 * _normalise_dist(d)
+        print(f"  Hybrid: added SPECTER2 component (w={w_specter2:.2f}).")
+
+    if w_sbert > 0:
+        if "embedding_sbert" not in df.columns or df["embedding_sbert"].isna().any():
+            raise RuntimeError(
+                "SBERT vectors missing — run embed_and_project(model_name='sbert') first."
+            )
+        vecs = np.array(df["embedding_sbert"].tolist(), dtype=np.float32)
+        vecs = sk_normalize(vecs)
+        d = cosine_distances(vecs).astype(np.float32)
+        dist += w_sbert * _normalise_dist(d)
+        print(f"  Hybrid: added SBERT component (w={w_sbert:.2f}).")
+
+    if w_tfidf > 0:
+        # TF-IDF on cleaned abstracts — strips URLs/citation keys first.
+        texts = df["abstract"].apply(_strip_urls).tolist()
+        tfidf = TfidfVectorizer(
+            max_features=20_000,
+            sublinear_tf=True,
+            min_df=2,
+            ngram_range=(1, 2),
+        )
+        tfidf_matrix = tfidf.fit_transform(texts)
+        d = cosine_distances(tfidf_matrix).astype(np.float32)
+        dist += w_tfidf * _normalise_dist(d)
+        print(f"  Hybrid: added TF-IDF component (w={w_tfidf:.2f}).")
+
+    # Ensure exact symmetry and zero diagonal (floating point can drift).
+    dist = (dist + dist.T) / 2
+    np.fill_diagonal(dist, 0.0)
+    print(f"  Hybrid distance matrix: shape={dist.shape}, "
+          f"min={dist.min():.4f}, max={dist.max():.4f}, mean={dist.mean():.4f}.")
+    return dist
+
+
+def embed_and_project_hybrid(
+    df: pd.DataFrame,
+    w_specter2: float = 0.75,
+    w_sbert: float    = 0.0,
+    w_tfidf: float    = 0.25,
+) -> tuple[pd.DataFrame, np.ndarray]:
+    """
+    Ensure both SPECTER2 and SBERT vectors exist (embedding incrementally
+    as needed), then build the hybrid distance matrix and project it to 2D
+    with UMAP(metric="precomputed"). Writes projection_hybrid_x/y to df.
+
+    Returns:
+        df            — updated dataframe with projection_hybrid_x/y columns.
+        dist_matrix   — the full hybrid distance matrix (n × n), returned
+                        so generate_cluster_labels can reuse it without
+                        recomputing.
+    """
+    import umap as umap_lib
+
+    # Embed with each model that has a non-zero weight.
+    # _embed_only handles incremental logic — only new papers get embedded.
+    if w_specter2 > 0:
+        print("  Hybrid: ensuring SPECTER2 vectors...")
+        df = _embed_only(df, model_name="specter2")
+    if w_sbert > 0:
+        print("  Hybrid: ensuring SBERT vectors...")
+        df = _embed_only(df, model_name="sbert")
+
+    dist = compute_hybrid_distances(df, w_specter2=w_specter2,
+                                    w_sbert=w_sbert, w_tfidf=w_tfidf)
+
+    n = len(df)
+    print(f"  Projecting {n} papers with UMAP on hybrid distance matrix...")
+    reducer = umap_lib.UMAP(
+        n_components=2,
+        metric="precomputed",
+        random_state=42,
+        n_neighbors=min(15, n - 1),
+        min_dist=0.1,
+    )
+    coords_2d = reducer.fit_transform(dist)
+    df["projection_hybrid_x"] = coords_2d[:, 0].astype(float)
+    df["projection_hybrid_y"] = coords_2d[:, 1].astype(float)
+    print("  Hybrid projection written to projection_hybrid_x / projection_hybrid_y.")
+    return df, dist
+
+
+def _embed_only(df: pd.DataFrame, model_name: str) -> pd.DataFrame:
+    """
+    Embed papers missing vectors for the given model without running UMAP.
+    Used by hybrid mode to populate vector columns before distance blending.
+    UMAP for individual models (projection_x/y, projection_sbert_x/y) is
+    NOT run in hybrid mode — only the hybrid projection is computed.
+    """
+    from sentence_transformers import SentenceTransformer
+
+    if model_name == "specter2":
+        hf_model_id = "allenai/specter2_base"
+        col_embed   = "embedding"
+        text_col    = "text"
+    elif model_name == "sbert":
+        hf_model_id = "sentence-transformers/all-mpnet-base-v2"
+        col_embed   = "embedding_sbert"
+        text_col    = "abstract"
+    else:
+        raise ValueError(f"Unknown model_name: '{model_name}'")
+
+    if col_embed in df.columns:
+        needs_embed = df[col_embed].isna()
+    else:
+        df[col_embed] = None
+        needs_embed = pd.Series([True] * len(df))
+
+    n_new = needs_embed.sum()
+    if n_new:
+        print(f"  Embedding {n_new} new paper(s) with {model_name.upper()}...")
+        model   = SentenceTransformer(hf_model_id)
+        idx     = df.index[needs_embed].tolist()
+        texts   = df.loc[idx, text_col].tolist()
+        vectors = model.encode(texts, show_progress_bar=True, batch_size=16,
+                               convert_to_numpy=True)
+        for i, pos in enumerate(idx):
+            df.at[pos, col_embed] = vectors[i].tolist()
+    else:
+        print(f"  All papers already embedded with {model_name.upper()} — skipping.")
+    return df
 #
 # CURRENT APPROACH: Claude Haiku (Option 2)
 #   Sends up to 8 abstracts per cluster to claude-haiku-4-5 and asks for
@@ -406,41 +607,34 @@ def _strip_urls(text: str) -> str:
     return " ".join(text.split())  # normalise whitespace
 
 
-def generate_cluster_labels(df: pd.DataFrame, model_name: str = "specter2") -> str:
+def generate_cluster_labels(
+    df: pd.DataFrame,
+    model_name: str = "specter2",
+    precomputed_dist: np.ndarray | None = None,
+) -> str:
     """
     Cluster papers with HDBSCAN then use Claude Haiku to generate a concise,
     meaningful label for each cluster. Writes a labels.parquet file and returns
     its path for the --labels CLI flag.
 
-    LABELING STRATEGY
-    -----------------
-    Input:  Full abstracts. Abstracts contain the vocabulary that explains
-            *why* papers were grouped together by the embedding model.
-
-    Model:  claude-haiku-4-5 — fast and cheap. At ~20 clusters × ~8 abstracts
-            per call, a full build costs well under $0.01.
-
-    Prompt: Asks for 3-6 words capturing the shared methodology or framing.
-            For SPECTER2: focuses on citation thread.
-            For SBERT: focuses on shared research topic/approach.
-
-    Requires: ANTHROPIC_API_KEY environment variable. Add to GitHub repo secrets
-              as ANTHROPIC_API_KEY, then expose in the workflow YAML:
-                env:
-                  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-
     Args:
-        df:         Full paper dataframe with projection columns populated.
-        model_name: "specter2" or "sbert" — selects which column set to read.
+        df:               Full paper dataframe with projection columns populated.
+        model_name:       "specter2", "sbert", or "hybrid" — selects which
+                          column set to read for 2D coords and (if
+                          precomputed_dist is None) for clustering input.
+        precomputed_dist: Optional precomputed n×n distance matrix. When
+                          provided, HDBSCAN uses metric="precomputed" on it
+                          directly. Pass the matrix returned by
+                          embed_and_project_hybrid() to avoid recomputing.
     """
     import anthropic
     from sklearn.cluster import HDBSCAN
 
-    # ── Column names per model (must match embed_and_project) ───────────
-    if model_name == "specter2":
+    # ── Column names per model ───────────────────────────────────────────
+    if model_name in ("specter2", "hybrid"):
         col_embed_50d = "embedding_50d"
-        col_proj_x    = "projection_x"
-        col_proj_y    = "projection_y"
+        col_proj_x    = "projection_hybrid_x" if model_name == "hybrid" else "projection_x"
+        col_proj_y    = "projection_hybrid_y" if model_name == "hybrid" else "projection_y"
         prompt_framing = (
             "Papers in the same cluster were grouped because researchers in "
             "the same domain tend to cite them together — they share a "
@@ -483,13 +677,20 @@ def generate_cluster_labels(df: pd.DataFrame, model_name: str = "specter2") -> s
     # 2D coords used for label centroid placement.
     coords_2d = df[[col_proj_x, col_proj_y]].values.astype(np.float64)
 
-    # ── Clustering input: 50D cosine space ──────────────────────────────
-    if col_embed_50d in df.columns and df[col_embed_50d].notna().all():
-        cluster_input = np.array(df[col_embed_50d].tolist(), dtype=np.float32)
+    # ── Clustering input ─────────────────────────────────────────────────
+    # Priority: precomputed distance matrix > 50D embedding column > 2D fallback.
+    # Hybrid mode passes precomputed_dist so HDBSCAN sees the blended distances
+    # directly. Single-model modes cluster on the 50D column.
+    if precomputed_dist is not None:
+        cluster_input  = precomputed_dist
+        cluster_metric = "precomputed"
+        print(f"  Clustering on precomputed hybrid distance matrix.")
+    elif col_embed_50d in df.columns and df[col_embed_50d].notna().all():
+        cluster_input  = np.array(df[col_embed_50d].tolist(), dtype=np.float32)
         cluster_metric = "cosine"
         print(f"  Clustering on 50D cosine space ({model_name.upper()}).")
     else:
-        cluster_input = coords_2d
+        cluster_input  = coords_2d
         cluster_metric = "euclidean"
         print(f"  Clustering on 2D coords (fallback — {col_embed_50d} not available).")
 
@@ -921,11 +1122,25 @@ if __name__ == "__main__":
             )
 
     # Embed & project (incremental mode only)
-    labels_path = None
+    labels_path      = None
+    precomputed_dist = None
     if EMBEDDING_MODE == "incremental":
-        print(f"  Incremental mode: embedding new papers only ({EMBEDDING_MODEL.upper()}).")
-        df = embed_and_project(df, model_name=EMBEDDING_MODEL)
-        labels_path = generate_cluster_labels(df, model_name=EMBEDDING_MODEL)
+        if EMBEDDING_MODEL == "hybrid":
+            print(f"  Incremental mode: hybrid embedding (SPECTER2 + SBERT + TF-IDF).")
+            df, precomputed_dist = embed_and_project_hybrid(
+                df,
+                w_specter2=HYBRID_WEIGHT_SPECTER2,
+                w_sbert=HYBRID_WEIGHT_SBERT,
+                w_tfidf=HYBRID_WEIGHT_TFIDF,
+            )
+        else:
+            print(f"  Incremental mode: embedding new papers only ({EMBEDDING_MODEL.upper()}).")
+            df = embed_and_project(df, model_name=EMBEDDING_MODEL)
+        labels_path = generate_cluster_labels(
+            df,
+            model_name=EMBEDDING_MODEL,
+            precomputed_dist=precomputed_dist,
+        )
 
     # Save rolling DB
     # Full mode: drop projection columns so CLI always recomputes a fresh layout.
@@ -953,6 +1168,9 @@ if __name__ == "__main__":
     if EMBEDDING_MODEL == "sbert":
         proj_x_col = "projection_sbert_x"
         proj_y_col = "projection_sbert_y"
+    elif EMBEDDING_MODEL == "hybrid":
+        proj_x_col = "projection_hybrid_x"
+        proj_y_col = "projection_hybrid_y"
     else:
         proj_x_col = "projection_x"
         proj_y_col = "projection_y"
