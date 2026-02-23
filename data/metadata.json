@@ -9,127 +9,127 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 0.0947829549578626,
-                "y": -0.052739330591920486,
+                "x": -0.11007986632772433,
+                "y": -1.1338094654084343,
                 "text": "Time Series Forecasting And Prediction",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.4738667024738255,
-                "y": 0.858762802722781,
+                "x": -2.1125560848179568,
+                "y": -0.4731114460685067,
                 "text": "Llm Agent Benchmarking And Evaluation",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.2314237304535884,
-                "y": -0.0268034896675808,
+                "x": 0.8873469060043998,
+                "y": -0.375921895214227,
                 "text": "Multimodal Foundation Models",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.6917453225645731,
-                "y": 0.02958810781426635,
+                "x": 0.5925938548064171,
+                "y": 0.8926462611492161,
                 "text": "Information Retrieval Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.9017021606849007,
-                "y": 0.17495141313111512,
+                "x": 1.0082394351902582,
+                "y": -1.0798855635107438,
                 "text": "Generative Models For Molecular Design",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.7571907230611582,
-                "y": -1.3275155401954035,
+                "x": -1.2693515492316563,
+                "y": -1.1708190006481325,
                 "text": "Llm Safety And Alignment",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.21179517270311157,
-                "y": 2.317500647688889,
+                "x": 1.4898011805375024,
+                "y": 2.0859668204316155,
                 "text": "Embodied Agent Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.333209031841604,
-                "y": -2.101074171242275,
+                "x": -1.4774237888238857,
+                "y": -2.106153107126599,
                 "text": "Model Scaling And Efficiency",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.8852525731003762,
-                "y": 2.778689818769696,
+                "x": -0.5022889557549195,
+                "y": 1.9519976552952822,
                 "text": "Memory And Planning In Agents",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.7295868625112337,
-                "y": 2.567244192831189,
+                "x": 0.2644371070186352,
+                "y": 2.2652366007820595,
                 "text": "Multi-Agent Coordination And Safety",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.898945815793509,
-                "y": -1.3033045441926157,
+                "x": -1.361001818200374,
+                "y": 0.7963575584880815,
                 "text": "Representational Learning Analysis",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.7921476701128152,
-                "y": -2.5647122225067727,
+                "x": 0.5495032102196297,
+                "y": -2.530567286260274,
                 "text": "Model Quantization And Compression",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.342960848430351,
-                "y": -0.8116058038198507,
+                "x": -2.53726050158969,
+                "y": 0.27915967234906625,
                 "text": "Natural Language Understanding Tasks",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.1777616444836254,
-                "y": 1.498924928712031,
+                "x": 2.276598351869171,
+                "y": 0.7814628703176056,
                 "text": "Geometric Deep Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.8596577901684673,
-                "y": 0.6348912402696348,
+                "x": -0.313640214662388,
+                "y": 0.2508504984121291,
                 "text": "Reinforcement Learning With Verifiable Rewards",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.4313843455517286,
-                "y": 0.684897192793659,
+                "x": -1.7806517870761067,
+                "y": 1.8603200037202514,
                 "text": "Scientific Discovery With Ai",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.9957885498938275,
-                "y": -1.150621053710696,
+                "x": 1.860479325994204,
+                "y": -1.6278883421801194,
                 "text": "Medical Image Understanding",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.3604484460233386,
-                "y": -0.09869705693231844,
+                "x": 2.514787863601678,
+                "y": -0.2838720173613701,
                 "text": "Graph Neural Networks",
                 "level": 0,
                 "priority": 10
