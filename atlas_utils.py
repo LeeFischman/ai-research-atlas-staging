@@ -221,10 +221,13 @@ def calculate_reputation(row) -> str:
 # §4  ROLLING DATABASE
 # ══════════════════════════════════════════════════════════════════════════════
 
-def load_existing_db(db_path: str = DB_PATH) -> pd.DataFrame:
+def load_existing_db(db_path: str = DB_PATH, bypass_pruning: bool = False) -> pd.DataFrame:
     if not os.path.exists(db_path):
         return pd.DataFrame()
     df = pd.read_parquet(db_path)
+    if bypass_pruning:
+        print(f"  Loaded {len(df)} papers (retention pruning skipped — offline mode).")
+        return df
     if "date_added" not in df.columns:
         print("  Existing DB has no date_added column — starting fresh.")
         return pd.DataFrame()
