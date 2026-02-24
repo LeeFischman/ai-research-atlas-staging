@@ -793,7 +793,7 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     </div>
     <div class="arm-byline">By <a href="https://www.linkedin.com/in/lee-fischman/" target="_blank" rel="noopener">Lee Fischman</a></div>
 
-    <p class="arm-p">A live semantic map of recent AI research from arXiv (cs.AI), rebuilt every day across a rolling 4-day window. Each point is a paper. Groups are determined by Claude Haiku based on shared research methodology and problem formulation.</p>
+    <p class="arm-p">A live semantic map of recent AI research from arXiv (cs.AI), rebuilt every day across a rolling """ + str(RETENTION_DAYS) + """-day window. Each point is a paper. Groups are determined by Claude Haiku based on shared research methodology and problem formulation.</p>
     <p class="arm-p"><a href="https://github.com/LeeFischman/AI-research-atlas" target="_blank" rel="noopener">More...</a></p>
 
     <hr class="arm-divider">
