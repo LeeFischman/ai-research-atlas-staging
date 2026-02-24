@@ -544,8 +544,7 @@ def build_and_deploy_atlas(
         print(f"  {config_path} not found — skipping config override.")
 
     # ── Panel HTML injection ───────────────────────────────────────────────
-    # Font <link> tags go in <head> to prevent FOUT (flash of unstyled text).
-    # Panel CSS/JS/DOM goes before </body>.
+    # font_html (GA + fonts) → <head>; panel_html (CSS/JS/DOM) → before </body>
     index_file = os.path.join(docs_dir, "index.html")
     if os.path.exists(index_file):
         font_html, panel_html = build_panel_html(run_date)
@@ -575,12 +574,16 @@ def build_and_deploy_atlas(
 def build_panel_html(run_date: str) -> tuple[str, str]:
     """Return (font_html, panel_html).
 
-    font_html  — <link> tags injected into <head> to prevent font FOUT.
-    panel_html — CSS, JS, and panel DOM injected before </body>.
+    font_html  — GA4 snippet + font <link> tags, injected into <head>.
+    panel_html — CSS, JS, and panel DOM, injected before </body>.
     """
     font_html = (
-        '<link rel="preconnect" href="https://fonts.googleapis.com">'
-        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+        '<!-- Google tag (gtag.js) -->' +
+        '<script async src="https://www.googletagmanager.com/gtag/js?id=G-6LKWKT8838"></script>' +
+        '<script>window.dataLayer=window.dataLayer||[];' +
+        'function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-6LKWKT8838");</script>' +
+        '<link rel="preconnect" href="https://fonts.googleapis.com">' +
+        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
         '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">'
     )
     panel_html = (
@@ -595,6 +598,21 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     --arm-bg: rgba(15,23,42,0.82);
     --arm-panel-w: 300px;
   }
+
+  /* ── Top title bar ───────────────────────────────────────────────── */
+  #arm-title-bar {
+    position:fixed; top:0; left:50%; transform:translateX(-50%);
+    z-index:1000000;
+    background:rgba(15,23,42,0.82); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border:1px solid var(--arm-border); border-top:none;
+    border-radius:0 0 10px 10px;
+    padding:6px 22px;
+    font-family:var(--arm-font); font-size:15px; font-weight:700;
+    color:#f1f5f9; letter-spacing:-0.01em; line-height:1.3;
+    white-space:nowrap; user-select:none;
+    box-shadow:0 3px 20px rgba(0,0,0,0.4);
+  }
+  #arm-title-bar span { color:var(--arm-accent); }
 
   /* ── Tab strip ───────────────────────────────────────────────────── */
   #arm-tab-strip {
@@ -696,11 +714,8 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     document.querySelectorAll('.arm-tab').forEach(function(t) { t.style.display = ''; });
   }
 
-  // ── Shortcut color-by handler ─────────────────────────────────────────────
-  // Atlas renders a <select> whose options have JSON-quoted values like
-  // '"Reputation"', '"author_count"' etc. We find it by checking which
-  // select contains a Reputation option, set its value via the native setter
-  // (required for Svelte to detect the change), and fire a change event.
+  // Atlas color-by: find the select whose options include Reputation,
+  // set value via native setter (Svelte needs this), fire change event.
   function armSetColor(columnName, tileEl) {
     var colorSelect = Array.from(document.querySelectorAll('select')).find(function(sel) {
       return Array.from(sel.options).some(function(o) { return o.text.includes('Reputation'); });
@@ -717,6 +732,9 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     if (tileEl) { tileEl.classList.add('arm-tile-active'); }
   }
 </script>
+
+<!-- ── Top title bar ──────────────────────────────────────────────── -->
+<div id="arm-title-bar">The <span>AI Research</span> Atlas</div>
 
 <!-- ── Tab strip ──────────────────────────────────────────────────── -->
 <div id="arm-tab-strip">
