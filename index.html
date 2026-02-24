@@ -12,7 +12,7 @@
     </style>
     <script type="module" crossorigin src="./assets/index-BtGntx4N.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-Df_vtN7h.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-6LKWKT8838"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-6LKWKT8838");</script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
   <body>
     <div id="app" class="embedding-atlas-root"></div>
@@ -27,6 +27,21 @@
     --arm-bg: rgba(15,23,42,0.82);
     --arm-panel-w: 300px;
   }
+
+  /* ── Top title bar ───────────────────────────────────────────────── */
+  #arm-title-bar {
+    position:fixed; top:0; left:50%; transform:translateX(-50%);
+    z-index:1000000;
+    background:rgba(15,23,42,0.82); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border:1px solid var(--arm-border); border-top:none;
+    border-radius:0 0 10px 10px;
+    padding:6px 22px;
+    font-family:var(--arm-font); font-size:15px; font-weight:700;
+    color:#f1f5f9; letter-spacing:-0.01em; line-height:1.3;
+    white-space:nowrap; user-select:none;
+    box-shadow:0 3px 20px rgba(0,0,0,0.4);
+  }
+  #arm-title-bar span { color:var(--arm-accent); }
 
   /* ── Tab strip ───────────────────────────────────────────────────── */
   #arm-tab-strip {
@@ -128,11 +143,8 @@
     document.querySelectorAll('.arm-tab').forEach(function(t) { t.style.display = ''; });
   }
 
-  // ── Shortcut color-by handler ─────────────────────────────────────────────
-  // Atlas renders a <select> whose options have JSON-quoted values like
-  // '"Reputation"', '"author_count"' etc. We find it by checking which
-  // select contains a Reputation option, set its value via the native setter
-  // (required for Svelte to detect the change), and fire a change event.
+  // Atlas color-by: find the select whose options include Reputation,
+  // set value via native setter (Svelte needs this), fire change event.
   function armSetColor(columnName, tileEl) {
     var colorSelect = Array.from(document.querySelectorAll('select')).find(function(sel) {
       return Array.from(sel.options).some(function(o) { return o.text.includes('Reputation'); });
@@ -149,6 +161,9 @@
     if (tileEl) { tileEl.classList.add('arm-tile-active'); }
   }
 </script>
+
+<!-- ── Top title bar ──────────────────────────────────────────────── -->
+<div id="arm-title-bar">The <span>AI Research</span> Atlas</div>
 
 <!-- ── Tab strip ──────────────────────────────────────────────────── -->
 <div id="arm-tab-strip">
@@ -189,7 +204,7 @@
   </div>
   <div class="arm-footer">
     <div class="arm-status-dot"></div>
-    <span class="arm-status-text">Last updated <strong>February 23, 2026 UTC</strong></span>
+    <span class="arm-status-text">Last updated <strong>February 24, 2026 UTC</strong></span>
   </div>
 </div>
 
@@ -228,7 +243,7 @@
   </div>
   <div class="arm-footer">
     <div class="arm-status-dot"></div>
-    <span class="arm-status-text">Last updated <strong>February 23, 2026 UTC</strong></span>
+    <span class="arm-status-text">Last updated <strong>February 24, 2026 UTC</strong></span>
   </div>
 </div>
 
