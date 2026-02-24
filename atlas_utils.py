@@ -38,8 +38,8 @@ import pandas as pd
 
 DB_PATH         = "database.parquet"
 STOP_WORDS_PATH = "stop_words.csv"
-RETENTION_DAYS  = 4      # papers older than this are pruned each run
-ARXIV_MAX       = 250    # max papers fetched per arXiv query
+RETENTION_DAYS  = 14      # papers older than this are pruned each run
+ARXIV_MAX       = 400    # max papers fetched per arXiv query
 
 # arXiv retry policy
 BASE_WAIT   = 15
