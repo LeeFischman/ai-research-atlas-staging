@@ -731,10 +731,11 @@ if __name__ == "__main__":
     if OFFLINE_MODE:
         print("\n▶  OFFLINE MODE — loading existing data, skipping all API calls...")
 
-        df = load_existing_db()
+        df = load_existing_db(bypass_pruning=True)
         if df.empty:
             raise RuntimeError(
-                "No database.parquet found. Run once in normal mode first."
+                "database.parquet is empty or missing. "
+                "Run once in normal mode (remove OFFLINE_MODE from the YAML) to populate it."
             )
         if "group_id_v2" not in df.columns:
             raise RuntimeError(
@@ -783,7 +784,7 @@ if __name__ == "__main__":
         print("\n▶  Stage 1 — Loading rolling database...")
         existing_df  = load_existing_db()
         is_first_run = existing_df.empty and not os.path.exists(DB_PATH)
-        days_back    = 5 if is_first_run else 2
+        days_back = 5 if is_first_run else 1
 
         if is_first_run:
             print("  First run — pre-filling with last 5 days of arXiv papers.")
