@@ -139,7 +139,7 @@
   .arm-cp-title:hover { color:var(--arm-accent); text-decoration:underline; }
   .arm-cp-badge { flex-shrink:0; font-size:10px; font-weight:600; color:#fbbf24; background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.25); border-radius:4px; padding:2px 6px; white-space:nowrap; margin-top:2px; }
   .arm-cp-topic { font-size:11px; color:var(--arm-accent); font-weight:500; }
-  .arm-cp-abstract { font-size:11.5px; color:#94a3b8; line-height:1.6; max-height:6.4em; overflow-y:auto; scrollbar-width:thin; scrollbar-color:#334155 transparent; }
+  .arm-cp-abstract { font-size:11.5px; color:#94a3b8; line-height:1.6; max-height:9.6em; overflow-y:auto; scrollbar-width:thin; scrollbar-color:#334155 transparent; }
   .arm-cp-abstract::-webkit-scrollbar { width:4px; }
   .arm-cp-abstract::-webkit-scrollbar-thumb { background:#334155; border-radius:4px; }
   .arm-cp-meta { display:flex; flex-wrap:wrap; gap:8px; }
@@ -239,9 +239,11 @@
     if (left < 8) { left = 8; }
     var top = Math.max(8, rect.top);
 
+    cp.setAttribute('data-pending', '1');
     cp.style.left = left + 'px';
     cp.style.top  = top  + 'px';
     cp.style.display = 'block';
+    setTimeout(function() { cp.setAttribute('data-pending', '0'); }, 100);
 
     // Clamp vertically after rendering so we know the height
     requestAnimationFrame(function() {
@@ -262,24 +264,25 @@
     var root = document.querySelector('.embedding-atlas-root');
     if (!root) { setTimeout(waitForRoot, 300); return; }
     new MutationObserver(function(mutations) {
-      var added = null, removed = false;
       mutations.forEach(function(m) {
         m.addedNodes.forEach(function(node) {
           var popup = findAtlasPopup(node);
-          if (popup) { added = popup; }
+          if (popup) {
+            popup.style.display = 'none';
+            showCP(extractData(popup), popup);
+          }
         });
         m.removedNodes.forEach(function(node) {
-          if (findAtlasPopup(node)) { removed = true; }
+          // Only hide our popup if it's not currently showing a point
+          // (i.e. Atlas closed the popup by clicking elsewhere, not by clicking a new point)
+          if (findAtlasPopup(node) && cp.style.display !== 'none') {
+            // Delay slightly - if a new point is being opened, addedNodes fires next
+            setTimeout(function() {
+              if (cp.getAttribute('data-pending') !== '1') { hideCP(); }
+            }, 50);
+          }
         });
       });
-      // If a new popup was added (click on same or different point), refresh
-      if (added) {
-        added.style.display = 'none';
-        showCP(extractData(added), added);
-      } else if (removed) {
-        // Only hide if no new popup came in the same mutation batch
-        hideCP();
-      }
     }).observe(root, { childList: true, subtree: true });
   }
 
