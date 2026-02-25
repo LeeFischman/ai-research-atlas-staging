@@ -697,6 +697,29 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
   .arm-tile-text { display:flex; flex-direction:column; gap:1px; }
   .arm-tile-label { font-size:12px; font-weight:600; color:#cbd5e1; line-height:1.3; transition:color 0.15s; }
   .arm-tile-sub   { font-size:11px; color:#64748b; line-height:1.3; }
+
+  /* ── Custom point popup ──────────────────────────────────────────── */
+  #arm-cp {
+    position:fixed; z-index:999998; width:320px;
+    background:var(--arm-bg); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border:1px solid var(--arm-border); border-radius:12px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.6);
+    font-family:var(--arm-font); color:#e2e8f0;
+    display:none; overflow:hidden;
+  }
+  .arm-cp-body { padding:16px; display:flex; flex-direction:column; gap:10px; }
+  .arm-cp-title-row { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+  .arm-cp-title { font-size:13px; font-weight:700; color:#f1f5f9; line-height:1.4; text-decoration:none; flex:1; }
+  .arm-cp-title:hover { color:var(--arm-accent); text-decoration:underline; }
+  .arm-cp-badge { flex-shrink:0; font-size:10px; font-weight:600; color:#fbbf24; background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.25); border-radius:4px; padding:2px 6px; white-space:nowrap; margin-top:2px; }
+  .arm-cp-topic { font-size:11px; color:var(--arm-accent); font-weight:500; }
+  .arm-cp-abstract { font-size:11.5px; color:#94a3b8; line-height:1.6; }
+  .arm-cp-meta { display:flex; flex-wrap:wrap; gap:8px; }
+  .arm-cp-meta span { font-size:11px; color:#64748b; }
+  .arm-cp-keywords { font-size:10.5px; color:#475569; line-height:1.5; }
+  .arm-cp-footer { padding:10px 16px; border-top:1px solid var(--arm-border); display:flex; justify-content:flex-end; }
+  .arm-cp-btn { font-size:11px; font-weight:600; color:var(--arm-accent); background:var(--arm-accent-dim); border:1px solid rgba(96,165,250,0.25); border-radius:6px; padding:5px 12px; text-decoration:none; transition:background 0.15s; font-family:var(--arm-font); cursor:pointer; }
+  .arm-cp-btn:hover { background:rgba(96,165,250,0.2); }
 </style>
 
 <script>
@@ -734,6 +757,121 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     document.querySelectorAll('.arm-tile').forEach(function(t) { t.classList.remove('arm-tile-active'); });
     if (tileEl) { tileEl.classList.add('arm-tile-active'); }
   }
+</script>
+
+<!-- ── Custom point popup ──────────────────────────────────────────── -->
+<div id="arm-cp">
+  <div class="arm-cp-body">
+    <div class="arm-cp-title-row">
+      <a class="arm-cp-title" id="arm-cp-title" href="#" target="_blank" rel="noopener"></a>
+      <span class="arm-cp-badge" id="arm-cp-badge">⭐ Enhanced</span>
+    </div>
+    <div class="arm-cp-topic"  id="arm-cp-topic"></div>
+    <div class="arm-cp-abstract" id="arm-cp-abstract"></div>
+    <div class="arm-cp-meta"   id="arm-cp-meta"></div>
+    <div class="arm-cp-keywords" id="arm-cp-keywords"></div>
+  </div>
+  <div class="arm-cp-footer">
+    <a class="arm-cp-btn" id="arm-cp-btn" href="#" target="_blank" rel="noopener">Open on arXiv →</a>
+  </div>
+</div>
+
+<script>
+(function() {
+  var cp = document.getElementById('arm-cp');
+
+  function extractData(popup) {
+    var data = {};
+    popup.querySelectorAll('[class*="px-2"][class*="flex"][class*="items-center"]').forEach(function(row) {
+      var kids = Array.from(row.children).filter(function(c) { return c.textContent.trim(); });
+      if (kids.length >= 2) {
+        data[kids[0].textContent.trim()] = kids[1].textContent.trim();
+      }
+    });
+    return data;
+  }
+
+  function showCP(data, atlasPopup) {
+    var title = data['title'] || '';
+    var url   = data['url']   || '#';
+    var abs   = data['abstract'] || '';
+    var topic = data['openalex_topic'] || '';
+    var kwds  = (data['openalex_keywords'] || '').replace(/[\[\]]/g, '').trim();
+    var rep   = data['Reputation'] || '';
+    var tier  = data['author_tier'] || '';
+    var date  = (data['date_added'] || '').substring(0, 10);
+
+    document.getElementById('arm-cp-title').textContent = title;
+    document.getElementById('arm-cp-title').href = url;
+    document.getElementById('arm-cp-btn').href = url;
+
+    var badge = document.getElementById('arm-cp-badge');
+    badge.style.display = rep.includes('Enhanced') ? '' : 'none';
+
+    document.getElementById('arm-cp-topic').textContent = topic;
+    document.getElementById('arm-cp-abstract').textContent =
+      abs.length > 260 ? abs.substring(0, 260) + '\u2026' : abs;
+
+    var metaEl = document.getElementById('arm-cp-meta');
+    metaEl.innerHTML = '';
+    if (tier) { var s1 = document.createElement('span'); s1.textContent = '\uD83D\uDC65 ' + tier; metaEl.appendChild(s1); }
+    if (date) { var s2 = document.createElement('span'); s2.textContent = '\uD83D\uDCC5 ' + date; metaEl.appendChild(s2); }
+
+    var kwEl = document.getElementById('arm-cp-keywords');
+    kwEl.textContent = (kwds && kwds !== '[]') ? kwds : '';
+    kwEl.style.display = (kwds && kwds !== '[]') ? '' : 'none';
+
+    // Smart positioning: right of Atlas popup, flip left if near viewport edge
+    var rect = atlasPopup.getBoundingClientRect();
+    var left = rect.right + 12;
+    if (left + 330 > window.innerWidth) { left = rect.left - 330 - 12; }
+    if (left < 8) { left = 8; }
+    var top = Math.max(8, rect.top);
+
+    cp.style.left = left + 'px';
+    cp.style.top  = top  + 'px';
+    cp.style.display = 'block';
+
+    // Clamp vertically after rendering so we know the height
+    requestAnimationFrame(function() {
+      var maxTop = window.innerHeight - cp.offsetHeight - 8;
+      if (parseFloat(cp.style.top) > maxTop) { cp.style.top = Math.max(8, maxTop) + 'px'; }
+    });
+  }
+
+  function hideCP() { cp.style.display = 'none'; }
+
+  function findAtlasPopup(node) {
+    if (node.nodeType !== 1) return null;
+    if (node.classList && node.classList.contains('border-slate-300') && node.classList.contains('shadow-md')) return node;
+    return node.querySelector ? node.querySelector('.border-slate-300.shadow-md') : null;
+  }
+
+  function waitForRoot() {
+    var root = document.querySelector('.embedding-atlas-root');
+    if (!root) { setTimeout(waitForRoot, 300); return; }
+    new MutationObserver(function(mutations) {
+      mutations.forEach(function(m) {
+        m.addedNodes.forEach(function(node) {
+          var popup = findAtlasPopup(node);
+          if (popup) {
+            popup.style.display = 'none';
+            showCP(extractData(popup), popup);
+          }
+        });
+        m.removedNodes.forEach(function(node) {
+          if (findAtlasPopup(node)) { hideCP(); }
+        });
+      });
+    }).observe(root, { childList: true, subtree: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', waitForRoot);
+  } else {
+    waitForRoot();
+  }
+})();
 </script>
 
 <!-- ── Top title bar ──────────────────────────────────────────────── -->
