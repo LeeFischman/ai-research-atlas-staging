@@ -2,7 +2,7 @@ name: Update AI Research Atlas
 on:
   schedule:
     # Runs at 14:00 UTC every day
-   - cron: '0 6 * * *' # runs at 0100hrs EST
+   - cron: '0 0 * * *' # runs at 0100hrs EST
    workflow_dispatch: # Allows manual runs for testing
 permissions:
   contents: write
