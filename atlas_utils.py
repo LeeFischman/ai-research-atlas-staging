@@ -551,7 +551,7 @@ def build_and_deploy_atlas(
     index_file = os.path.join(docs_dir, "index.html")
     if os.path.exists(index_file):
         font_html, panel_html = build_panel_html(run_date)
-        with open(index_file, "r", encoding="utf-8") as f:
+        with open(index_file, "r", encoding="utf-8", errors="replace") as f:
             content = f.read()
         if "</head>" in content:
             content = content.replace("</head>", font_html + "\n</head>")
@@ -561,7 +561,7 @@ def build_and_deploy_atlas(
             content = content.replace("</body>", panel_html + "\n</body>")
         else:
             content += panel_html
-        with open(index_file, "w", encoding="utf-8") as f:
+        with open(index_file, "w", encoding="utf-8", errors="replace") as f:
             f.write(content)
         print("  Info panel injected into index.html.")
     else:
@@ -814,8 +814,8 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
 
     var metaEl = document.getElementById('arm-cp-meta');
     metaEl.innerHTML = '';
-    if (tier) { var s1 = document.createElement('span'); s1.textContent = '\uD83D\uDC65 ' + tier; metaEl.appendChild(s1); }
-    if (date) { var s2 = document.createElement('span'); s2.textContent = '\uD83D\uDCC5 ' + date; metaEl.appendChild(s2); }
+    if (tier) { var s1 = document.createElement('span'); s1.textContent = '\u{1F465}\uFE0E ' + tier; metaEl.appendChild(s1); }
+    if (date) { var s2 = document.createElement('span'); s2.textContent = '\u{1F4C5}\uFE0E ' + date; metaEl.appendChild(s2); }
 
     var kwEl = document.getElementById('arm-cp-keywords');
     kwEl.textContent = (kwds && kwds !== '[]') ? kwds : '';
