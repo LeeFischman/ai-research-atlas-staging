@@ -9,7 +9,8 @@
 # --------
 #   §1  Text helpers          scrub_model_words, _strip_urls
 #   §2  Docs cleanup          clear_docs_contents
-#   §3  Reputation scoring    INSTITUTION_PATTERN, calculate_reputation
+#   §3  Reputation scoring    load_author_cache, save_author_cache,
+#                             fetch_author_hindices, calculate_reputation
 #   §4  Rolling database      load_existing_db, merge_papers
 #   §5  arXiv fetch           fetch_arxiv  (exponential back-off)
 #   §6  Embedding / UMAP      embed_and_project, _embed_only,
@@ -95,103 +96,58 @@ def clear_docs_contents(target_dir: str) -> None:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# §3  REPUTATION SCORING
+# §3  REPUTATION SCORING  (h-index based, multi-author aware)
+#
+# Signals
+# ───────
+# 1. Best author h-index (capped so one mega-author can't hit Enhanced alone):
+#      h ≥ HINDEX_TIER_HIGH  → HINDEX_SCORE_HIGH  pts  (capped to HINDEX_SOLO_CAP)
+#      h ≥ HINDEX_TIER_MID   → HINDEX_SCORE_MID   pts  (capped to HINDEX_SOLO_CAP)
+#      h ≥ HINDEX_TIER_LOW   → HINDEX_SCORE_LOW   pts
+#
+# 2. Multi-author bonus (rewards genuine collaborations between senior researchers):
+#      ≥ MULTI_COUNT_HIGH authors with h ≥ MULTI_HINDEX_THRESH → MULTI_BONUS_HIGH pts
+#      ≥ MULTI_COUNT_LOW  authors with h ≥ MULTI_HINDEX_THRESH → MULTI_BONUS_LOW  pts
+#      (tiers checked highest first; only one bonus applies)
+#
+# 3. Open-source artifact (github.com / huggingface.co in title+abstract):
+#      → OPENSOURCE_BOOST pts
+#
+# Threshold: total score ≥ REPUTATION_THRESHOLD → "Reputation Enhanced"
+#
+# Author h-index cache
+#   File  : author_cache.json  (alongside database.parquet)
+#   Key   : normalised author name (stripped, lowercased)
+#   Value : {"hindex": int, "fetched_at": ISO timestamp}
+#   TTL   : AUTHOR_CACHE_TTL_DAYS (30 days — h-index changes slowly)
+#   Scope : ALL authors per paper (no per-paper author cap)
 # ══════════════════════════════════════════════════════════════════════════════
 
-INSTITUTION_PATTERN = re.compile(r"\b(" + "|".join([
-    # US Universities
-    "MIT", "Stanford", "CMU", "Carnegie Mellon",
-    "UC Berkeley", "Berkeley", "Caltech",
-    "Harvard", "Princeton", "Yale", "Columbia",
-    "University of Washington", "UW Seattle",
-    "University of Michigan", "University of Illinois",
-    "UIUC", "UT Austin", "NYU", "Cornell",
-    "Georgia Tech", "UCLA", "UCSD", "USC",
-    "University of Pennsylvania", "UPenn",
-    "Johns Hopkins", "Duke", "Brown", "Dartmouth",
-    "University of Wisconsin", "Purdue", "Ohio State",
-    "University of Maryland", "University of Massachusetts",
-    # US National Labs & Research Institutes
-    "Allen Institute", "AI2", "Allenai",
-    "IBM Research", "Microsoft Research", "MSR",
-    "Google Research", "Google Brain", "Google DeepMind",
-    "NVIDIA Research", "Intel Labs", "Salesforce Research",
-    "Adobe Research", "Baidu Research", "Amazon Science",
-    "Apple ML Research",
-    # US AI Labs
-    "OpenAI", "Anthropic", "DeepMind", "Google DeepMind",
-    "FAIR", "Meta AI", "xAI", "Mistral",
-    "Cohere", "Stability AI", "Inflection AI",
-    "Character AI", "Runway", "Hugging Face",
-    # UK
-    "Oxford", "University of Oxford",
-    "Cambridge", "University of Cambridge",
-    "Imperial College", "UCL", "University College London",
-    "Edinburgh", "University of Edinburgh",
-    "King's College London", "University of Manchester",
-    "University of Bristol", "University of Warwick",
-    "Alan Turing Institute",
-    # Canada
-    "University of Toronto", "UofT", "Vector Institute",
-    "McGill", "McGill University",
-    "Mila", "Montreal Institute",
-    "University of Montreal",
-    "University of British Columbia", "UBC",
-    "University of Alberta",
-    # France
-    "INRIA", "ENS", "CNRS", "Sorbonne",
-    "PSL University", "Paris-Saclay",
-    # Germany
-    "Max Planck", "MPI",
-    "TU Berlin", "TU Munich", "Technical University of Munich",
-    "DFKI", "Helmholtz",
-    "University of Tuebingen",
-    # Switzerland
-    "ETH Zurich", "EPFL", "University of Zurich",
-    # Netherlands
-    "University of Amsterdam", "CWI", "Delft",
-    # Scandinavia
-    "KTH", "Chalmers", "University of Copenhagen", "DTU", "NTNU",
-    # Israel
-    "Technion", "Hebrew University", "Weizmann Institute",
-    "Tel Aviv University", "Bar-Ilan University",
-    # China
-    "Tsinghua", "Tsinghua University",
-    "Peking University", "PKU",
-    "Shanghai AI Lab",
-    "Zhejiang University",
-    "USTC", "Fudan University", "Renmin University",
-    "Chinese Academy of Sciences", "CAS",
-    "BAAI", "Beijing Academy of Artificial Intelligence",
-    "Alibaba DAMO", "Tencent AI Lab", "ByteDance", "SenseTime",
-    # Japan
-    "University of Tokyo", "Kyoto University",
-    "RIKEN", "RIKEN AIP",
-    "Osaka University", "Tohoku University",
-    "Tokyo Institute of Technology", "Tokyo Tech",
-    "Preferred Networks",
-    # South Korea
-    "KAIST", "Seoul National University", "SNU",
-    "POSTECH", "Yonsei University",
-    "Samsung Research", "Naver", "LG AI Research", "Kakao",
-    # Singapore
-    "NUS", "National University of Singapore",
-    "NTU", "Nanyang Technological University",
-    "AI Singapore", "ASTAR",
-    # Australia
-    "University of Sydney", "University of Melbourne",
-    "Australian National University", "ANU",
-    "University of Queensland", "CSIRO",
-    # India
-    "IIT", "IIT Bombay", "IIT Delhi", "IIT Madras",
-    "IISc", "Indian Institute of Science",
-    "Microsoft Research India",
-    # Middle East
-    "KAUST", "King Abdullah University",
-    "Mohamed bin Zayed University", "MBZUAI",
-    # Latin America
-    "University of Sao Paulo", "USP", "PUC-Rio",
-]) + r")\b", re.IGNORECASE)
+AUTHOR_CACHE_PATH     = "author_cache.json"
+AUTHOR_CACHE_TTL_DAYS = 30
+
+# ── Individual h-index signal ────────────────────────────────────────────────
+HINDEX_TIER_HIGH  = 30    # h ≥ this → HINDEX_SCORE_HIGH
+HINDEX_TIER_MID   = 15    # h ≥ this → HINDEX_SCORE_MID
+HINDEX_TIER_LOW   = 5     # h ≥ this → HINDEX_SCORE_LOW
+HINDEX_SCORE_HIGH = 3
+HINDEX_SCORE_MID  = 2
+HINDEX_SCORE_LOW  = 1
+HINDEX_SOLO_CAP   = 2     # max points a single author can contribute
+                           # (ensures one h=80 author alone can't hit Enhanced)
+
+# ── Multi-author tiered bonus ────────────────────────────────────────────────
+MULTI_HINDEX_THRESH = 10  # authors must have h ≥ this to count toward bonus
+MULTI_COUNT_HIGH    = 3   # ≥ this many qualifying authors → MULTI_BONUS_HIGH
+MULTI_BONUS_HIGH    = 3
+MULTI_COUNT_LOW     = 2   # ≥ this many qualifying authors → MULTI_BONUS_LOW
+MULTI_BONUS_LOW     = 2
+
+# ── Open-source signal ───────────────────────────────────────────────────────
+OPENSOURCE_BOOST = 2      # github.com or huggingface.co in title+abstract
+
+# ── Classification threshold ─────────────────────────────────────────────────
+REPUTATION_THRESHOLD = 3  # score ≥ this → "Reputation Enhanced"
 
 
 def categorize_authors(n: int) -> str:
@@ -200,21 +156,153 @@ def categorize_authors(n: int) -> str:
     return "8+ Authors"
 
 
-def author_reputation_score(n: int) -> int:
-    if n >= 8:  return 3
-    if n >= 4:  return 1
-    return 0
+def load_author_cache() -> dict:
+    """Load the author h-index cache from disk; return empty dict if missing."""
+    if os.path.exists(AUTHOR_CACHE_PATH):
+        with open(AUTHOR_CACHE_PATH) as f:
+            return json.load(f)
+    return {}
+
+
+def save_author_cache(cache: dict) -> None:
+    """Persist the author h-index cache to disk."""
+    with open(AUTHOR_CACHE_PATH, "w") as f:
+        json.dump(cache, f, indent=2)
+
+
+def fetch_author_hindices(author_names: list, cache: dict) -> list:
+    """Return a list of h-indices for ALL authors, using OpenAlex API.
+
+    Checks the cache first; fetches from OpenAlex for missing/stale entries.
+    Stale = fetched_at older than AUTHOR_CACHE_TTL_DAYS.
+    Sleeps 0.12 s between uncached requests to stay under OpenAlex's 10 req/s.
+
+    Parameters
+    ----------
+    author_names : list of str — raw author names from arXiv
+    cache        : the shared in-memory cache dict (mutated in-place)
+
+    Returns
+    -------
+    list of int — one h-index per author (0 for failed/unknown lookups),
+                  in the same order as author_names
+    """
+    import urllib.parse
+    import urllib.request as _req
+
+    cutoff_ts = (
+        datetime.now(timezone.utc) - timedelta(days=AUTHOR_CACHE_TTL_DAYS)
+    ).isoformat()
+
+    hindices = []
+
+    for name in author_names:
+        name = name.strip()
+        if not name:
+            hindices.append(0)
+            continue
+        key = name.lower()
+
+        # Cache hit?
+        entry = cache.get(key)
+        if entry and entry.get("fetched_at", "") > cutoff_ts:
+            hindices.append(entry.get("hindex", 0))
+            continue
+
+        # Fetch from OpenAlex
+        try:
+            q   = urllib.parse.quote(name)
+            url = f"https://api.openalex.org/authors?search={q}&per_page=5"
+            req = _req.Request(
+                url,
+                headers={"User-Agent":
+                    "ai-research-atlas/2.0 "
+                    "(https://github.com/LeeFischman/ai-research-atlas; "
+                    "mailto:lee.fischman@gmail.com)"},
+            )
+            with _req.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode())
+
+            results = data.get("results", [])
+            hindex  = 0
+            if results:
+                hindex = results[0].get("summary_stats", {}).get("h_index", 0) or 0
+
+            cache[key] = {
+                "hindex":     hindex,
+                "fetched_at": datetime.now(timezone.utc).isoformat(),
+            }
+            hindices.append(hindex)
+            time.sleep(0.12)   # ~8 req/s
+
+        except Exception as e:
+            print(f"  OpenAlex lookup failed for '{name}': {e}")
+            hindices.append(0)
+
+    return hindices
+
+
+def _safe_hindices(row) -> list:
+    """Extract author_hindices from a row as a clean list of ints.
+
+    Handles three cases:
+      - author_hindices column present and is a list  → use it directly
+      - only max_author_hindex present (old DB rows)  → treat as [max_author_hindex]
+      - neither present / NaN                         → return [0]
+    """
+    val = row.get("author_hindices", None)
+    if isinstance(val, (list, np.ndarray)) and len(val) > 0:
+        return [int(h) if (h is not None and not (isinstance(h, float) and np.isnan(h)))
+                else 0 for h in val]
+
+    # Backward compat: old rows have max_author_hindex (int) but no list
+    old = row.get("max_author_hindex", None)
+    if old is not None and not (isinstance(old, float) and np.isnan(old)):
+        return [int(old)]
+
+    return [0]
 
 
 def calculate_reputation(row) -> str:
-    score = 0
+    """Score a paper's reputation from author h-indices + open-source signals.
+
+    Reads row["author_hindices"] (list of ints, one per author).
+    Falls back to row["max_author_hindex"] for rows written by older pipeline.
+
+    Scoring
+    -------
+    Individual signal  : best author h-index, tiered, capped at HINDEX_SOLO_CAP
+    Multi-author bonus : tiered bonus when ≥N authors exceed MULTI_HINDEX_THRESH
+    Open-source boost  : github.com / huggingface.co in title+abstract
+    Enhanced if total  ≥ REPUTATION_THRESHOLD
+    """
+    hindices = _safe_hindices(row)
+
+    # ── Individual signal (capped) ───────────────────────────────────────────
+    best = max(hindices) if hindices else 0
+    if best >= HINDEX_TIER_HIGH:
+        indiv = HINDEX_SCORE_HIGH
+    elif best >= HINDEX_TIER_MID:
+        indiv = HINDEX_SCORE_MID
+    elif best >= HINDEX_TIER_LOW:
+        indiv = HINDEX_SCORE_LOW
+    else:
+        indiv = 0
+    score = min(indiv, HINDEX_SOLO_CAP)
+
+    # ── Multi-author bonus (highest tier wins) ───────────────────────────────
+    n_qualifying = sum(1 for h in hindices if h >= MULTI_HINDEX_THRESH)
+    if n_qualifying >= MULTI_COUNT_HIGH:
+        score += MULTI_BONUS_HIGH
+    elif n_qualifying >= MULTI_COUNT_LOW:
+        score += MULTI_BONUS_LOW
+
+    # ── Open-source signal ───────────────────────────────────────────────────
     full_text = f"{row['title']} {row['abstract']}".lower()
-    if INSTITUTION_PATTERN.search(full_text):
-        score += 3
     if any(k in full_text for k in ["github.com", "huggingface.co"]):
-        score += 2
-    score += author_reputation_score(row["author_count"])
-    return "Reputation Enhanced" if score >= 3 else "Reputation Std"
+        score += OPENSOURCE_BOOST
+
+    return "Reputation Enhanced" if score >= REPUTATION_THRESHOLD else "Reputation Std"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
