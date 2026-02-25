@@ -239,11 +239,9 @@
     if (left < 8) { left = 8; }
     var top = Math.max(8, rect.top);
 
-    cp.setAttribute('data-pending', '1');
     cp.style.left = left + 'px';
     cp.style.top  = top  + 'px';
     cp.style.display = 'block';
-    setTimeout(function() { cp.setAttribute('data-pending', '0'); }, 100);
 
     // Clamp vertically after rendering so we know the height
     requestAnimationFrame(function() {
@@ -263,27 +261,35 @@
   function waitForRoot() {
     var root = document.querySelector('.embedding-atlas-root');
     if (!root) { setTimeout(waitForRoot, 300); return; }
+
+    // Hide Atlas's own popup immediately whenever it appears
     new MutationObserver(function(mutations) {
       mutations.forEach(function(m) {
         m.addedNodes.forEach(function(node) {
           var popup = findAtlasPopup(node);
-          if (popup) {
-            popup.style.display = 'none';
-            showCP(extractData(popup), popup);
-          }
-        });
-        m.removedNodes.forEach(function(node) {
-          // Only hide our popup if it's not currently showing a point
-          // (i.e. Atlas closed the popup by clicking elsewhere, not by clicking a new point)
-          if (findAtlasPopup(node) && cp.style.display !== 'none') {
-            // Delay slightly - if a new point is being opened, addedNodes fires next
-            setTimeout(function() {
-              if (cp.getAttribute('data-pending') !== '1') { hideCP(); }
-            }, 50);
-          }
+          if (popup) { popup.style.display = 'none'; }
         });
       });
     }).observe(root, { childList: true, subtree: true });
+
+    // On every click inside Atlas, wait for its popup to settle then read it
+    root.addEventListener('click', function() {
+      // Poll for up to 600ms for Atlas popup to appear/update
+      var attempts = 0;
+      var interval = setInterval(function() {
+        attempts++;
+        var popup = root.querySelector('.border-slate-300.shadow-md');
+        if (popup) {
+          popup.style.display = 'none';
+          showCP(extractData(popup), popup);
+          clearInterval(interval);
+        } else if (attempts > 12) {
+          // No popup appeared — user clicked empty space, hide ours
+          clearInterval(interval);
+          hideCP();
+        }
+      }, 50);
+    });
   }
 
   if (document.readyState === 'loading') {
