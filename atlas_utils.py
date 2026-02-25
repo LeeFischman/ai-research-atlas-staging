@@ -762,14 +762,9 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
 <!-- ── Custom point popup ──────────────────────────────────────────── -->
 <div id="arm-cp">
   <div class="arm-cp-body">
-    <div class="arm-cp-title-row">
-      <a class="arm-cp-title" id="arm-cp-title" href="#" target="_blank" rel="noopener"></a>
-      <span class="arm-cp-badge" id="arm-cp-badge">⭐ Enhanced</span>
-    </div>
-    <div class="arm-cp-topic"  id="arm-cp-topic"></div>
+    <a class="arm-cp-title" id="arm-cp-title" href="#" target="_blank" rel="noopener"></a>
     <div class="arm-cp-abstract" id="arm-cp-abstract"></div>
     <div class="arm-cp-meta"   id="arm-cp-meta"></div>
-    <div class="arm-cp-keywords" id="arm-cp-keywords"></div>
   </div>
   <div class="arm-cp-footer">
     <a class="arm-cp-btn" id="arm-cp-btn" href="#" target="_blank" rel="noopener">Open on arXiv →</a>
@@ -792,34 +787,23 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
   }
 
   function showCP(data, atlasPopup) {
-    var title = data['title'] || '';
-    var url   = data['url']   || '#';
-    var abs   = data['abstract'] || '';
-    var topic = data['openalex_topic'] || '';
-    var kwds  = (data['openalex_keywords'] || '').replace(/[\[\]]/g, '').trim();
-    var rep   = data['Reputation'] || '';
-    var tier  = data['author_tier'] || '';
-    var date  = (data['date_added'] || '').substring(0, 10);
+    var title  = data['title'] || '';
+    var url    = data['url']   || '#';
+    var abs    = data['abstract'] || '';
+    var count  = data['author_count'] || '';
+    var date   = (data['date_added'] || '').substring(0, 10);
 
     document.getElementById('arm-cp-title').textContent = title;
     document.getElementById('arm-cp-title').href = url;
     document.getElementById('arm-cp-btn').href = url;
 
-    var badge = document.getElementById('arm-cp-badge');
-    badge.style.display = rep.includes('Enhanced') ? '' : 'none';
-
-    document.getElementById('arm-cp-topic').textContent = topic;
     document.getElementById('arm-cp-abstract').textContent =
       abs.length > 260 ? abs.substring(0, 260) + '\u2026' : abs;
 
     var metaEl = document.getElementById('arm-cp-meta');
     metaEl.innerHTML = '';
-    if (tier) { var s1 = document.createElement('span'); s1.textContent = '\\u{1F465}\\uFE0E ' + tier; metaEl.appendChild(s1); }
-    if (date) { var s2 = document.createElement('span'); s2.textContent = '\\u{1F4C5}\\uFE0E ' + date; metaEl.appendChild(s2); }
-
-    var kwEl = document.getElementById('arm-cp-keywords');
-    kwEl.textContent = (kwds && kwds !== '[]') ? kwds : '';
-    kwEl.style.display = (kwds && kwds !== '[]') ? '' : 'none';
+    if (count) { var s1 = document.createElement('span'); s1.textContent = '\\u{1F465}\\uFE0E ' + count + ' authors'; metaEl.appendChild(s1); }
+    if (date)  { var s2 = document.createElement('span'); s2.textContent = '\\u{1F4C5}\\uFE0E ' + date; metaEl.appendChild(s2); }
 
     // Smart positioning: right of Atlas popup, flip left if near viewport edge
     var rect = atlasPopup.getBoundingClientRect();
@@ -851,18 +835,24 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     var root = document.querySelector('.embedding-atlas-root');
     if (!root) { setTimeout(waitForRoot, 300); return; }
     new MutationObserver(function(mutations) {
+      var added = null, removed = false;
       mutations.forEach(function(m) {
         m.addedNodes.forEach(function(node) {
           var popup = findAtlasPopup(node);
-          if (popup) {
-            popup.style.display = 'none';
-            showCP(extractData(popup), popup);
-          }
+          if (popup) { added = popup; }
         });
         m.removedNodes.forEach(function(node) {
-          if (findAtlasPopup(node)) { hideCP(); }
+          if (findAtlasPopup(node)) { removed = true; }
         });
       });
+      // If a new popup was added (click on same or different point), refresh
+      if (added) {
+        added.style.display = 'none';
+        showCP(extractData(added), added);
+      } else if (removed) {
+        // Only hide if no new popup came in the same mutation batch
+        hideCP();
+      }
     }).observe(root, { childList: true, subtree: true });
   }
 
