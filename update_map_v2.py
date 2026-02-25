@@ -58,6 +58,9 @@ from atlas_utils import (
     scrub_model_words,
     calculate_reputation,
     categorize_authors,
+    load_author_cache,
+    save_author_cache,
+    fetch_author_hindices,
     load_existing_db,
     merge_papers,
     fetch_arxiv,
@@ -836,23 +839,43 @@ if __name__ == "__main__":
                     "author_count": len(r.authors),
                     "author_tier":  categorize_authors(len(r.authors)),
                     "date_added":   today_str,
+                    "authors_list": [a.name for a in r.authors],
                 })
             new_df = pd.DataFrame(rows)
-            new_df["Reputation"] = new_df.apply(calculate_reputation, axis=1)
+            new_df["Reputation"] = "Reputation Std"   # placeholder; recalculated in 1c
             df = merge_papers(existing_df, new_df)
             df = df.drop(columns=["group", "group_id_v2"], errors="ignore")
             print(f"  Rolling DB: {len(df)} papers after merge.")
         else:
             df = existing_df.drop(columns=["group", "group_id_v2"], errors="ignore")
 
-        # Backfill reputation for older rows
-        if "Reputation" not in df.columns or df["Reputation"].isna().any():
-            missing = (df["Reputation"].isna() if "Reputation" in df.columns
-                       else pd.Series([True] * len(df)))
-            if missing.any():
-                print(f"  Backfilling Reputation for {missing.sum()} rows...")
-                df.loc[missing, "Reputation"] = df.loc[missing].apply(
-                    calculate_reputation, axis=1)
+        # ── Stage 1c: Author h-index enrichment ─────────────────────────────
+        print("\n▶  Stage 1c — Author h-index enrichment (OpenAlex)...")
+        if "author_hindices" not in df.columns:
+            df["author_hindices"] = None
+        if "authors_list" not in df.columns:
+            df["authors_list"] = None
+
+        author_cache = load_author_cache()
+        needs_hindex = df["author_hindices"].isna()
+        n_needs      = needs_hindex.sum()
+        print(f"  {n_needs} papers need h-index lookup"
+              f" ({len(df) - n_needs} already cached in DB).")
+
+        for idx in df.index[needs_hindex]:
+            authors = df.at[idx, "authors_list"]
+            if not isinstance(authors, list) or len(authors) == 0:
+                df.at[idx, "author_hindices"] = []
+                continue
+            df.at[idx, "author_hindices"] = fetch_author_hindices(authors, author_cache)
+
+        save_author_cache(author_cache)
+        print(f"  h-index enrichment complete. Cache now has {len(author_cache)} entries.")
+
+        # Compute Reputation now that author_hindices is populated
+        df["Reputation"] = df.apply(calculate_reputation, axis=1)
+        enhanced = (df["Reputation"] == "Reputation Enhanced").sum()
+        print(f"  Reputation: {enhanced} Enhanced, {len(df) - enhanced} Std.")
 
         # ── Stage 2: SPECTER2 embed + UMAP ──────────────────────────────────
         print("\n▶  Stage 2 — SPECTER2 embedding + UMAP...")
