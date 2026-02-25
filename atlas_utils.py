@@ -814,8 +814,8 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
 
     var metaEl = document.getElementById('arm-cp-meta');
     metaEl.innerHTML = '';
-    if (tier) { var s1 = document.createElement('span'); s1.textContent = '\u{1F465}\uFE0E ' + tier; metaEl.appendChild(s1); }
-    if (date) { var s2 = document.createElement('span'); s2.textContent = '\u{1F4C5}\uFE0E ' + date; metaEl.appendChild(s2); }
+    if (tier) { var s1 = document.createElement('span'); s1.textContent = '\\u{1F465}\\uFE0E ' + tier; metaEl.appendChild(s1); }
+    if (date) { var s2 = document.createElement('span'); s2.textContent = '\\u{1F4C5}\\uFE0E ' + date; metaEl.appendChild(s2); }
 
     var kwEl = document.getElementById('arm-cp-keywords');
     kwEl.textContent = (kwds && kwds !== '[]') ? kwds : '';
