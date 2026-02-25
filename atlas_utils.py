@@ -705,7 +705,7 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     border:1px solid var(--arm-border); border-radius:12px;
     box-shadow:0 8px 32px rgba(0,0,0,0.6);
     font-family:var(--arm-font); color:#e2e8f0;
-    display:none; overflow:hidden;
+    display:none;
   }
   .arm-cp-body { padding:16px; display:flex; flex-direction:column; gap:10px; }
   .arm-cp-title-row { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
