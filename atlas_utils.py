@@ -713,7 +713,9 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
   .arm-cp-title:hover { color:var(--arm-accent); text-decoration:underline; }
   .arm-cp-badge { flex-shrink:0; font-size:10px; font-weight:600; color:#fbbf24; background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.25); border-radius:4px; padding:2px 6px; white-space:nowrap; margin-top:2px; }
   .arm-cp-topic { font-size:11px; color:var(--arm-accent); font-weight:500; }
-  .arm-cp-abstract { font-size:11.5px; color:#94a3b8; line-height:1.6; }
+  .arm-cp-abstract { font-size:11.5px; color:#94a3b8; line-height:1.6; max-height:6.4em; overflow-y:auto; scrollbar-width:thin; scrollbar-color:#334155 transparent; }
+  .arm-cp-abstract::-webkit-scrollbar { width:4px; }
+  .arm-cp-abstract::-webkit-scrollbar-thumb { background:#334155; border-radius:4px; }
   .arm-cp-meta { display:flex; flex-wrap:wrap; gap:8px; }
   .arm-cp-meta span { font-size:11px; color:#64748b; }
   .arm-cp-keywords { font-size:10.5px; color:#475569; line-height:1.5; }
@@ -797,8 +799,7 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     document.getElementById('arm-cp-title').href = url;
     document.getElementById('arm-cp-btn').href = url;
 
-    document.getElementById('arm-cp-abstract').textContent =
-      abs.length > 260 ? abs.substring(0, 260) + '\u2026' : abs;
+    document.getElementById('arm-cp-abstract').textContent = abs;
 
     var metaEl = document.getElementById('arm-cp-meta');
     metaEl.innerHTML = '';
