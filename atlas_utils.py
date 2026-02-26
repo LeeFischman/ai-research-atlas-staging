@@ -356,8 +356,11 @@ def _arxiv_id_base(arxiv_id: str) -> str:
 def fetch_semantic_scholar_data(arxiv_ids: list, cache: dict) -> dict:
     """Fetch Semantic Scholar metadata for a list of arXiv IDs.
 
-    Checks the cache first; sends a batch request for uncached / stale IDs.
-    Mutates `cache` in-place with new entries (caller is responsible for saving).
+    Fetches all given IDs from S2 unconditionally and updates the cache.
+    The caller (update_map_v2.py) is responsible for deciding which IDs
+    need fetching — this function does not do its own cache filtering,
+    which would silently skip IDs the caller determined are stale or
+    have no signal (e.g. zeros stored from a previously failed request).
 
     Parameters
     ----------
@@ -376,32 +379,15 @@ def fetch_semantic_scholar_data(arxiv_ids: list, cache: dict) -> dict:
     """
     import urllib.request as _req
 
-    cutoff_ts = (
-        datetime.now(timezone.utc) - timedelta(days=SS_CACHE_TTL_DAYS)
-    ).isoformat()
     now_iso = datetime.now(timezone.utc).isoformat()
 
-    results   = {}
-    to_fetch  = []
-
-    for arxiv_id in arxiv_ids:
-        base  = _arxiv_id_base(arxiv_id)
-        entry = cache.get(base)
-        if entry and entry.get("fetched_at", "") > cutoff_ts:
-            results[base] = entry
-        else:
-            to_fetch.append(base)
-
-    if not to_fetch:
-        print(f"  All {len(arxiv_ids)} papers found in S2 cache.")
-        return results
-
     # De-duplicate while preserving order
-    seen      = set()
-    to_fetch  = [b for b in to_fetch if not (b in seen or seen.add(b))]
-    cached_n  = len(arxiv_ids) - len(to_fetch)
-    print(f"  Fetching {len(to_fetch)} papers from Semantic Scholar "
-          f"({cached_n} cache hits)...")
+    seen     = set()
+    to_fetch = [_arxiv_id_base(aid) for aid in arxiv_ids
+                if not (_arxiv_id_base(aid) in seen or seen.add(_arxiv_id_base(aid)))]
+
+    results = {}
+    print(f"  Fetching {len(to_fetch)} papers from Semantic Scholar...")
 
     ss_api_key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY", "").strip()
     base_headers = {
