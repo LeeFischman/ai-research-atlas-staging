@@ -2,1681 +2,1441 @@
   "2602.14267": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This study introduces DELTAiF, a transfer learning (TL) based framework that provides scalable and accurate prediction of household hot water consumption and shows that TL is particularly effective when the source household exhibits regular consumption patterns, enabling hot water demand forecasting at scale.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14257": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "AD-Bench provides a realistic benchmark for evaluating and improving advertising marketing agents, the leaderboard and code can be found at https://github.com/Emanual20/adbench-leaderboard.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14251": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "MAD is a unified agentic framework that can recover existing approaches, such as mixture-of-experts gating and learning-with-expert-advice aggregation, by restricting the message space and synthesis operator and establishing regret guarantees for the synthesized losses.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14236": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Sali-Cache is proposed, a novel a priori optimization framework that implements dual-signal adaptive caching through proactive memory management that preserves context-rich features over extended temporal durations without degrading model performance, enabling efficient processing of long-form video content on consumer-grade hardware.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14229": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
     "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14177": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A general framework for ST-guided finetuning of pathology foundation models is proposed, showing that augmenting existing models with localized molecular supervision is an effective and practical step for improving visual representations and expanding their cross-modal utility.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14710": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The Orcheo platform is introduced, an open-source platform designed to bridge the prototype-to-system gap in CS research and promote component reuse through single-file node modules, facilitating sharing and reproducibility in CS research.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14770": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work test whether broadcast community discussion improves stand-up comedy writing in a controlled multi-agent sandbox: in the discussion condition, critic and audience threads are recorded, filtered, stored as social memory, and later retrieved to condition subsequent generations, whereas the baseline omits discussion.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15539": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes a dynamic training-free fusion framework that operates throughout the generation process, integrating two complementary mechanisms-feature-level selection and metric-guided latent adjustment-across the entire diffusion timeline, and dynamically achieves coherent subject-style synthesis without any retraining.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15451": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A novel framework for optimization of deep generative models integrated with a D-Wave quantum annealing computer and an advantage of quantum annealing to aim at a stochastic generator integrated with the authors' novel neural network architectures, for the extended performance of feature space sampling and extraction of characteristic features in drug design.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15391": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work introduces an adaptive abstention system that dynamically adjusts safety thresholds based on real-time contextual signals such as domain and user history, offering a scalable solution for reliable LLM deployment.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15362": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper proposes a novel system for Automated Multi Source Debugging and Natural Language Error Explanation that automatically collects and correlates error data from disparate sources such as browser, API, server logs and validates API contracts in real time, and utilizes Large Language Models to generate natural language explanations.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15827": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Perceptive Humanoid Parkour (PHP) is presented, a modular framework that enables humanoid robots to autonomously perform long-horizon, vision-based parkour across challenging obstacle courses and enables autonomous, context-aware decision-making.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15327": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work estimates capability boundaries, high conditional quantiles of benchmark scores as a function of log pre training FLOPs, and introduces a practical methodology for translating compute budgets into reliable performance expectations and for monitoring when capability boundaries shift across time.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15278": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "It is argued that this approach offers a practical and efficient way to surface visual vulnerabilities, safety concerns that might otherwise be discovered implicitly in the wild, supporting more proactive auditing and governance of image-based AI agents.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15274": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "It is found that an architecture that can incorporate multiple strategies is required to handle tasks of a different nature, in particular for exploration and search, when food location is not known, and for planning a good path to a remembered (likely) food location.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15206": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work introduces a scalable amortized variational inference approach that learns a shared reward encoder and feedback-specific likelihood decoders and is trained by optimizing a single evidence lower bound, which avoids reducing feedback to a common intermediate representation and eliminates the need for manual loss balancing.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15198": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Colosseum provides a new way to study collusion by measuring communications and actions in rich yet verifiable environments and shows that most out-of-the-box models exhibited a propensity to collude when a secret communication channel was artificially formed.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14189": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "An abstention-aware verification framework that decomposes scientific claims into minimal conditions, audits each condition against available evidence using natural language inference (NLI), and selectively decides whether to support, refute, or abstain is evaluated.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14188": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper evaluates the performance of four state-of-the-art models (Grok- 4, GPT-4, Gemini 2.5, and GPT-5) on long short-context tasks and indicates that the \"lost in the middle\" problem has been largely resolved in newer models.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14178": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper introduces UniWeTok, a unified discrete tokenizer designed to bridge this gap using a massive binary codebook and introduces Pre-Post Distillation and a Generative-Aware Prior to enhance the semantic extraction and generative prior of the discrete tokens.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14529": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes an internal, mechanism-oriented perspective that separates Knowledge Existence from Behavior Expression, and constructs a controlled environment for entity-centric factual questions in which knowledge is preserved while behavioral expression is selectively altered, enabling systematic analysis of four behavioral cases.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14490": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Mixture of Space (MoS) is proposed, a unified framework that leverages multiple geometric spaces simultaneously to learn richer, curvature-aware representations, and MoSLoRA is developed, which extends Low-Rank Adaptation with heterogeneous geometric experts, enabling models to dynamically select or combine appropriate geometric spaces based on input context.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14486": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A permutation-based null-calibration framework is introduced that transforms any representational similarity metric into a calibrated score with statistical guarantees, and proposes the Aristotelian Representation Hypothesis: representations in neural networks are converging to shared local neighborhood relationships.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14433": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Three case studies demonstrate that synthetic panels produce actionable demographic segmentation, identify structural content issues invisible to homogeneous reviewers, and enable tournament filtering that eliminates low-quality concepts while enriching high-quality survivors from 15% to 62% of the evaluated pool.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14432": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes Selective Spectral Decay ($S^2D), a geometrically-principled conditioning method that surgically regularizes only the weight components corresponding to the largest singular values during fine-tuning that significantly reduces activation outliers and produces well-conditioned representations that are inherently quantization-friendly.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14423": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes an information-theoretic framework that systematically accounts for the effect of augmentation on generalization and invariance learning, and derives a new generalization bound that decomposes the expected generalization gap into three interpretable terms.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14406": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "TruthStance is introduced, a large-scale dataset of Truth Social conversation threads spanning 2023-2025, consisting of 24,378 posts and 523,360 comments with reply-tree structure preserved, enabling analysis of stance and argumentation patterns across depth, topics, and users.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14374": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "DP-KSA is presented, a novel privacy-preserving RAG algorithm that integrates DP using the propose-test-release paradigm and formally shows that DP-KSA provides formal DP guarantees on the generated output with respect to the RAG database.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14364": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A trajectory-centric evaluation of Clawdbot finds a non-uniform safety profile: performance is generally consistent on reliability-focused tasks, while most failures arise under underspecified intent, open-ended goals, or benign-seeming jailbreak prompts, where minor misinterpretations can escalate into higher-impact tool actions.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14345": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper introduces Agentic eXploit Engine (AXE), a multi-agent framework for Web application exploitation that maps lightweight detection metadata to concrete exploits through decoupled planning, code exploration, and dynamic execution feedback, and demonstrates its utility in streamlining Web vulnerability triage and remediation.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14296": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes AutoWebWorld, a novel framework for synthesizing controllable and verifiable web environments by modeling them as Finite State Machines (FSMs) and use coding agents to translate FSMs into interactive websites and observes a clear scaling law: as the synthetic data volume increases, performance on WebVoyager and Online-Mind2Web consistently improves.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14997": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The concept of spectral convolution on orbifolds is introduced and provides a building block for making learning on orbifold structured data accessible using GDL.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14968": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "PhyScensis, an LLM agent-based framework powered by a physics engine, to produce physically plausible scene configurations with high complexity, outperforms prior approaches in scene complexity, visual quality, and physical accuracy.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14926": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Experiments show that MAC-AMP outperforms other AMP generative models by effectively optimizing AMP generation for multiple key molecular properties, demonstrating exceptional results in antibacterial activity, AMP likeliness, toxicity compliance, and structural reliability.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14865": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "EbeWebAgent is stack-agnostic, supports mixed-granularity actions ranging from GUI primitives to higher-level composites, and orchestrates navigation, manipulation, and domain-specific analytics via MCP tools.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14783": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Examining the evolving relationship between cybercriminals and AI using a unique dataset from a cyber threat intelligence platform provides an in-depth view of emerging AI-enabled cybercrime and offers practical insights for law enforcement and policymakers.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14771": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "GOT-JEPA is proposed, a model-predictive pretraining framework that extends JEPA from predicting image features to predicting tracking models and OccuSolver is proposed to enhance occlusion perception for object tracking.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14536": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes XTF, an explainable token-level noise filtering framework that decomposes the complex and subtle contributions of token-level data to the fine-tuning process into three distinct and explicit attributes, which can be assessed using scoring methods, and then masks the gradients of selected noisy tokens accordingly to optimize the performance of fine-tuned LLMs.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14872": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A theory of the training dynamics of RL for transformers on compositional reasoning tasks is developed, explaining how RLVR can improve performance at the edge of competence, and suggesting that appropriately designed data mixtures can yield scalable gains.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14216": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Lower accuracy in assessing fathers'cooperation supports the argument of a stronger professional focus on mothers in CPS interventions, and reasoning language models can effectively assess complex case factors such as parental cooperation.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16438": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "It is demonstrated that improving fairness along one attribute can inadvertently worsen disparities in others under uncertainty, highlighting the necessity of context-aware, multi-attribute fairness evaluation frameworks.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16372": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Generality is demonstrated across realistic experimental scenarios, including phase-resolved decomposition in multiphase materials, quantitative recovery of mixture compositions, separation of crystalline peaks from amorphous backgrounds in semicrystalline systems, high-throughput operando lattice tracking, automated refinement of compositionally disordered solid solutions, and quantitative phase-resolved analysis of complex archaeological samples from synchrotron powder XRD.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16213": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
     "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16165": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "HiPER is proposed, a novel Hierarchical Plan-Execute RL framework that explicitly separates high-level planning from low-level execution and achieves state-of-the-art performance on challenging interactive benchmarks, with especially large gains on long-horizon tasks requiring multiple dependent subtasks.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16147": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "ASEN is introduced, a hybrid architecture that combines spectral and temporal feature streams via multiplicative fusion, requiring cross-modal agreement for features to propagate, demonstrating that multiplicative multimodal fusion enables effective cross-subject generalization.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16085": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
     "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16039": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This study provides actionable insights into the characteristics of uncertainty in LLM-based automatic assessment and lays the groundwork for developing more reliable and effective uncertainty-aware grading systems in the future.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16037": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work evaluates optimization instability, a phenomenon in which continued autonomous improvement paradoxically degrades classifier performance, using Pythia, an open-source framework for automated prompt optimization, and demonstrates that retrospective selection outperforms active intervention for stabilization in low-prevalence classification tasks.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15971": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "B-DENSE is proposed, a novel framework that leverages multi-branch trajectory alignment to enforce dense intermediate trajectory alignment in the student model, demonstrating superior image generation quality compared to baseline distillation frameworks.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15915": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "MaS-VQA first retrieves candidate passages and applies a Mask-and-Select mechanism to jointly prune irrelevant image regions and weakly relevant knowledge fragments, producing compact, high-signal multimodal knowledge .",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15286": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "AI-Paging enforces two invariants: make-before-break anchoring to support continuity and reliability of AIaaS services under dynamic network conditions and existing control- and user-plane mechanisms.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15238": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes Distributional Adversarial Training, DAT, and leverages Diffusion LLMs to approximate the true joint distribution of prompts and responses, enabling generation of diverse, high-likelihood samples that address generalization failures.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16422": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A hierarchical vision language framework that combines a frozen pathology foundation model with a Transformer decoder for report generation and adds a retrieval based verification step that compares generated reports with a reference corpus using Sentence BERT embeddings to improve reliability.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16201": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A structured taxonomy and analysis of long-Tail Knowledge in large language models is developed, synthesizing prior work across technical and sociotechnical perspectives, and provides a unifying conceptual framework for understanding how long-Tail Knowledge is defined, lost, evaluated, and manifested in deployed language model systems.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15323": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work constructs the first undetectable watermarking scheme that is robust, unforgeable, and recoverable with respect to substitutions, and shows that any standard digital signature scheme can be boosted to a robust one using property-preserving hash functions.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15767": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work uncovered ideal scenarios for in-the-wild social dining in robot-assisted feeding through speculative participatory design with people with disabilities, supported by semi-structured interviews and a custom AI-based visual storyboarding tool.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16241": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work studies the behavior of LLMs as zero-shot annotators for Bangla hate speech, a task where even human agreement is challenging, and annotator bias can have serious downstream consequences.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14910": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "It is argued that dialogically scaffolded introspective experiences allow agents to engage in sense-making that decouples learning from immediate data streams, transforming raw environmental data into rich, learnable narratives and is concluded that optimizing these conversational scaffolds is the primary lever for the next generation of general intelligence.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16485": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Team-of-Thoughts is introduced, a novel MAS architecture that leverages the complementary capabilities of heterogeneous agents via an orchestrator-tool paradigm that achieves consistently superior task performance on AIME24 and LiveCodeBench.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15553": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Ruva is proposed, the first \"Glass Box\" architecture designed for Human-in-the-Loop Memory Curation, enabling users to inspect what the AI knows and to perform precise redaction of specific facts.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16512": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "FoT is introduced--a general-purpose foundation framework for building and optimizing dynamic reasoning schemes and comes with built-in features for hyperparameter tuning, prompt optimization, parallel execution, and intelligent caching, unlocking the latent performance potential of reasoning schemes.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16356": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "MoMa-SG, a novel framework for building semantic-kinematic 3D scene graphs of articulated scenes containing a myriad of interactable objects, and the novel Arti4D-Semantic dataset, which uniquely combines hierarchical object semantics including parent-child relation labels with object axis annotations across 62 in-the-wild RGB-D sequences containing 600 object interactions and three distinct observation paradigms.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15277": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Results demonstrate that targeted, redundancy-reducing updates, rather than brute-force optimization, bridge the gap between accuracy and efficiency in large-scale dataset distillation.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15028": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A large-scale benchmark to systematically study how increasing context length influences both personalization quality and privacy protection in LLMs is introduced, suggesting a general scaling gap in current models -- long context, less focus.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15012": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Pep (Preference Elicitation with Priors) learns a structured world model of preference correlations offline from complete profiles, then performs training-free Bayesian inference online to select informative questions and predict complete preference profiles, including dimensions never asked about.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14994": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper proposes two definitions of primary cause in a hybrid action-theoretic framework, namely the hybrid temporal situation calculus, and proves that these two definitions are indeed equivalent and show that their definitions of causation have some intuitively justifiable properties.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14941": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "AnchorWeave is introduced, a memory-augmented video generation framework that replaces a single misaligned global memory with multiple clean local geometric memories and learns to reconcile their cross-view inconsistencies.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14881": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
     "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14795": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper presents the first resource that provides a workflow for extracting datasets including both schema and ground facts, ready for machine learning and reasoning services, along with the resulting curated suite of datasets.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14279": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes a theoretically grounded framework that combines an LLM-based expected information gain objective for scoring candidate questions with a heterogeneous graph neural network propagation that aggregates observed responses and participant attributes to impute missing responses and guide per-round respondent selection.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14275": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "R reverse n-wise output testing is introduced, a mathematically principled paradigm inversion that constructs covering arrays directly over domain-specific output equivalence classes, ML confidence calibration buckets, decision boundary regions, fairness partitions, embedding clusters, ranking stability bands, and error syndrome patterns.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14233": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This position paper argues that bias in financial LLM systems requires explicit attention and that structural validity should be enforced before any result is used to support a deployment claim and proposes a Structural Validity Framework and an evaluation checklist with minimal requirements for bias diagnosis and future system design.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14759": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes inference-time inner looping, which prolongs refinement in pretrained off-the-shelf language models by repeatedly re-applying a selected block range, and analyses of the resulting latent trajectories suggest more stable state evolution and continued semantic refinement.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14676": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work identifies and proposes the Bus Evacuation Orienteering Problem (BEOP), an NP-hard combinatorial optimization problem with the goal of evacuating as many people from an affected area by bus in a short, predefined amount of time and achieves near-optimal solution quality.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14615": {
-    "citation_count": 0,
+    "citation_count": 2,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "VariViT, an improved ViT model crafted to handle variable image sizes while maintaining a consistent patch size, is proposed, which surpasses vanilla ViTs and ResNet in glioma genotype prediction and brain tumor classification and reduces computation time by up to 30% compared to conventional architectures.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14482": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work introduces TikArt (Thinking Aperture), an aperture-guided agent that casts multi-step vision-language reasoning as a decision process over regions of interest, and addresses fine-grained visual reasoning in multimodal large language models (MLLMs).",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14868": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Goldilocks, a novel teacher-driven data sampling strategy that aims to predict each question's difficulty for the student model, improves the performance of models trained with standard GRPO under the same compute budget on OpenMathReasoning dataset.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14158": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The results indicate that agent specialisation and verification layers can mitigate key single-model limitations and provide a practical, extensible design for evidence-based and bias-aware medical AI.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14503": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "It is shown how the available structural or statistical information can be systematically incorporated as constraints in a optimization programming formulation, yielding tighter and formally valid bounds without full identifiability.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14481": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A rate-distortion-complexity (RDC) framework is proposed which extends the classical rate-distortion theory by incorporating the constraints on semantic distance, including both the traditional bit-wise distortion metric and statistical difference-based divergence metric, and complexity measure, adopted from the theory of minimum description length and information bottleneck.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14473": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This project explores end-to-end RL methods that enable robot dogs to autonomously climb stairs and showed the successful goal reached, the transferability from the policy trained on U-shaped stairs to deployment on straight, L-shaped, and spiral stair terrains, and transferability from other stair models to deployment on U-shaped terrain.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14408": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A feature recalibration based olfactory-visual multimodal model for fine-grained rice deterioration detection and the detection accuracy is improved, the procedure is simplified and field detection demonstrates the advantages of accuracy and operational simplicity.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14381": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This adaptation reuses existing pretrained VACE weights without additional training, and adds 20-30% latency overhead for structural control and inpainting, with negligible VRAM cost relative to the base model.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14367": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "InnoEval is introduced, a deep innovation evaluation framework designed to emulate human-level idea assessment that can consistently outperform baselines in point-wise, pair-wise, and group-wise evaluation tasks, exhibiting judgment patterns and consensus highly aligned with human experts.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14357": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Examination of the challenges and trade-offs in LLM development through a 12-week ethnographic study of a team building a pedagogical chatbot revealed four key practices that show how teams made strategic decisions under constraints and demonstrate the central role of domain expertise in shaping the system.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14293": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "KernelBlaster is proposed, a Memory-Augmented In-context Reinforcement Learning (MAIC-RL) framework designed to improve CUDA optimization search capabilities of LLM-based GPU coding agents and enables agents to learn from experience and make systematically informed decisions on future tasks by accumulating knowledge into a retrievable Persistent CUDA Knowledge Base.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14761": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A theoretical framework for meta-learning is introduced which formally defines practical universality and introduces a distinction between algorithm-explicit and algorithm-implicit learning, providing a principled vocabulary for reasoning about universal meta-learning methods.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14699": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "By deploying Qute on a real quantum processor (origin_wukong), it is shown that it outperforms a classical baseline at scale, and an open-source prototype at https://github.com/weAIDB/Qute is released.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14682": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work directly compares the diversity of samples generated by state-of-the-art models with that of test samples drawn from the target data distribution, using recently proposed reference-free entropy-based diversity scores, Vendi and RKE, to suggest a systematic downward diversity bias in modern generative models.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14681": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "ST-EVO is proposed, which supports dialogue-wise communication scheduling with a compact yet powerful flow-matching based Scheduler to make precise Spatio-Temporal scheduling, and can also perceive the uncertainty of MAS, and possesses self-feedback ability to learn from accumulated experience.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14606": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work reframes governance as bounded causal power rather than internal intent alignment, offering a foundation for deploying autonomous agents where silent failure is unacceptable.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14591": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The method consists of two steps: clustering of metric vectors computed for each code change, followed by expert mapping of the resulting clusters to predefined change classes, which substantially reduces the time required for code change review.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16194": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
     "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16187": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "An iterative control framework based on an information-theoretic model predictive control algorithm to address a constrained infinite-horizon optimal control problem for discrete-time nonlinear stochastic systems.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16124": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "MultiFaceted Learnable Index (MFLI), a scalable, real-time retrieval paradigm that learns multifaceted item embeddings and indices within a unified framework and eliminates ANN search at serving time is proposed.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16111": {
-    "citation_count": 0,
+    "citation_count": 1,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work presents a scalable, low-latency prevalence measurement framework that enables scalable, low-latency prevalence measurement in experimentation without requiring per-experiment labeling jobs.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16033": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "One of the first large-scale RCTs examining how cognitive engagement shapes learning in prompting literacy and clarifying the relationship between learning-oriented prompting skills and broader academic performance is provided.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15997": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work tracks five geometric measures across five model scales, on Pythia, where global geometric patterns replicate but per-task precursor signals do not, as the precursor relationship requires task--training alignment that naturalistic pre-training does not provide.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16503": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Experiments show that CALMs consistently outperform GAMs and achieve accuracy comparable with GA$^2$Ms, and a principled distillation-based training pipeline that identifies homogeneous regions with limited interactions and fits interpretable shape functions via region-aware backfitting is proposed.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16498": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work challenges the prevailing assumption that the entire training data is necessary, uncovering the phenomenon of Posterior Progressive Concentration and proposes Dynamic Time-Aware Golden Subset Diffusion (GoldDiff), a training-free framework that decouples inference complexity from dataset size.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16322": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work presents a model trained on unlabeled data that outperforms state-of-the-art feature extractors pre-trained on ImageNet and particularly designed for object detection tasks, and encourages the model to focus on the most relevant aspects of an object, thus achieving better feature representations and, therefore, reinforcing its reliability and robustness.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16246": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "proxy state-based evaluation offers a practical, scalable alternative to deterministic agentic benchmarks for industrial LLM agents, and its on-/off-policy rollouts provide supervision that transfers to unseen scenarios.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16301": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "It is demonstrated that the in-context learning capabilities of sequence models allow for co-player learning awareness without requiring hardcoded assumptions or explicit timescale separation, and suggested that standard decentralized reinforcement learning on sequence models combined with co-player diversity provides a scalable path to learning cooperative behaviors.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16196": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work introduces a graphon-weighted mean-field framework for scalable cooperative MARL with heterogeneous agent interactions, and proves the theory with numerical simulations in robotic coordination that achieves near-optimal performance.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15072": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work establishes a paradigm in which neural computation principles bridge the gap between AI accuracy and clinically trustworthy reasoning, while offering interpretable decision pathways.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14643": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The results indicate that architectural decomposition reduces dependence on intrinsic model capability, enabling smaller models to match or exceed larger models operating under single-prompt baselines operating under single-prompt baselines.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15330": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Curiosity-Driven Game-Theoretic Multi-Label Learning (CD-GTMLL), a scalable cooperative framework that recasts long-tail MLC as a multi-player game that enhances model efficiency in resource-constrained environments but also paves the way for more adaptive learning in imbalanced data scenarios across industries like e-commerce and healthcare.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15326": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "SCENE targets short-coherence and hardware-constrained regimes, where avoiding per-round CSI is essential, and trades a modest noncoherent variance constant for zero uplink pilots, unbiased aggregation, and hardware-friendly transmission and can outperform coherent designs when pilot overhead is non-negligible.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15325": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work designs a multi-turn LLM agent, Agro-Reflective, that iteratively writes code, observes execution results, and refines its analysis via an execute-observe-refine loop, validating execution-driven reflection for reliable agricultural reasoning.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15304": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Results show that hybrid FL-SL variants achieve competitive predictive performance and decision-facing prioritization behavior relative to standalone FL or SL, while providing a tunable privacy-utility trade-off that can reduce audited leakage without requiring raw-data sharing.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15294": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "EAA is presented, a vision-language-model-driven agentic system designed to automate complex experimental microscopy workflows and provides a modern tool ecosystem with two-way compatibility for Model Context Protocol (MCP), allowing instrument-control tools to be consumed or served across applications.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15248": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "An AI, machine learning framework is introduced and it is evaluated how that can supplement a deterministic algorithm to predict invoice dilution using extensive production dataset across nine key transaction fields.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15532": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This thesis presents the structured capabilities model, the first model to extract interpretable and generalisable capabilities from a large collection of LLM benchmark results, and demonstrates better explanatory and predictive power for quantifying construct validity in LLM evaluations.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15513": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A non-parametric memory framework that explicitly disentangles episodic and semantic memory for embodied exploration and question answering and introduces a program-style rule extraction mechanism that converts experiences into structured, reusable semantic memory, facilitating cross-environment generalization.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15491": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The principle of the proposed Equalizer methodology is to decompose the input signal -- before the NAC encoder -- into gain and normalized shape vector on a short-term basis, enabling a substantial gain in bitrate-distortion performance, as well as a massive reduction in complexity.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15721": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "LSMART, an open-source simulator to evaluate any Multi-Agent Path Finding (MAPF) algorithm in a Fleet Management System with Automated Guided Vehicles (AGVs) with guidance on how to effectively design centralized lifelong AGV Fleet Management Systems is presented.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15082": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper presents S-PRESSO, a 48kHz sound effect compression model that produces both continuous and discrete embeddings at ultra-low bitrates, down to 0.096 kbps, via offline quantization, and demonstrates that S-PRESSO outperforms both continuous and discrete baselines in audio quality, acoustic similarity and reconstruction metrics.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16430": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper studies two training strategies for building multilingual OCR systems with Vision-Language Models through the Chitrapathak series, and presents Parichay, an independent OCR model series designed specifically for 9 Indian government documents to extract structured key fields.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15968": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A systematic review supported by mixed-methods analysis of 59 dataset documentation publications is presented to examine the motivations behind building documentation tools, how authors conceptualize documentation practices, and how these tools connect to existing systems, regulations, and cultural norms.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15913": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This review synthesized the emerging landscape of medical imaging FMs along three major axes: principles of FM design, applications of FMs, and forward-looking challenges and opportunities provides a technically grounded, clinically aware, and future-facing roadmap.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15811": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A continual adapter-based routing learning strategy for Chest X-rays (CARL-XRay) that maintains a fixed high-capacity backbone and incrementally allocates lightweight task-specific adapters and classifier heads is proposed, which supports stable task identification and adaptation across sequential updates while avoiding raw-image storage.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15195": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work detects poisoned adapters by analyzing their weight matrices directly, without running the model -- making the method data-agnostic, and achieves 97% detection accuracy with less than 2% false positives.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16729": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A significant disconnect is exposed between how model safety is evaluated by existing datasets and how real-world adversaries behave, which indicates that current AI safety datasets fail to faithfully represent real-world adversarial behavior due to their overreliance on triggering cues.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16177": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes a notion of practical learnability grounded in finite sample settings, and develops a conjugate learning theoretical framework based on convex conjugate duality to characterize this learnability property, and derives deterministic and probabilistic bounds on generalization error based on generalized conditional entropy measures.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15909": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Resp-Agent is presented, an autonomous multimodal system orchestrated by a novel Active Adversarial Curriculum Agent that consistently outperforms prior approaches across diverse evaluation settings, improving diagnostic robustness under data scarcity and long-tailed class imbalance.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15579": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The proposed approach provides accurate vessel boundary detection while maintaining low computational complexity and requiring minimal manual annotation, offering a reliable and efficient solution for automated OCT image analysis and has potential applications in clinical decision support and real-time medical image processing.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15531": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work introduces EduEVAL-DB, a dataset based on teacher roles designed to support the evaluation and training of automatic pedagogical evaluators and AI tutors for instructional explanations, and proposes a pedagogical risk rubric aligned with established educational standards.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15823": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "CrispEdit is presented, a scalable and principled second-order editing algorithm that treats capability preservation as an explicit constraint, unifying and generalizing several existing editing approaches.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15816": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This chapter introduces the reader to the key concepts, benefits, and challenges of simulation-based synthetic data generation for AI training purposes, and to a reference framework to describe, design, and analyze digital twin-based AI simulation solutions.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15814": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper reformulate Avey for the encoder-only paradigm and proposes several innovations to its architecture, including decoupled static and dynamic parameterizations, stability-oriented normalization, and neural compression.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15809": {
-    "citation_count": 0,
+    "citation_count": 1,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work presents a comprehensive Decision Quality Evaluation Framework developed and deployed at Pinterest, centered on a high-trust Golden Set curated by subject matter experts (SMEs), which serves as a ground truth benchmark.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15799": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proves that alignment concentrates in low-dimensional subspaces with sharp curvature, creating a brittle structure that first-order methods cannot detect or defend, and establishes a quartic scaling law: alignment loss grows with the fourth power of training time.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15785": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
     "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15776": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "GlobeDiff overcomes ambiguities in state estimation while simultaneously inferring the global state with high fidelity and it is proved that the estimation error of GlobeDiff under both unimodal and multi-modal distributions can be bounded.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15724": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Experimental results demonstrate consistent improvements in Success Rate, Oracle Success Rate, and SPL on both seen and unseen environments and indicate that retrieval-augmented decision support is an effective and scalable strategy for enhancing LLM-based vision-and-language navigation.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15678": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
     "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15757": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The findings indicate that multimodal LLMs perform competitively with human annotators in identifying nuanced forms of sexism; however, they struggle to capture co-occurring sexist types when these are conveyed through visual cues.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15084": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
     "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15711": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
     "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14622": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work introduces a model-agnostic association rule learning framework that extracts association rules from any conditional probabilistic model over tabular data, and introduces TabProbe, an instantiation of this framework that utilizes TFMs as conditional probability estimators to learn association rules out-of-the-box without frequent itemset mining.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14160": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "An agent-as-tool reinforcement learning framework for gene-disease validity curation with two objectives: process-level supervision to ensure reasoning follows valid clinical pathways, and efficient coordination via a hierarchical multi-agent system.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14274": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper presents a framework that leverages transformer-based language models to perform causal inference using unstructured text, enabling data-driven business decision-making when structured tabular data is scarce.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14252": {
-    "citation_count": 0,
+    "citation_count": 1,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Goal Recognition Alignment through Imitation Learning (GRAIL), which leverages imitation learning and inverse reinforcement learning to learn one goal-directed policy for each candidate goal directly from (potentially suboptimal) demonstration trajectories, contributes toward scalable and robust models for interpreting agent goals in uncertain environments.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14239": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This study improves the TGN framework by extracting enclosing subgraphs around candidate links, enabling the model to jointly learn structural and temporal information, demonstrating the advantages of integrating local topology for robust link prediction in dynamic networks.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14234": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes REDSearcher, a unified framework that codesigns complex task synthesis, midtraining, and posttraining for scalable searchagent optimization, and introduces the following improvements: task synthesis as a dualconstrained optimization, where task difficulty is precisely governed by graph topology and evidence dispersion.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14225": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper proposes a staged knowledge injection recipe: cold-starting with scalable, knowledge-graph-verified Earth-science text QA to instill reasoning structures, and pre-warming on the same hard UHR image-text examples during SFT to stabilize and amplify subsequent tool-based RL.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14211": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes the first automated framework for stealthy prompt injection tailored to agent skills, and proposes a malicious payload hiding strategy that conceals adversarial operations in auxiliary scripts while injecting optimized inducement prompts to trigger tool execution.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14526": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Results demonstrate that TWISTED-RL manages to solve previously unattainable knots of higher complexity, including commonly used knots such as the Figure-8 and the Overhand, and establishes TWISTED-RL as the new state-of-the-art in robotic knot-tying without human demonstrations.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14477": {
-    "citation_count": 0,
+    "citation_count": 1,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work provides the first empirical characterization of peer learning among AI agents, contributing to EDM's understanding of how learning occurs in increasingly AI-populated educational environments.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14462": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A lightweight, model-agnostic diagnostic framework that quantifies worker-level consistency using training signals readily available in standard pipelines, and introduces three complementary metrics: loss dispersion, gradient-norm dispersion, and gradient-direction consistency measured by inter-worker cosine similarity.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14445": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes Selective Synchronization Attention (SSA), a novel attention mechanism that replaces the standard dot-product self-attention with a closed-form operator derived from the steady-state solution of the Kuramoto model of coupled oscillators.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14370": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "It is shown that a large class of potentially dangerous tipping originates at the atomistic scale in such edge AI due to competition for the machinery's attention, which yields a mathematical formula for the dynamical tipping point n*, governed by dot-product competition for attention between the conversation's context and competing output basins, that reveals new control levers.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14358": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The purpose of this paper is to demonstrate the methodology, challenges, and impact of rearchitecting search to retrieve from the subset of most bookable high precision rectangular map cells defined by dividing the world into 25M uniform cells.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14344": {
-    "citation_count": 0,
+    "citation_count": 2,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes a hierarchical neural architecture to encode the logical structure of these formulae, and introduces an attention mechanism that enables the policy to reason about future subgoals and demonstrates the strong generalisation capabilities and superior performance of this approach.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14338": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Adaptive Efficient Rollout Optimization (AERO), an enhancement of GRPO, matches or improves Pass@8 and Avg@8 over GRPO, demonstrating a practical, scalable, and compute-efficient strategy for RL-based LLM alignment.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14301": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "DeepFusion is proposed, the first scalable federated MoE training framework that enables the fusion of heterogeneous on-device LLM knowledge via federated knowledge distillation, yielding a knowledge-abundant global MoE model.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14295": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Machine Learning as a Tool (MLAT), a design pattern in which pre-trained statistical machine learning models are exposed as callable tools within large language model (LLM) agent workflows, generalizes to domains requiring quantitative estimation combined with contextual reasoning.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14740": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "It is argued that AI simulation represents a powerful tool for strategic analysis, but only if properly calibrated against known patterns of human Reasoning, and not if properly calibrated against known patterns of human reasoning.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14729": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A structural link is established between gauge-orbit geometry and optimization conditioning, providing a concrete connection between gauge-theoretic concepts and machine learning.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14687": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "SynthSAEBench is introduced, a toolkit for generating large-scale synthetic data with realistic feature characteristics including correlation, hierarchy, and superposition, and a standardized benchmark model, SynthSAEBench-16k, enabling direct comparison of SAE architectures, and is used to identify a new failure mode.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14655": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes FAL-AD, a novel framework that synergistically integrates federated learning with data augmentation to systematically optimize data efficiency, and achieves a state-of-the-art multi-modal accuracy of 91.52%, outperforming all centralized baselines and demonstrating a practical solution to the data efficiency dilemma.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14559": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper proposes a framework that allows agents to create other agents and yields agent teams that adjust their size dynamically to match environmental demands, and presents game-theoretic solution concepts for fluid-agent games and empirically evaluates the performance of several MARL algorithms within this framework.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14989": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "ThermEval-B is introduced, a structured benchmark of approximately 55,000 thermal visual question answering pairs designed to assess the foundational primitives required for thermal vision language understanding, positioning ThermEval as a benchmark to drive progress in thermal vision language modeling.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14922": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The proposed ReusStdFlow framework provides a standardized solution for the automated reorganization and efficient reuse of enterprise digital assets.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14917": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper proposes BFS-PO, an RL algorithm which alleviates this problem using a Best-First Search exploration strategy, and shows that BFS-PO can simultaneously increase the LRM accuracy and shorten its answers.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.14404": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work introduces PITA, a novel large-scale dataset of over 23 million statements in propositional logic and their corresponding proofs, and proposes notions of task depth and task breadth, which measure respectively the number of steps required to solve an example from a task and the number of unique examples across a task.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15740": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The proposed Meta-Relational Copula-Based Graph Attention Network (MRC-GAT) is proposed as an efficient multimodal model for AD classification tasks, demonstrating state-of-the-art performance compared to existing diagnostic models.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15708": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
     "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15698": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "It is found that mandatory AI disclosure significantly reduces crowdfunding performance and this adverse effect is systematically moderated by disclosure strategy, while high authenticity and high explicitness mitigate them.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15684": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Overall, the study shows that both feature-based ML and spectrogram-based DL can estimate remaining work capacity during repetitive pHRI, with the CNN delivering the lowest error and the tree-based models close behind.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15549": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Compared to baseline memory-augmented VLM systems, VLM DEWM improves state-tracking accuracy from 56% to 93%, increases recovery success rate from below 5% to 95%, and significantly reduces computational overhead through structured memory.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15490": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The Regional Prior attention Transformer for infrared image Super-Resolution (RPT-SR) is proposed, a novel architecture that explicitly encodes scene layout information into the attention mechanism and allows the priors to dynamically modulate the local reconstruction process.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15384": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "WAC, a web agent that integrates model collaboration, consequence simulation, and feedback-driven action refinement, is proposed, and introduces a two-stage deduction chain to achieve risk-aware resilient task execution.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15377": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper introduces an orchestration-free framework using Task-Oriented Flowcharts (TOFs) to enable end-to-end automation without manual intervention, and defines the components and evaluation metrics for TOFs, then formalizes a cost-efficient flowchart construction algorithm to abstract procedural knowledge from service dialogues.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15339": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This proof-of-concept analysis suggests that USF-MAE learns more discriminative features for cardiac view classification than MoCo v3 when applied to the recently introduced CACTUS dataset.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15283": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes a quantum-inspired classification head architecture that projects backbone features into a complex-valued Hilbert space and evolves them under a learned unitary transformation parameterised via the Cayley map, and provides theoretical analysis connecting norm-preserving unitary dynamics to calibration through feature-space geometry.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15161": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The Layer Smoothing Attack is presented, a novel backdoor attack that exploits layer-specific vulnerabilities in neural networks to inject persistent backdoors while remaining undetected by state-of-the-art defense mechanisms.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.15019": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A benchmarking methodology for drug asset scouting and a tuned, tree-based self-learning Bioptic Agent aimed at complete, non-hallucinated scouting are proposed and performance improves steeply with additional compute, supporting the view that more compute yields better results.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16216": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "UCTECG-Net is proposed, an uncertainty-aware hybrid architecture that combines one-dimensional convolutions and Transformer encoders to process raw ECG signals and their spectrograms jointly and provides more reliable and better-aligned uncertainty estimates than competing architectures, offering a stronger basis for risk-aware ECG decision support.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16209": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes to constrain manifolds with low-rank Lie algebra parameterization that performs group action updates on the latent representation to address the principled geometric constraints absent in the neural operator updates.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16189": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Empirical evidence for task-localized modularity in language models is provided and meaningful capacity transfer can be realized through the implantation of highly localized modules implied by language models through model transplantation.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16109": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "FedGraph-AGI is introduced, a novel federated learning framework integrating Artificial General Intelligence (AGI) reasoning with graph neural networks for privacy-preserving cross-border insider threat detection, opening new directions for privacy-preserving cross-border intelligence sharing.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16105": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "GpsBench is introduced, a dataset of 57,800 samples across 17 tasks for evaluating geospatial reasoning in LLMs, spanning geometric coordinate operations (e.g., distance and bearing computation) and reasoning that integrates coordinates with world knowledge and finds that GPS reasoning remains challenging, with substantial variation across tasks.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.16093": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Compared to prior finetuning and distillation methods for continual adaptation, DiSC consistently reports the best trade-off between learning new knowledge and mitigating forgetting of previously learned skills like instruction-following, reasoning, and factual knowledge.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21534": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper proposes ARLArena, a stable training recipe and systematic analysis framework that examines training stability in a controlled and reproducible setting and proposes SAMPO, a stable agentic policy optimization method designed to mitigate the dominant sources of instability in ARL.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21757": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes FORESEE (Forecasting Online with Residual Smoothing and Ensemble Experts), a lightweight online adaptation framework that is accurate, robust, and computationally efficient and enables real-time adaptation of traffic forecasting models with negligible computational cost.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21657": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A visual cognition-guided collaborative network (VCC-Net) that employs clinically compatible interfaces and centers on visual cognition (VC) and employs clinically compatible interfaces to capture radiologists' visual search traces and attention patterns during diagnosis to achieve the cooperative diagnostic paradigm.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21652": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes Sparsity Induction, which promotes models toward higher sparsity at both distribution and feature levels before pruning, to push the limits of PTS.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21650": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "PPCR-IM is a system for multi-layer DAG-based consequence reasoning and social indicator mapping that addresses this gap in public policy decisions, using an LLM-driven, layer-wise generator to construct a directed acyclic graph of intermediate consequences.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21598": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "An AI-powered conversational retrieval system that scrapes and indexes publicly available pantry data and employs a Retrieval-Augmented Generation pipeline to support natural language queries via a web interface is developed.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.22039": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
     "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21987": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "PatchDenoiser is a lightweight, energy-efficient multi-scale patch-based denoising framework that decomposes denoising into local texture extraction and global context aggregation, fused via a spatially aware patch fusion strategy that enables effective noise suppression while preserving fine structural and anatomical details.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21855": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work systematically study how annotation errors propagate across different prompt types, namely masks, boxes, and points, and proposes Learning-to-Re-Prompt (L2RP), a cost-aware framework that learns when and where to seek expert input.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21814": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The results suggest that structured reasoning scaffolds -- specifically, forced goal articulation before inference -- matter substantially more than context injection for implicit constraint reasoning tasks.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21889": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A general computational framework, the 2-Step Agent, which models the effects of AI-assisted decision making and reveals several potential pitfalls of AI-driven decision support and highlights the need for thorough model documentation and proper user training.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21765": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Generalisation theory for RLHF is developed, suggesting that the generalisation error stems from a sampling error from prompts and rollouts, a reward shift error, and a KL clipping error.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21715": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This paper proposes a hybrid knowledge-data-driven approach that leverages dynamic collaboration between a large language model (LLM) agent and a reinforcement learning (RL) agent to achieve two-stage voltage control, significantly improving training efficiency and voltage control performance.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21647": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work validates that targeted punctuation restoration is the most effective intervention for mitigating structural noise in the Nepali S2TT pipeline and establishes an optimized baseline and demonstrates a critical architectural insight for developing cascaded speech translation systems for similar low-resource languages.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21613": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A Virtual Biopsy framework comprising: MRI-Processor for standardization; Tumor-Localizer employing vision-language models for coarse-to-fine localization via weak supervision; and Adaptive-Diagnoser with a Masked Channel Attention mechanism fusing local discriminative features with global contexts is proposed.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21611": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Structurally Aligned Subtask-Level Memory is proposed, a method that aligns memory storage, retrieval, and updating with the agent's functional decomposition and consistently outperforms both vanilla agents and strong instance-level memory baselines across diverse backbones.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21553": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "It is shown that if chosen carefully, an ensemble of retrievers outperforms any single retriever and a fresh perspective on the structure of modern retrieval techniques and actionable guidance for designing robust and efficient RAG systems is provided.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21551": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes representing fields with a Gaussian basis, where learned atoms carry explicit geometry and form a compact, mesh-agnostic, directly visualizable state, and introduces a Gaussian Particle Operator that acts in modal space.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21522": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "NOBEL takes a step towards unifying non-invasive brain decoding, demonstrating the promising potential of omni-modal brain understanding and integrates a unified encoder for EEG and MEG with a novel dual-path strategy for fMRI.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21515": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A multi-agent reinforcement learning (MARL) algorithm is developed that integrates strategic risk aversion into standard policy optimization methods and consistently achieves reliable collaboration with heterogeneous and previously unseen partners across collaborative tasks.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.22026": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes a robust baseline method based on a pre-trained RGB OCR foundation model, enhanced through multi-modal adaptation for Kilometer Marker Recognition (KMR), a critical task for autonomous metro localization under GNSS-denied conditions.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21857": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This framework enables smaller language models to achieve state-of-the-art claim verification by jointly optimising for verification accuracy and decomposition quality.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21841": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Resilient Federated Chain (RFC) is introduced, a novel blockchain-enabled FL framework designed specifically to enhance resilience against adversarial attacks, and introduces a flexible evaluation function in its consensus mechanism, allowing for adaptive defense against different attack strategies.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21819": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "SemVideo is introduced, a novel fMRI-to-video reconstruction framework guided by hierarchical semantic information that achieves superior performance in both semantic alignment and temporal consistency, setting a new state-of-the-art in fMRI-to-video reconstruction.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21720": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
     "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21704": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Dynamic Multimodal Activation Steering proposes a semantic-based truthfulness steering vector database and computes visual perception steering vectors, enabling context-aware interventions during inference by dynamically selecting the most relevant steering vectors based on input semantic similarity and applying them to the most influential attention heads.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21655": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "CCCaption is introduced: a dual-reward reinforcement learning framework with a dedicated fine-tuning corpus that explicitly optimizes completeness and correctness, guiding models toward captions that better satisfy these objective criteria.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21845": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work introduces an open-source Python library xai-cola, which provides an end-to-end pipeline for sparsifying CEs produced by arbitrary generators, reducing superfluous feature changes while preserving their validity.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21829": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work introduces StoryMovie, a dataset of 1,757 stories aligned with movie scripts and subtitles through LCS matching, and fine-tune Qwen Storyteller3 on this dataset, building on prior work in visual grounding and entity re-identification.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21798": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Excitation is optimizer-, domain-, and model-agnostic, requires minimal integration effort, and introduces neither additional per-parameter optimizer state nor learnable parameters, making it highly viable for memory-constrained settings.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21779": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Forensic Answer-Questioning (FAQ), a large-scale benchmark that formulates temporal deepfake analysis as a multiple-choice task, is proposed and a range of VLMs on FAQ are evaluated and a corresponding instruction-tuning set, FAQ-IT, is generated.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21772": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "UniWhisper is proposed, an efficient continual multi-task training framework that casts heterogeneous audio tasks into a unified instruction and answer format that enables standard next-token training without task-specific heads and losses.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21745": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The ASIR Courage Model is introduced, a phase-dynamic framework that formalizes truth-disclosure as a state transition rather than a personality trait, and offers a formal perspective on truth-disclosure under risk across both human and artificial systems.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21670": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work presents a hierarchical multi-agent LLM-based planner with prompt optimization: an upper layer decomposes tasks and assigns them to lower-layer agents, which generate PDDL problems solved by a classical planner.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21633": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "Self-Correcting VLA (SC-VLA), which achieve self-improvement by intrinsically guiding action refinement through sparse imagination by integrating auxiliary predictive heads to forecast current task progress and future trajectory trends, thereby constraining the policy to encode short-term physical evolution.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21584": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A novel descriptive framework for a world where humans and machines coexist symbiotically is constructed, termed \"symmetrical reality\", offering innovative research insight for renovating human-machine interaction paradigms.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21997": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes a scalable LLM-based unit test generation method that outperforms state-of-the-art LLM-based and search-based methods, demonstrating its effectiveness in achieving high coverage on complex methods.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21939": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The paper implements a list experiment on models developed by Anthropic, Google, and OpenAI and finds hidden approval of mass surveillance across all models, as well as some approval of torture, discrimination, and first nuclear strike.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21935": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "An automated framework for CAC detection and lesion-specific Agatston scoring that operates across both gated and non-gated CT scans is introduced, demonstrating the feasibility of cross-domain CAC scoring from gated to non-gated domains.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21864": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The DynamicGTR framework is proposed, which dynamically selects the optimal GTR for each query during inference, thereby enhancing the zero-shot graph QA capabilities of VLMs with a customizable accuracy and brevity trade-off.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21858": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "ProactiveMobile formalizes the proactive task as inferring latent user intent across four dimensions of on-device contextual signals and generating an executable function sequence from a comprehensive function pool of 63 APIs, indicating that proactivity is a critical competency widely lacking in current MLLMs, yet it is learnable, emphasizing the importance of the proposed benchmark for proactivity evaluation.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21800": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work investigates zero-shot, inference-only methods aimed at improving position encodings and optimizing attention mechanisms that facilitate context length extrapolation in code, particularly in the context of long code completion tasks.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21531": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The proposed LiLo-VLA (Linked Local VLA), a modular framework capable of zero-shot generalization to novel long-horizon tasks without ever being trained on them, facilitates robust failure recovery through dynamic replanning and skill reuse, effectively mitigating the cascading errors common in end-to-end approaches.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21746": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "The resulting extended fEDM, called fEDM+, preserves formal verifiability while achieving enhanced interpretability and stakeholder-aware validation, making it suitable as an oversight and governance layer for ethically sensitive AI systems.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21706": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "ResGo, a benchmark of laparoscopic frames annotated with Go Zone bounding boxes and clinician-authored rationales covering phase, exposure quality reasoning, next action and risk reminder, and SurGo-R1, a model optimized via RLHF with a multi-turn phase-then-go architecture where the model first identifies the surgical phase, then generates reasoning and Go Zone coordinates conditioned on that context.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21556": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work investigates the power and limitations of aggregation within a stylized principal-agent framework and proves that any aggregation operation must implement one of these mechanisms in order to be elicitability-expanding, and that strengthened versions of these mechanisms provide necessary and sufficient conditions that fully characterize elicitability-expansion.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.21543": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work shows that training standard pretrained models for cross-lingual alignment with a multi-way parallel corpus in a diverse pool of languages can substantially improve multilingual and cross-lingual representations for NLU tasks.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.22144": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A simple and training-free framework, No-Language-Hallucination Decoding, NoLan is proposed, which refines the output distribution by dynamically suppressing language priors, modulated based on the output distribution difference between multimodal and text-only inputs.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.22146": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work proposes a universal primal-dual framework for safe RLHF that unifies a broad class of existing alignment algorithms, including safe-RLHF, one-shot, and multi-shot based methods, and introduces an optimistic primal-dual (OPD) algorithm that incorporates predictive updates for both primal and dual variables to stabilize saddle-point dynamics.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.22145": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work introduces \"Cultural Ghosting\", the systematic erasure of linguistic markers unique to non-native English varieties during text processing during text processing, and identifies a Semantic Preservation Paradox: models maintain high semantic similarity while systematically erasing cultural markers.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.22149": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "A logical explainer for the Framingham Risk Score is presented, capable of identifying a minimal set of patient attributes that are sufficient to explain a given risk classification and producing actionable scenarios that illustrate which modifiable variables would reduce a patient's risk category.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.22188": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
     "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.22190": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work presents GUI-Libra, a tailored training recipe that consistently improves both step-wise accuracy and end-to-end task completion and introduces success-adaptive scaling to downweight unreliable negative gradients.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.22207": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "This work presents a fully automated framework designed to address the reliability of multilingual Large Language Model evaluation by enabling scalable, high-quality translation of datasets and benchmarks, and demonstrates that adapting test-time compute scaling strategies, specifically Universal Self-Improvement (USI) and the proposed multi-round ranking method, T-RANK, allows for significantly higher quality outputs compared to traditional pipelines.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   },
   "2602.22197": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "citation_velocity": 0,
-    "tldr": "",
-    "fetched_at": "2026-02-26T18:46:58.666272+00:00"
+    "tldr": "It is shown that off-the-shelf image-to-image GenAI models can be repurposed as generic ``denoisers\" using a simple text prompt, effectively removing a wide range of protective perturbations.",
+    "fetched_at": "2026-02-26T19:08:53.719066+00:00"
   }
 }
