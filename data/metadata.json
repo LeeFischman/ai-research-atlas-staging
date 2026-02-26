@@ -9,128 +9,128 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 0.5269743212826599,
-                "y": 1.4897505638949817,
-                "text": "Demand Forecasting And Time Series",
+                "x": -0.7956000334046259,
+                "y": -0.6250711687031397,
+                "text": "Multi-Agent Interaction And Coordination",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.1414653950493718,
-                "y": 0.34262836703244237,
-                "text": "Search And Retrieval Systems",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -1.2833571459359279,
-                "y": -1.085110862018088,
-                "text": "Safety And Robustness",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 0.6497759697611455,
-                "y": -2.5147590211774213,
+                "x": -2.1527436514103457,
+                "y": 0.2532128854325314,
                 "text": "Embodied Ai And Robotics",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.4704948435896805,
-                "y": 1.7437513495422843,
-                "text": "Scaling Laws And Model Capabilities",
+                "x": 0.29396573273852805,
+                "y": -2.6278438496170065,
+                "text": "Stance Detection And Argument Mining",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.8027627988563912,
-                "y": -0.45965145483214115,
-                "text": "Model Quantization",
+                "x": -1.743296296056594,
+                "y": 2.117673505166393,
+                "text": "Graph Neural Networks And Geometry",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.056943751288613,
-                "y": 0.34579892923018,
-                "text": "Graph Neural Networks",
+                "x": 1.2939264717822758,
+                "y": 0.3911557242044211,
+                "text": "Scientific Data Analysis And Refinement",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.541432486952806,
-                "y": -1.4100885732117074,
-                "text": "Security And Adversarial Analysis",
+                "x": -0.5494313310685399,
+                "y": 1.8417479744069571,
+                "text": "Cross-Subject Generalization",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.22079006880720373,
-                "y": -1.555815892678114,
-                "text": "Reinforcement Learning From Rewards",
+                "x": 3.626242721478836,
+                "y": -0.5615796377862594,
+                "text": "Machine Learning Systems And Platforms",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.3772492473453135,
-                "y": -0.8604004450725157,
-                "text": "Scientific Machine Learning",
+                "x": 2.323595766928084,
+                "y": -2.568293889085039,
+                "text": "Watermarking And Content Verification",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.5670397077450839,
-                "y": -2.518879084105925,
-                "text": "Knowledge-Grounded Reasoning",
+                "x": -0.6375133719138734,
+                "y": -2.3852862878393384,
+                "text": "Causal Reasoning And Analysis",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -3.1242735851656778,
-                "y": 1.4737266072291564,
-                "text": "Watermarking And Provenance",
+                "x": 1.351923196858186,
+                "y": 2.7393754295746793,
+                "text": "Video Generation And Consistency",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.4315349049900514,
-                "y": -0.3196044316282803,
-                "text": "Knowledge Graph Methods",
+                "x": -3.2335121702203242,
+                "y": -1.0546290038233934,
+                "text": "Software Engineering And Metrics",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.3016465400668775,
-                "y": 3.3206982343653118,
-                "text": "Software Engineering And Ml",
+                "x": -2.14162033211613,
+                "y": 1.2803370195690835,
+                "text": "Control And Optimization For Robotics",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.9339401086417536,
-                "y": -1.9389364845546644,
-                "text": "Autonomous Control Systems",
+                "x": 2.0246856992652518,
+                "y": 1.2993216756228099,
+                "text": "Large-Scale Recommendation Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.014536685317754275,
-                "y": 0.5094483794812042,
-                "text": "Federated Learning",
+                "x": 0.4491424599518126,
+                "y": -1.3088142426038583,
+                "text": "Evaluation And Measurement Frameworks",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.85105120974778,
-                "y": 2.437772015233264,
-                "text": "Audio And Speech Processing",
+                "x": 1.7265086851088574,
+                "y": -0.6652163318788937,
+                "text": "Financial Machine Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.7637920056379386,
-                "y": 1.0339555354373013,
-                "text": "Social Choice Theory",
+                "x": 0.3399964057540163,
+                "y": 2.9944200358436426,
+                "text": "Audio Processing And Neural Codecs",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 0.06491171003556076,
+                "y": 0.7612711156811183,
+                "text": "Distributed Training And Optimization",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -1.7503550528442622,
+                "y": -2.039942016925095,
+                "text": "Preference Aggregation And Social Choice",
                 "level": 0,
                 "priority": 10
             }
