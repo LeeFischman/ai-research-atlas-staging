@@ -871,7 +871,11 @@ def fetch_arxiv_oai(
         new_ids = [i for i in ids if i not in seen_ids]
         seen_ids.update(new_ids)
         all_ids.extend(new_ids)
-        print(f"    {len(new_ids)} new IDs (running total: {len(all_ids)})")
+        if new_ids:
+            print(f"    {date_str}: {len(new_ids)} IDs "
+                  f"(running total: {len(all_ids)})")
+        else:
+            print(f"    {date_str}: 0 IDs — no announcement or weekend.")
 
         if len(all_ids) >= max_results:
             print(f"  Reached max_results cap ({max_results}) — stopping.")
@@ -883,9 +887,25 @@ def fetch_arxiv_oai(
     # Apply cap before fetching metadata (saves Search API calls)
     all_ids = all_ids[:max_results]
 
+    # ── Diagnostic: sample IDs so logs can be spot-checked against arXiv ──
+    sample_ids = all_ids[:5]
+    print(f"  Sample IDs (verify at https://arxiv.org/abs/<id>): "
+          f"{', '.join(sample_ids)}")
+
     print(f"  Fetching metadata for {len(all_ids)} IDs via Search API...")
     papers = _search_fetch_metadata(all_ids)
-    print(f"  Retrieved metadata for {len(papers)}/{len(all_ids)} papers.")
+
+    if not papers and all_ids:
+        print(f"  WARNING: OAI returned {len(all_ids)} IDs but metadata fetch "
+              f"returned 0 papers. Possible date shift — check OAI datestamp "
+              f"vs arXiv announcement schedule.")
+    else:
+        print(f"  Retrieved metadata for {len(papers)}/{len(all_ids)} papers.")
+        # ── Diagnostic: sample titles for visual confirmation ──────────────
+        print("  Sample titles (confirm these are real cs.AI papers):")
+        for p in papers[:3]:
+            print(f"    - {p.title[:80]}")
+
     return papers
 
 
