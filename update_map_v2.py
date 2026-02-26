@@ -41,14 +41,11 @@ import os
 import random
 import re
 import time
-import urllib.request
 from datetime import datetime, timedelta, timezone
 from math import sqrt
 
 import numpy as np
 import pandas as pd
-
-import arxiv
 
 # Shared utilities — does NOT modify update_map.py
 from atlas_utils import (
@@ -65,7 +62,7 @@ from atlas_utils import (
     fetch_author_hindices,
     load_existing_db,
     merge_papers,
-    fetch_arxiv,
+    fetch_arxiv_oai,
     embed_and_project,
     build_and_deploy_atlas,
     # Semantic Scholar
@@ -907,24 +904,9 @@ if __name__ == "__main__":
         else:
             print(f"  Loaded {len(existing_df)} existing papers.")
 
-        # ── Stage 1b: arXiv fetch ────────────────────────────────────────────
-        print("\n▶  Stage 1b — Fetching from arXiv...")
-        opener = urllib.request.build_opener()
-        opener.addheaders = [("User-Agent",
-            "ai-research-atlas/2.0 (https://github.com/LeeFischman/ai-research-atlas; "
-            "mailto:lee.fischman@gmail.com)")]
-        urllib.request.install_opener(opener)
-
-        arxiv_client = arxiv.Client(page_size=100, delay_seconds=10)
-        search = arxiv.Search(
-            query=(
-                f"cat:cs.AI AND submittedDate:"
-                f"[{(now - timedelta(days=days_back)).strftime('%Y%m%d%H%M')}"
-                f" TO {now.strftime('%Y%m%d%H%M')}]"
-            ),
-            max_results=ARXIV_MAX,
-        )
-        results = fetch_arxiv(arxiv_client, search)
+        # ── Stage 1b: arXiv fetch (OAI-PMH announcement-date) ───────────────
+        print("\n▶  Stage 1b — Fetching from arXiv (OAI-PMH)...")
+        results = fetch_arxiv_oai(days_back=days_back, max_results=ARXIV_MAX)
 
         if not results:
             if existing_df.empty:
