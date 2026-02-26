@@ -57,7 +57,7 @@ jobs:
 
       - name: Run Update Script
         env:
-          # ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           EMBEDDING_MODEL: sbert
 
           # ── STATIC TEST: uncomment to skip all API calls ─────────────────
