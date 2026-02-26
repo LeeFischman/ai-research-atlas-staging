@@ -9,128 +9,128 @@
         },
         "embeddingViewLabels": [
             {
-                "x": -1.2471654381200679,
-                "y": -0.9264321285776294,
-                "text": "Time Series Forecasting And Prediction",
+                "x": -0.7674688758443331,
+                "y": -1.8859447534126499,
+                "text": "Energy System Forecasting",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.748888595341405,
-                "y": 0.46971945213367206,
-                "text": "Llm Community Feedback Dynamics",
+                "x": -0.48579700369735906,
+                "y": -0.08647298346930145,
+                "text": "Agentic System Benchmarking",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.40873270515265997,
-                "y": -1.9558910885262388,
+                "x": 0.2892592463284864,
+                "y": 0.9298572899415642,
+                "text": "Search And Retrieval Systems",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 1.529967875165557,
+                "y": -0.294271635060065,
+                "text": "Llm Safety And Reliability",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -2.122234655392261,
+                "y": 1.0758300526567672,
                 "text": "Neural Network Representation Analysis",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.2563770528496039,
-                "y": 2.8243643708063906,
-                "text": "Cybercrime And Ai",
+                "x": -1.6263832410166006,
+                "y": -0.5332382300514189,
+                "text": "Ai For Materials Science",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.746430985171131,
-                "y": -0.026629691111066025,
-                "text": "Data Quality For Llm Training",
+                "x": 2.6430912122504377,
+                "y": -2.365182163103996,
+                "text": "Ai Service Infrastructure",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.2787642773162866,
-                "y": -0.6287988887129112,
-                "text": "Ai For Scientific Discovery",
+                "x": 3.260471155481927,
+                "y": -0.37929894465948794,
+                "text": "Content Provenance And Watermarking",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.9190331903723616,
-                "y": 1.9892367990078679,
-                "text": "Ai Service Deployment",
+                "x": 0.190430735345149,
+                "y": 3.2940161433052735,
+                "text": "Robotic Assistance For Accessibility",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.098115002995669,
-                "y": -0.9469523057104023,
-                "text": "Content Attribution And Watermarking",
+                "x": 1.3908922883180297,
+                "y": 2.028127835698129,
+                "text": "Llm Evaluation And Bias",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.7046377789387166,
-                "y": 1.9850904554935855,
-                "text": "Assistive Robotics",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -0.31859009235656893,
-                "y": 1.8917626592158188,
-                "text": "Causal Reasoning",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -2.449899868987133,
-                "y": -1.6720291921864299,
+                "x": -1.685428316622469,
+                "y": -2.5003087228106744,
                 "text": "Video Generation And Consistency",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.7056030882855435,
-                "y": -2.2805215423570324,
-                "text": "Semantic Communication",
+                "x": -1.3405129047911144,
+                "y": 2.275673554963694,
+                "text": "Software Development Automation",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.210554422354613,
-                "y": -3.380019087054679,
-                "text": "Code Change Classification",
+                "x": 2.0294014370636275,
+                "y": 0.9578338275251179,
+                "text": "Participatory Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.9407101711386963,
-                "y": 1.1942999434890493,
-                "text": "Multi-Agent Cooperation",
+                "x": 0.9564612345075627,
+                "y": -1.52213716176647,
+                "text": "Federated Learning Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.8817665512143082,
-                "y": 0.2775548754106615,
-                "text": "Federated Learning Communication",
+                "x": 0.5801457362208444,
+                "y": -2.327066301850305,
+                "text": "Financial Risk Prediction",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.9506641533902233,
-                "y": 2.4201664275833763,
-                "text": "Preference Domain Structure",
+                "x": -2.9838917355384487,
+                "y": -1.630255220863702,
+                "text": "Audio Processing And Compression",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.1615843872666063,
-                "y": -2.582146597119478,
-                "text": "Cardiac Imaging Self-Supervision",
+                "x": 0.3584755461198574,
+                "y": 2.0586157965095437,
+                "text": "Ai Strategic Behavior",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.9436491108156007,
-                "y": 0.5573447523200243,
-                "text": "Federated Learning Backdoor Attacks",
+                "x": -2.6370156207798754,
+                "y": 0.6064964981316401,
+                "text": "Human-Robot Interaction",
                 "level": 0,
                 "priority": 10
             }
