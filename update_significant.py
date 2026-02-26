@@ -106,11 +106,13 @@ def _s2_search_page(
     date_from_str: str,
     date_to_str: str,
     headers: dict,
+    inter_page_sleep: float = 1.2,
 ) -> dict:
-    """Fetch one page of S2 paper search results.
+    """Fetch one page of S2 paper search results with exponential backoff.
 
     Uses publicationDateOrYear for server-side date filtering and
     sort=citationCount:desc to front-load the most impactful papers.
+    Retries up to 5 times on 429 / 5xx errors.
     """
     params = {
         "query":                 _S2_SEARCH_QUERY,
@@ -123,8 +125,33 @@ def _s2_search_page(
     }
     url = f"{_S2_SEARCH_URL}?{urllib.parse.urlencode(params)}"
     req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=20) as resp:
-        return json.loads(resp.read().decode())
+
+    max_retries = 5
+    base_wait   = 30   # seconds; doubles each attempt: 30, 60, 120, 240, 480
+    for attempt in range(1, max_retries + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                return json.loads(resp.read().decode())
+        except urllib.error.HTTPError as e:
+            if e.code in (429, 500, 502, 503, 504):
+                wait = base_wait * (2 ** (attempt - 1))
+                print(f"    S2 HTTP {e.code} on attempt {attempt}/{max_retries} "
+                      f"(offset={offset}) — retrying in {wait}s...")
+                time.sleep(wait)
+            else:
+                raise
+        except Exception as e:
+            if attempt < max_retries:
+                wait = base_wait * (2 ** (attempt - 1))
+                print(f"    S2 error on attempt {attempt}/{max_retries}: {e} "
+                      f"— retrying in {wait}s...")
+                time.sleep(wait)
+            else:
+                raise
+
+    raise RuntimeError(
+        f"S2 search failed after {max_retries} attempts at offset={offset}."
+    )
 
 
 def _parse_s2_paper(paper: dict) -> dict | None:
@@ -218,13 +245,17 @@ def discover_candidates(
 
     print(f"  Date window: {date_from_str} to {date_to_str}")
 
+    # Brief pause before first request — S2 free tier is strict on cold starts
+    time.sleep(inter_page_sleep)
+
     for page_num in range(SIGNIFICANT_MAX_PAGES):
         offset = page_num * SIGNIFICANT_PAGE_SIZE
         print(f"  S2 search page {page_num + 1}/{SIGNIFICANT_MAX_PAGES} "
               f"(offset={offset})...")
 
         try:
-            data   = _s2_search_page(offset, date_from_str, date_to_str, headers)
+            data   = _s2_search_page(offset, date_from_str, date_to_str,
+                                     headers, inter_page_sleep)
             papers = data.get("data", []) or []
             total  = data.get("total", "?")
         except Exception as e:
