@@ -1,1 +1,946 @@
-{}
+{
+  "xiaoxuan wang": {
+    "hindex": 24,
+    "fetched_at": "2026-02-26T02:10:22.063414+00:00"
+  },
+  "han zhang": {
+    "hindex": 184,
+    "fetched_at": "2026-02-26T02:10:22.949460+00:00"
+  },
+  "haixin wang": {
+    "hindex": 35,
+    "fetched_at": "2026-02-26T02:10:23.351409+00:00"
+  },
+  "yidan shi": {
+    "hindex": 26,
+    "fetched_at": "2026-02-26T02:10:23.699556+00:00"
+  },
+  "ruoyan li": {
+    "hindex": 27,
+    "fetched_at": "2026-02-26T02:10:24.060517+00:00"
+  },
+  "kaiqiao han": {
+    "hindex": 30,
+    "fetched_at": "2026-02-26T02:10:24.358538+00:00"
+  },
+  "chenyi tong": {
+    "hindex": 12,
+    "fetched_at": "2026-02-26T02:10:24.685364+00:00"
+  },
+  "haoran deng": {
+    "hindex": 10,
+    "fetched_at": "2026-02-26T02:10:25.062224+00:00"
+  },
+  "renliang sun": {
+    "hindex": 11,
+    "fetched_at": "2026-02-26T02:10:25.390324+00:00"
+  },
+  "alexander taylor": {
+    "hindex": 40,
+    "fetched_at": "2026-02-26T02:10:25.997909+00:00"
+  },
+  "yanqiao zhu": {
+    "hindex": 21,
+    "fetched_at": "2026-02-26T02:10:26.296102+00:00"
+  },
+  "jason cong": {
+    "hindex": 67,
+    "fetched_at": "2026-02-26T02:10:26.678101+00:00"
+  },
+  "yizhou sun": {
+    "hindex": 58,
+    "fetched_at": "2026-02-26T02:10:27.036293+00:00"
+  },
+  "wei wang": {
+    "hindex": 71,
+    "fetched_at": "2026-02-26T02:10:27.722935+00:00"
+  },
+  "xiannan huang": {
+    "hindex": 43,
+    "fetched_at": "2026-02-26T02:10:28.072771+00:00"
+  },
+  "quan yuan": {
+    "hindex": 67,
+    "fetched_at": "2026-02-26T02:10:28.619717+00:00"
+  },
+  "chao yang": {
+    "hindex": 178,
+    "fetched_at": "2026-02-26T02:10:29.282497+00:00"
+  },
+  "shaoxuan wu": {
+    "hindex": 18,
+    "fetched_at": "2026-02-26T02:10:29.619318+00:00"
+  },
+  "jingkun chen": {
+    "hindex": 11,
+    "fetched_at": "2026-02-26T02:10:29.987546+00:00"
+  },
+  "chong ma": {
+    "hindex": 50,
+    "fetched_at": "2026-02-26T02:10:30.492052+00:00"
+  },
+  "cong shen": {
+    "hindex": 71,
+    "fetched_at": "2026-02-26T02:10:30.892820+00:00"
+  },
+  "xiao zhang": {
+    "hindex": 92,
+    "fetched_at": "2026-02-26T02:10:31.674112+00:00"
+  },
+  "jun feng": {
+    "hindex": 77,
+    "fetched_at": "2026-02-26T02:10:35.605249+00:00"
+  },
+  "minhao jiang": {
+    "hindex": 8,
+    "fetched_at": "2026-02-26T02:10:36.954421+00:00"
+  },
+  "zhikai li": {
+    "hindex": 82,
+    "fetched_at": "2026-02-26T02:10:39.836348+00:00"
+  },
+  "xuewen liu": {
+    "hindex": 127,
+    "fetched_at": "2026-02-26T02:10:40.355621+00:00"
+  },
+  "jing zhang": {
+    "hindex": 27,
+    "fetched_at": "2026-02-26T02:10:41.009835+00:00"
+  },
+  "mengjuan chen": {
+    "hindex": 36,
+    "fetched_at": "2026-02-26T02:10:41.429712+00:00"
+  },
+  "qingyi gu": {
+    "hindex": 20,
+    "fetched_at": "2026-02-26T02:10:41.793436+00:00"
+  },
+  "zichen song": {
+    "hindex": 25,
+    "fetched_at": "2026-02-26T02:10:42.171616+00:00"
+  },
+  "weijia li": {
+    "hindex": 26,
+    "fetched_at": "2026-02-26T02:10:42.613463+00:00"
+  },
+  "touseef hasan": {
+    "hindex": 1,
+    "fetched_at": "2026-02-26T02:10:43.025950+00:00"
+  },
+  "laila cure": {
+    "hindex": 6,
+    "fetched_at": "2026-02-26T02:10:43.381528+00:00"
+  },
+  "souvika sarkar": {
+    "hindex": 13,
+    "fetched_at": "2026-02-26T02:10:43.912674+00:00"
+  },
+  "cheng-yeh yang": {
+    "hindex": 36,
+    "fetched_at": "2026-02-26T02:10:44.243832+00:00"
+  },
+  "chien-chun wang": {
+    "hindex": 81,
+    "fetched_at": "2026-02-26T02:10:44.674224+00:00"
+  },
+  "li-wei chen": {
+    "hindex": 82,
+    "fetched_at": "2026-02-26T02:10:45.257938+00:00"
+  },
+  "hung-shin lee": {
+    "hindex": 54,
+    "fetched_at": "2026-02-26T02:10:45.917641+00:00"
+  },
+  "hsin-min wang": {
+    "hindex": 38,
+    "fetched_at": "2026-02-26T02:10:46.291274+00:00"
+  },
+  "berlin chen": {
+    "hindex": 55,
+    "fetched_at": "2026-02-26T02:10:46.694484+00:00"
+  },
+  "jitindra fartiyal": {
+    "hindex": 1,
+    "fetched_at": "2026-02-26T02:10:46.952255+00:00"
+  },
+  "pedro freire": {
+    "hindex": 57,
+    "fetched_at": "2026-02-26T02:10:47.319748+00:00"
+  },
+  "sergei k. turitsyn": {
+    "hindex": 70,
+    "fetched_at": "2026-02-26T02:10:47.659942+00:00"
+  },
+  "sergei g. solovski": {
+    "hindex": 0,
+    "fetched_at": "2026-02-26T02:10:47.924763+00:00"
+  },
+  "lokesha rasanjalee": {
+    "hindex": 0,
+    "fetched_at": "2026-02-26T02:10:48.210420+00:00"
+  },
+  "jin lin tan": {
+    "hindex": 13,
+    "fetched_at": "2026-02-26T02:10:48.527845+00:00"
+  },
+  "dileepa pitawela": {
+    "hindex": 2,
+    "fetched_at": "2026-02-26T02:10:48.793639+00:00"
+  },
+  "rajvinder singh": {
+    "hindex": 42,
+    "fetched_at": "2026-02-26T02:10:49.181051+00:00"
+  },
+  "hsiang-ting chen": {
+    "hindex": 23,
+    "fetched_at": "2026-02-26T02:10:49.568924+00:00"
+  },
+  "heejin jo": {
+    "hindex": 1,
+    "fetched_at": "2026-02-26T02:10:49.881295+00:00"
+  },
+  "otto nyberg": {
+    "hindex": 3,
+    "fetched_at": "2026-02-26T02:10:50.241698+00:00"
+  },
+  "fausto carcassi": {
+    "hindex": 17,
+    "fetched_at": "2026-02-26T02:10:50.570457+00:00"
+  },
+  "giovanni cin\u00e0": {
+    "hindex": 26,
+    "fetched_at": "2026-02-26T02:10:50.913534+00:00"
+  },
+  "kenton tang": {
+    "hindex": 0,
+    "fetched_at": "2026-02-26T02:10:51.215619+00:00"
+  },
+  "yuzhu chen": {
+    "hindex": 43,
+    "fetched_at": "2026-02-26T02:10:51.723025+00:00"
+  },
+  "fengxiang he": {
+    "hindex": 19,
+    "fetched_at": "2026-02-26T02:10:52.038662+00:00"
+  },
+  "xu yang": {
+    "hindex": 70,
+    "fetched_at": "2026-02-26T02:10:52.616167+00:00"
+  },
+  "chenhui lin": {
+    "hindex": 15,
+    "fetched_at": "2026-02-26T02:10:52.926439+00:00"
+  },
+  "xiang ma": {
+    "hindex": 69,
+    "fetched_at": "2026-02-26T02:10:53.414274+00:00"
+  },
+  "dong liu": {
+    "hindex": 62,
+    "fetched_at": "2026-02-26T02:10:54.009029+00:00"
+  },
+  "ran zheng": {
+    "hindex": 37,
+    "fetched_at": "2026-02-26T02:10:54.462825+00:00"
+  },
+  "haotian liu": {
+    "hindex": 122,
+    "fetched_at": "2026-02-26T02:10:55.030094+00:00"
+  },
+  "wenchuan wu": {
+    "hindex": 60,
+    "fetched_at": "2026-02-26T02:10:55.362755+00:00"
+  },
+  "tangsang chongbang": {
+    "hindex": 0,
+    "fetched_at": "2026-02-26T02:10:55.622393+00:00"
+  },
+  "pranesh pyara shrestha": {
+    "hindex": 0,
+    "fetched_at": "2026-02-26T02:10:55.885425+00:00"
+  },
+  "amrit sarki": {
+    "hindex": 0,
+    "fetched_at": "2026-02-26T02:10:56.221834+00:00"
+  },
+  "anku jaiswal": {
+    "hindex": 5,
+    "fetched_at": "2026-02-26T02:10:56.543297+00:00"
+  },
+  "xinzhe luo": {
+    "hindex": 10,
+    "fetched_at": "2026-02-26T02:10:56.914894+00:00"
+  },
+  "shuai shao": {
+    "hindex": 68,
+    "fetched_at": "2026-02-26T02:10:57.324921+00:00"
+  },
+  "yan wang": {
+    "hindex": 54,
+    "fetched_at": "2026-02-26T02:10:58.092894+00:00"
+  },
+  "jiangtao wang": {
+    "hindex": 40,
+    "fetched_at": "2026-02-26T02:10:58.543915+00:00"
+  },
+  "yutong bai": {
+    "hindex": 15,
+    "fetched_at": "2026-02-26T02:10:58.950064+00:00"
+  },
+  "jianguo zhang": {
+    "hindex": 70,
+    "fetched_at": "2026-02-26T02:10:59.353835+00:00"
+  },
+  "kangning shen": {
+    "hindex": 21,
+    "fetched_at": "2026-02-26T02:10:59.687991+00:00"
+  },
+  "jingyuan zhang": {
+    "hindex": 22,
+    "fetched_at": "2026-02-26T02:11:00.144272+00:00"
+  },
+  "chenxi sun": {
+    "hindex": 67,
+    "fetched_at": "2026-02-26T02:11:00.559932+00:00"
+  },
+  "wencong zeng": {
+    "hindex": 10,
+    "fetched_at": "2026-02-26T02:11:00.934072+00:00"
+  },
+  "yang yue": {
+    "hindex": 73,
+    "fetched_at": "2026-02-26T02:11:01.469101+00:00"
+  },
+  "wenqing zheng": {
+    "hindex": 45,
+    "fetched_at": "2026-02-26T02:11:01.878511+00:00"
+  },
+  "dmitri kalaev": {
+    "hindex": 9,
+    "fetched_at": "2026-02-26T02:11:02.179364+00:00"
+  },
+  "noah fatsi": {
+    "hindex": 1,
+    "fetched_at": "2026-02-26T02:11:02.433269+00:00"
+  },
+  "daniel barcklow": {
+    "hindex": 2,
+    "fetched_at": "2026-02-26T02:11:02.699463+00:00"
+  },
+  "owen reinert": {
+    "hindex": 0,
+    "fetched_at": "2026-02-26T02:11:02.989088+00:00"
+  },
+  "igor melnyk": {
+    "hindex": 20,
+    "fetched_at": "2026-02-26T02:11:03.417575+00:00"
+  },
+  "senthil kumar": {
+    "hindex": 112,
+    "fetched_at": "2026-02-26T02:11:03.891992+00:00"
+  },
+  "c. bayan bruss": {
+    "hindex": 10,
+    "fetched_at": "2026-02-26T02:11:04.239663+00:00"
+  },
+  "zhihao li": {
+    "hindex": 51,
+    "fetched_at": "2026-02-26T02:11:04.673070+00:00"
+  },
+  "yu feng": {
+    "hindex": 224,
+    "fetched_at": "2026-02-26T02:11:05.320518+00:00"
+  },
+  "zhilu lai": {
+    "hindex": 15,
+    "fetched_at": "2026-02-26T02:11:05.675703+00:00"
+  },
+  "changli tang": {
+    "hindex": 5,
+    "fetched_at": "2026-02-26T02:11:05.985052+00:00"
+  },
+  "shurui li": {
+    "hindex": 14,
+    "fetched_at": "2026-02-26T02:11:06.694267+00:00"
+  },
+  "junliang wang": {
+    "hindex": 27,
+    "fetched_at": "2026-02-26T02:11:07.108857+00:00"
+  },
+  "qinfan xiao": {
+    "hindex": 14,
+    "fetched_at": "2026-02-26T02:11:07.389645+00:00"
+  },
+  "zhonghao zhai": {
+    "hindex": 2,
+    "fetched_at": "2026-02-26T02:11:07.651056+00:00"
+  },
+  "lei bai": {
+    "hindex": 30,
+    "fetched_at": "2026-02-26T02:11:08.076105+00:00"
+  },
+  "yu qiao": {
+    "hindex": 106,
+    "fetched_at": "2026-02-26T02:11:08.507613+00:00"
+  },
+  "bowen zhou": {
+    "hindex": 51,
+    "fetched_at": "2026-02-26T02:11:08.938507+00:00"
+  },
+  "wen wu": {
+    "hindex": 85,
+    "fetched_at": "2026-02-26T02:11:09.377306+00:00"
+  },
+  "yuanning li": {
+    "hindex": 24,
+    "fetched_at": "2026-02-26T02:11:09.725647+00:00"
+  },
+  "chao zhang": {
+    "hindex": 165,
+    "fetched_at": "2026-02-26T02:11:10.356100+00:00"
+  },
+  "chengrui qu": {
+    "hindex": 7,
+    "fetched_at": "2026-02-26T02:11:10.637844+00:00"
+  },
+  "yizhou zhang": {
+    "hindex": 62,
+    "fetched_at": "2026-02-26T02:11:11.144153+00:00"
+  },
+  "nicholas lanzetti": {
+    "hindex": 0,
+    "fetched_at": "2026-02-26T02:11:11.398046+00:00"
+  },
+  "eric mazumdar": {
+    "hindex": 84,
+    "fetched_at": "2026-02-26T02:11:11.725311+00:00"
+  },
+  "xiaoyu xian": {
+    "hindex": 56,
+    "fetched_at": "2026-02-26T02:11:12.102002+00:00"
+  },
+  "shiao wang": {
+    "hindex": 41,
+    "fetched_at": "2026-02-26T02:11:12.512911+00:00"
+  },
+  "xiao wang": {
+    "hindex": 50,
+    "fetched_at": "2026-02-26T02:11:13.009161+00:00"
+  },
+  "daxin tian": {
+    "hindex": 41,
+    "fetched_at": "2026-02-26T02:11:13.401478+00:00"
+  },
+  "yan tian": {
+    "hindex": 57,
+    "fetched_at": "2026-02-26T02:11:13.799419+00:00"
+  },
+  "jabez magomere": {
+    "hindex": 1,
+    "fetched_at": "2026-02-26T02:11:14.092559+00:00"
+  },
+  "elena kochkina": {
+    "hindex": 13,
+    "fetched_at": "2026-02-26T02:11:14.402521+00:00"
+  },
+  "samuel mensah": {
+    "hindex": 29,
+    "fetched_at": "2026-02-26T02:11:14.747391+00:00"
+  },
+  "simerjot kaur": {
+    "hindex": 38,
+    "fetched_at": "2026-02-26T02:11:15.060657+00:00"
+  },
+  "fernando acero": {
+    "hindex": 3,
+    "fetched_at": "2026-02-26T02:11:15.422797+00:00"
+  },
+  "arturo oncevay": {
+    "hindex": 11,
+    "fetched_at": "2026-02-26T02:11:15.737074+00:00"
+  },
+  "charese h. smiley": {
+    "hindex": 10,
+    "fetched_at": "2026-02-26T02:11:15.990981+00:00"
+  },
+  "xiaomo liu": {
+    "hindex": 18,
+    "fetched_at": "2026-02-26T02:11:16.322788+00:00"
+  },
+  "manuela veloso": {
+    "hindex": 66,
+    "fetched_at": "2026-02-26T02:11:16.754760+00:00"
+  },
+  "mario garc\u00eda-m\u00e1rquez": {
+    "hindex": 2,
+    "fetched_at": "2026-02-26T02:11:17.089878+00:00"
+  },
+  "nuria rodr\u00edguez-barroso": {
+    "hindex": 8,
+    "fetched_at": "2026-02-26T02:11:17.449408+00:00"
+  },
+  "m. victoria luz\u00f3n": {
+    "hindex": 16,
+    "fetched_at": "2026-02-26T02:11:17.831932+00:00"
+  },
+  "francisco herrera": {
+    "hindex": 169,
+    "fetched_at": "2026-02-26T02:11:18.284404+00:00"
+  },
+  "minghan yang": {
+    "hindex": 26,
+    "fetched_at": "2026-02-26T02:11:18.718342+00:00"
+  },
+  "lan yang": {
+    "hindex": 63,
+    "fetched_at": "2026-02-26T02:11:19.211322+00:00"
+  },
+  "ke li": {
+    "hindex": 131,
+    "fetched_at": "2026-02-26T02:11:19.625291+00:00"
+  },
+  "honggang zhang": {
+    "hindex": 111,
+    "fetched_at": "2026-02-26T02:11:20.057248+00:00"
+  },
+  "kaiyue pang": {
+    "hindex": 13,
+    "fetched_at": "2026-02-26T02:11:20.363826+00:00"
+  },
+  "yizhe song": {
+    "hindex": 10,
+    "fetched_at": "2026-02-26T02:11:20.732447+00:00"
+  },
+  "andrea silvi": {
+    "hindex": 2,
+    "fetched_at": "2026-02-26T02:11:21.005722+00:00"
+  },
+  "ponrawee prasertsom": {
+    "hindex": 2,
+    "fetched_at": "2026-02-26T02:11:21.276258+00:00"
+  },
+  "jennifer culbertson": {
+    "hindex": 27,
+    "fetched_at": "2026-02-26T02:11:21.643282+00:00"
+  },
+  "devdatt dubhashi": {
+    "hindex": 19,
+    "fetched_at": "2026-02-26T02:11:21.938439+00:00"
+  },
+  "moa johansson": {
+    "hindex": 15,
+    "fetched_at": "2026-02-26T02:11:22.293498+00:00"
+  },
+  "kenny smith": {
+    "hindex": 57,
+    "fetched_at": "2026-02-26T02:11:22.692809+00:00"
+  },
+  "jianghao yin": {
+    "hindex": 26,
+    "fetched_at": "2026-02-26T02:11:22.981788+00:00"
+  },
+  "qin chen": {
+    "hindex": 71,
+    "fetched_at": "2026-02-26T02:11:23.402019+00:00"
+  },
+  "kedi chen": {
+    "hindex": 45,
+    "fetched_at": "2026-02-26T02:11:23.749549+00:00"
+  },
+  "jie zhou": {
+    "hindex": 83,
+    "fetched_at": "2026-02-26T02:11:24.306870+00:00"
+  },
+  "xingjiao wu": {
+    "hindex": 13,
+    "fetched_at": "2026-02-26T02:11:24.585492+00:00"
+  },
+  "liang he": {
+    "hindex": 105,
+    "fetched_at": "2026-02-26T02:11:25.065786+00:00"
+  },
+  "zhijiang tang": {
+    "hindex": 19,
+    "fetched_at": "2026-02-26T02:11:25.351342+00:00"
+  },
+  "linhua wang": {
+    "hindex": 12,
+    "fetched_at": "2026-02-26T02:11:25.695570+00:00"
+  },
+  "jiaxin qi": {
+    "hindex": 21,
+    "fetched_at": "2026-02-26T02:11:26.088700+00:00"
+  },
+  "weihao jiang": {
+    "hindex": 31,
+    "fetched_at": "2026-02-26T02:11:26.443823+00:00"
+  },
+  "peng hou": {
+    "hindex": 45,
+    "fetched_at": "2026-02-26T02:11:26.849277+00:00"
+  },
+  "anxiang zeng": {
+    "hindex": 25,
+    "fetched_at": "2026-02-26T02:11:27.203137+00:00"
+  },
+  "jianqiang huang": {
+    "hindex": 72,
+    "fetched_at": "2026-02-26T02:11:27.627025+00:00"
+  },
+  "lin zhu": {
+    "hindex": 61,
+    "fetched_at": "2026-02-26T02:11:28.141616+00:00"
+  },
+  "lei you": {
+    "hindex": 111,
+    "fetched_at": "2026-02-26T02:11:28.545370+00:00"
+  },
+  "daniel oliveira": {
+    "hindex": 92,
+    "fetched_at": "2026-02-26T02:11:28.995970+00:00"
+  },
+  "david martins de matos": {
+    "hindex": 16,
+    "fetched_at": "2026-02-26T02:11:29.296329+00:00"
+  },
+  "sagi shaier": {
+    "hindex": 2,
+    "fetched_at": "2026-02-26T02:11:29.557408+00:00"
+  },
+  "zheyuan gu": {
+    "hindex": 4,
+    "fetched_at": "2026-02-26T02:11:29.853230+00:00"
+  },
+  "qingsong zhao": {
+    "hindex": 18,
+    "fetched_at": "2026-02-26T02:11:30.245694+00:00"
+  },
+  "yusong wang": {
+    "hindex": 27,
+    "fetched_at": "2026-02-26T02:11:30.732924+00:00"
+  },
+  "zhaohong huang": {
+    "hindex": 17,
+    "fetched_at": "2026-02-26T02:11:31.107455+00:00"
+  },
+  "xinqi li": {
+    "hindex": 21,
+    "fetched_at": "2026-02-26T02:11:31.472178+00:00"
+  },
+  "cheng yuan": {
+    "hindex": 79,
+    "fetched_at": "2026-02-26T02:11:31.849403+00:00"
+  },
+  "jiaowei shao": {
+    "hindex": 0,
+    "fetched_at": "2026-02-26T02:11:32.089235+00:00"
+  },
+  "chi zhang": {
+    "hindex": 78,
+    "fetched_at": "2026-02-26T02:11:32.545683+00:00"
+  },
+  "xuelong li": {
+    "hindex": 125,
+    "fetched_at": "2026-02-26T02:11:32.888434+00:00"
+  },
+  "yuxuan chen": {
+    "hindex": 26,
+    "fetched_at": "2026-02-26T02:11:33.340085+00:00"
+  },
+  "peize he": {
+    "hindex": 25,
+    "fetched_at": "2026-02-26T02:11:33.639355+00:00"
+  },
+  "haoyuan xu": {
+    "hindex": 60,
+    "fetched_at": "2026-02-26T02:11:33.966279+00:00"
+  },
+  "junzi zhang": {
+    "hindex": 7,
+    "fetched_at": "2026-02-26T02:11:34.241361+00:00"
+  },
+  "hyo jin kim": {
+    "hindex": 37,
+    "fetched_at": "2026-02-26T02:11:34.739472+00:00"
+  },
+  "tomoya kawabe": {
+    "hindex": 4,
+    "fetched_at": "2026-02-26T02:11:35.016488+00:00"
+  },
+  "rin takano": {
+    "hindex": 6,
+    "fetched_at": "2026-02-26T02:11:35.341606+00:00"
+  },
+  "chenyv liu": {
+    "hindex": 0,
+    "fetched_at": "2026-02-26T02:11:35.609392+00:00"
+  },
+  "wentao tan": {
+    "hindex": 33,
+    "fetched_at": "2026-02-26T02:11:36.001758+00:00"
+  },
+  "lei zhu": {
+    "hindex": 109,
+    "fetched_at": "2026-02-26T02:11:36.718336+00:00"
+  },
+  "fengling li": {
+    "hindex": 56,
+    "fetched_at": "2026-02-26T02:11:37.125583+00:00"
+  },
+  "jingjing li": {
+    "hindex": 58,
+    "fetched_at": "2026-02-26T02:11:37.924009+00:00"
+  },
+  "guoli yang": {
+    "hindex": 21,
+    "fetched_at": "2026-02-26T02:11:38.370105+00:00"
+  },
+  "heng tao shen": {
+    "hindex": 91,
+    "fetched_at": "2026-02-26T02:11:38.779945+00:00"
+  },
+  "zhenliang zhang": {
+    "hindex": 21,
+    "fetched_at": "2026-02-26T02:11:39.121880+00:00"
+  },
+  "weizhe xu": {
+    "hindex": 14,
+    "fetched_at": "2026-02-26T02:11:39.530566+00:00"
+  },
+  "mengyu liu": {
+    "hindex": 27,
+    "fetched_at": "2026-02-26T02:11:39.966649+00:00"
+  },
+  "fanxin kong": {
+    "hindex": 23,
+    "fetched_at": "2026-02-26T02:11:40.300429+00:00"
+  },
+  "maxim chupilkin": {
+    "hindex": 4,
+    "fetched_at": "2026-02-26T02:11:40.628159+00:00"
+  },
+  "mahmut s. gokmen": {
+    "hindex": 18,
+    "fetched_at": "2026-02-26T02:11:40.937468+00:00"
+  },
+  "moneera n. haque": {
+    "hindex": 7,
+    "fetched_at": "2026-02-26T02:11:41.278470+00:00"
+  },
+  "steve w. leung": {
+    "hindex": 24,
+    "fetched_at": "2026-02-26T02:11:41.593162+00:00"
+  },
+  "caroline n. leach": {
+    "hindex": 1,
+    "fetched_at": "2026-02-26T02:11:41.886230+00:00"
+  },
+  "seth parker": {
+    "hindex": 30,
+    "fetched_at": "2026-02-26T02:11:42.186974+00:00"
+  },
+  "stephen b. hobbs": {
+    "hindex": 21,
+    "fetched_at": "2026-02-26T02:11:42.503790+00:00"
+  },
+  "vincent l. sorrell": {
+    "hindex": 22,
+    "fetched_at": "2026-02-26T02:11:42.796141+00:00"
+  },
+  "w. brent seales": {
+    "hindex": 19,
+    "fetched_at": "2026-02-26T02:11:43.120760+00:00"
+  },
+  "v. k. cody bumgardner": {
+    "hindex": 7,
+    "fetched_at": "2026-02-26T02:11:43.447641+00:00"
+  },
+  "yanbin wei": {
+    "hindex": 75,
+    "fetched_at": "2026-02-26T02:11:43.855229+00:00"
+  },
+  "jiangyue yan": {
+    "hindex": 7,
+    "fetched_at": "2026-02-26T02:11:44.154748+00:00"
+  },
+  "chun kang": {
+    "hindex": 81,
+    "fetched_at": "2026-02-26T02:11:44.625655+00:00"
+  },
+  "yang chen": {
+    "hindex": 171,
+    "fetched_at": "2026-02-26T02:11:45.207803+00:00"
+  },
+  "hua liu": {
+    "hindex": 49,
+    "fetched_at": "2026-02-26T02:11:45.732111+00:00"
+  },
+  "james kwok": {
+    "hindex": 157,
+    "fetched_at": "2026-02-26T02:11:46.143682+00:00"
+  },
+  "yu zhang": {
+    "hindex": 74,
+    "fetched_at": "2026-02-26T02:11:46.649633+00:00"
+  },
+  "dezhi kong": {
+    "hindex": 48,
+    "fetched_at": "2026-02-26T02:11:47.051179+00:00"
+  },
+  "zhengzhao feng": {
+    "hindex": 2,
+    "fetched_at": "2026-02-26T02:11:47.312395+00:00"
+  },
+  "qiliang liang": {
+    "hindex": 36,
+    "fetched_at": "2026-02-26T02:11:47.708942+00:00"
+  },
+  "hao wang": {
+    "hindex": 86,
+    "fetched_at": "2026-02-26T02:11:48.360507+00:00"
+  },
+  "haofei sun": {
+    "hindex": 118,
+    "fetched_at": "2026-02-26T02:11:48.711259+00:00"
+  },
+  "changpeng yang": {
+    "hindex": 60,
+    "fetched_at": "2026-02-26T02:11:49.113857+00:00"
+  },
+  "yang li": {
+    "hindex": 110,
+    "fetched_at": "2026-02-26T02:11:49.692143+00:00"
+  },
+  "peng zhou": {
+    "hindex": 52,
+    "fetched_at": "2026-02-26T02:11:50.115917+00:00"
+  },
+  "shuai nie": {
+    "hindex": 20,
+    "fetched_at": "2026-02-26T02:11:50.492309+00:00"
+  },
+  "hongzhen wang": {
+    "hindex": 35,
+    "fetched_at": "2026-02-26T02:11:50.970411+00:00"
+  },
+  "linfeng zhou": {
+    "hindex": 25,
+    "fetched_at": "2026-02-26T02:11:51.291101+00:00"
+  },
+  "hao jia": {
+    "hindex": 53,
+    "fetched_at": "2026-02-26T02:11:51.676248+00:00"
+  },
+  "jiaming xu": {
+    "hindex": 20,
+    "fetched_at": "2026-02-26T02:11:51.973159+00:00"
+  },
+  "runyu shi": {
+    "hindex": 5,
+    "fetched_at": "2026-02-26T02:11:52.276111+00:00"
+  },
+  "ying huang": {
+    "hindex": 46,
+    "fetched_at": "2026-02-26T02:11:52.776209+00:00"
+  },
+  "madhusudan ghosh": {
+    "hindex": 14,
+    "fetched_at": "2026-02-26T02:11:53.134749+00:00"
+  },
+  "rishabh gupta": {
+    "hindex": 20,
+    "fetched_at": "2026-02-26T02:11:53.522063+00:00"
+  },
+  "yue yang": {
+    "hindex": 35,
+    "fetched_at": "2026-02-26T02:11:53.919702+00:00"
+  },
+  "shuo cheng": {
+    "hindex": 34,
+    "fetched_at": "2026-02-26T02:11:54.259788+00:00"
+  },
+  "yu fang": {
+    "hindex": 69,
+    "fetched_at": "2026-02-26T02:11:54.794902+00:00"
+  },
+  "homanga bharadhwaj": {
+    "hindex": 14,
+    "fetched_at": "2026-02-26T02:11:55.347166+00:00"
+  },
+  "mingyu ding": {
+    "hindex": 24,
+    "fetched_at": "2026-02-26T02:11:55.753928+00:00"
+  },
+  "gedas bertasius": {
+    "hindex": 23,
+    "fetched_at": "2026-02-26T02:11:56.041732+00:00"
+  },
+  "daniel szafir": {
+    "hindex": 21,
+    "fetched_at": "2026-02-26T02:11:56.405695+00:00"
+  },
+  "abeer dyoub": {
+    "hindex": 5,
+    "fetched_at": "2026-02-26T02:11:56.660447+00:00"
+  },
+  "francesca a. lisi": {
+    "hindex": 17,
+    "fetched_at": "2026-02-26T02:11:57.064107+00:00"
+  },
+  "guanyi qin": {
+    "hindex": 2,
+    "fetched_at": "2026-02-26T02:11:57.340469+00:00"
+  },
+  "xiaozhen wang": {
+    "hindex": 55,
+    "fetched_at": "2026-02-26T02:11:57.801613+00:00"
+  },
+  "zhu zhuo": {
+    "hindex": 29,
+    "fetched_at": "2026-02-26T02:11:58.115114+00:00"
+  },
+  "chang han low": {
+    "hindex": 14,
+    "fetched_at": "2026-02-26T02:11:58.412816+00:00"
+  },
+  "yuancan xiao": {
+    "hindex": 10,
+    "fetched_at": "2026-02-26T02:11:58.695529+00:00"
+  },
+  "yibing fu": {
+    "hindex": 18,
+    "fetched_at": "2026-02-26T02:11:59.049932+00:00"
+  },
+  "haofeng liu": {
+    "hindex": 17,
+    "fetched_at": "2026-02-26T02:11:59.417857+00:00"
+  },
+  "kai wang": {
+    "hindex": 171,
+    "fetched_at": "2026-02-26T02:11:59.993523+00:00"
+  },
+  "chunjiang li": {
+    "hindex": 40,
+    "fetched_at": "2026-02-26T02:12:00.331685+00:00"
+  },
+  "yueming jin": {
+    "hindex": 32,
+    "fetched_at": "2026-02-26T02:12:00.702593+00:00"
+  },
+  "nivasini ananthakrishnan": {
+    "hindex": 2,
+    "fetched_at": "2026-02-26T02:12:00.972540+00:00"
+  },
+  "meena jagadeesan": {
+    "hindex": 37,
+    "fetched_at": "2026-02-26T02:12:01.274749+00:00"
+  },
+  "barah fazili": {
+    "hindex": 1,
+    "fetched_at": "2026-02-26T02:12:01.529668+00:00"
+  },
+  "koustava goswami": {
+    "hindex": 19,
+    "fetched_at": "2026-02-26T02:12:01.848597+00:00"
+  }
+}
