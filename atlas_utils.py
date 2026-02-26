@@ -466,6 +466,83 @@ def fetch_semantic_scholar_data(arxiv_ids: list, cache: dict) -> dict:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# §3c  CITATION TIER
+#
+# CitationTier spans both Recent and Significant papers:
+#
+#   "Very Highly Cited" — top CITATION_TIER_TOP_PCT of the significant pool
+#                         by ss_influential_citations (dynamic percentile)
+#   "Highly Cited"      — remaining papers in the significant pool
+#   "Cited"             — Recent papers with ss_citation_count > 0
+#   ""                  — Recent papers with zero citations (not displayed)
+#
+# Percentile thresholds are computed fresh each run against the current pool,
+# so "Very Highly Cited" always means top-of-field for the current period
+# regardless of absolute citation counts.
+#
+# Computed in update_map_v2.py after Stage 1d (S2 enrichment) so that the
+# thresholds reflect the full merged pool (Recent + Significant).
+# ══════════════════════════════════════════════════════════════════════════════
+
+CITATION_TIER_TOP_PCT = 0.20   # top 20% of significant pool -> Very Highly Cited
+
+
+def calculate_citation_tier(df: pd.DataFrame) -> pd.Series:
+    """Assign CitationTier to all papers in the merged DataFrame.
+
+    Parameters
+    ----------
+    df : DataFrame with columns paper_source, ss_influential_citations,
+         ss_citation_count (all present after Stage 1d).
+
+    Returns
+    -------
+    pd.Series of str, aligned to df.index.
+    """
+    result = pd.Series("", index=df.index, dtype=str)
+
+    required = {"paper_source", "ss_influential_citations", "ss_citation_count"}
+    missing  = required - set(df.columns)
+    if missing:
+        print(f"  CitationTier: skipped -- missing columns: {missing}")
+        return result
+
+    sig_mask    = df["paper_source"] == "Significant"
+    recent_mask = ~sig_mask
+
+    # Recent papers: "Cited" if any citations, else ""
+    cited_mask = recent_mask & (df["ss_citation_count"].fillna(0).astype(int) > 0)
+    result[cited_mask] = "Cited"
+
+    # Significant papers: percentile split within the pool
+    sig_indices = df.index[sig_mask].tolist()
+    if not sig_indices:
+        n_cited = int(cited_mask.sum())
+        print(f"  CitationTier: {n_cited} Cited, 0 Very Highly / Highly Cited "
+              f"(no significant pool yet).")
+        return result
+
+    sig_inf   = df.loc[sig_mask, "ss_influential_citations"].fillna(0).astype(int)
+    threshold = float(sig_inf.quantile(1.0 - CITATION_TIER_TOP_PCT))
+
+    for idx in sig_indices:
+        inf = int(df.at[idx, "ss_influential_citations"] or 0)
+        if threshold > 0 and inf >= threshold:
+            result[idx] = "Very Highly Cited"
+        else:
+            result[idx] = "Highly Cited"
+
+    n_very  = int((result == "Very Highly Cited").sum())
+    n_high  = int((result == "Highly Cited").sum())
+    n_cited = int((result == "Cited").sum())
+    n_none  = int((result == "").sum())
+    print(f"  CitationTier: {n_very} Very Highly Cited, {n_high} Highly Cited, "
+          f"{n_cited} Cited, {n_none} uncited Recent.")
+
+    return result
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # §4  ROLLING DATABASE
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -780,12 +857,17 @@ def build_and_deploy_atlas(
         conf["label_column"] = "title"
         conf["color_by"]     = "Prominence"
         conf.setdefault("column_mappings", {}).update({
-            "title":        "title",
-            "abstract":     "abstract",
-            "Prominence":   "Prominence",
-            "author_count": "author_count",
-            "author_tier":  "author_tier",
-            "url":          "url",
+            "title":                   "title",
+            "abstract":                "abstract",
+            "Prominence":              "Prominence",
+            "author_count":            "author_count",
+            "author_tier":             "author_tier",
+            "url":                     "url",
+            "ss_citation_count":       "ss_citation_count",
+            "ss_influential_citations":"ss_influential_citations",
+            "ss_tldr":                 "ss_tldr",
+            "CitationTier":            "CitationTier",
+            "paper_source":            "paper_source",
         })
 
         with open(config_path, "w") as f:
@@ -979,6 +1061,9 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
   .arm-cp-badge-enhanced   { color:#60a5fa; background:rgba(96,165,250,0.12); border-color:rgba(96,165,250,0.35); }
   .arm-cp-badge-emerging   { color:#4ade80; background:rgba(74,222,128,0.10); border-color:rgba(74,222,128,0.30); }
   .arm-cp-badge-unverified { color:#475569; background:rgba(71,85,105,0.15);  border-color:rgba(71,85,105,0.35); }
+  .arm-cp-badge-very-highly-cited { color:#ef4444; background:rgba(239,68,68,0.12); border-color:rgba(239,68,68,0.35); }
+  .arm-cp-badge-highly-cited      { color:#f97316; background:rgba(249,115,22,0.12); border-color:rgba(249,115,22,0.35); }
+  .arm-cp-badge-cited             { color:#facc15; background:rgba(250,204,21,0.12); border-color:rgba(250,204,21,0.35); }
   .arm-cp-keywords { font-size:10.5px; color:#475569; line-height:1.5; }
   .arm-cp-footer { padding:10px 16px; border-top:1px solid var(--arm-border); display:flex; justify-content:flex-end; }
   .arm-cp-btn { font-size:11px; font-weight:600; color:var(--arm-accent); background:var(--arm-accent-dim); border:1px solid rgba(96,165,250,0.25); border-radius:6px; padding:5px 12px; text-decoration:none; transition:background 0.15s; font-family:var(--arm-font); cursor:pointer; }
@@ -1078,14 +1163,17 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
   }
 
   function showCP(data, atlasPopup) {
-    var title      = data['title']        || '';
-    var url        = data['url']          || '#';
-    var abs        = data['abstract']     || '';
-    var tldr       = data['ss_tldr']      || '';
-    var count      = data['author_count'] || '';
-    var date       = (data['date_added']  || '').substring(0, 10);
-    var prominence = data['Prominence']   || '';
-    var hasTldr    = tldr.trim().length > 0;
+    var title       = data['title']        || '';
+    var url         = data['url']          || '#';
+    var abs         = data['abstract']     || '';
+    var tldr        = data['ss_tldr']      || '';
+    var count       = data['author_count'] || '';
+    var date        = (data['date_added']  || '').substring(0, 10);
+    var prominence  = data['Prominence']   || '';
+    var citTier     = data['CitationTier'] || '';
+    var citeCount   = parseInt(data['ss_citation_count']        || '0') || 0;
+    var inflCount   = parseInt(data['ss_influential_citations'] || '0') || 0;
+    var hasTldr     = tldr.trim().length > 0;
 
     document.getElementById('arm-cp-title').textContent = title;
     document.getElementById('arm-cp-title').href = url;
@@ -1121,6 +1209,22 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
       }[prominence] || 'arm-cp-badge-unverified';
       pill.className = 'arm-cp-badge ' + tierClass;
       metaEl.appendChild(pill);
+    }
+    if (citTier) {
+      var ctPill = document.createElement('span');
+      ctPill.textContent = citTier;
+      var ctClass = {
+        'Very Highly Cited': 'arm-cp-badge-very-highly-cited',
+        'Highly Cited':      'arm-cp-badge-highly-cited',
+        'Cited':             'arm-cp-badge-cited'
+      }[citTier] || '';
+      if (ctClass) { ctPill.className = 'arm-cp-badge ' + ctClass; metaEl.appendChild(ctPill); }
+    }
+    if (citeCount > 0) {
+      var citeEl = document.createElement('span');
+      citeEl.textContent = '\\u{1F4C8}\\uFE0E ' + citeCount + ' citation' + (citeCount !== 1 ? 's' : '')
+        + (inflCount > 0 ? ', ' + inflCount + ' influential' : '');
+      metaEl.appendChild(citeEl);
     }
 
     // Smart positioning: right of Atlas popup, flip left if near viewport edge
@@ -1228,6 +1332,11 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('author_tier', this)">
       <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5L9 4l5 4.5"/><path d="M5.5 8v5.5h7V8"/><path d="M7 13.5v-3h4v3"/><path d="M3 8.5h12"/></svg></span>
       <span class="arm-tile-text"><span class="arm-tile-label">Author seniority</span><span class="arm-tile-sub">Highlights established researchers</span></span>
+    </a>
+
+    <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('CitationTier', this)">
+      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,13 6,8 10,10 16,4"/><polyline points="12,4 16,4 16,8"/></svg></span>
+      <span class="arm-tile-text"><span class="arm-tile-label">Citation impact</span><span class="arm-tile-sub">Very Highly Cited · Highly Cited · Cited</span></span>
     </a>
 
   </div>
