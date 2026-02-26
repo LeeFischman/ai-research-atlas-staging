@@ -56,7 +56,7 @@ from atlas_utils import (
     ARXIV_MAX,
     _strip_urls,
     scrub_model_words,
-    calculate_reputation,
+    calculate_prominence,
     categorize_authors,
     load_author_cache,
     save_author_cache,
@@ -786,6 +786,12 @@ if __name__ == "__main__":
         # ── Stage 1: Load & prune rolling DB ────────────────────────────────
         print("\n▶  Stage 1 — Loading rolling database...")
         existing_df  = load_existing_db()
+
+        # Migrate Reputation → Prominence column if present from older runs
+        if "Reputation" in existing_df.columns and "Prominence" not in existing_df.columns:
+            existing_df = existing_df.rename(columns={"Reputation": "Prominence"})
+            print("  Migrated 'Reputation' column → 'Prominence'.")
+
         is_first_run = existing_df.empty and not os.path.exists(DB_PATH)
         days_back = 5 if is_first_run else 1
 
@@ -842,7 +848,7 @@ if __name__ == "__main__":
                     "authors_list": [a.name for a in r.authors],
                 })
             new_df = pd.DataFrame(rows)
-            new_df["Reputation"] = "Reputation Std"   # placeholder; recalculated in 1c
+            new_df["Prominence"] = "Unverified"   # placeholder; recalculated in 1c
             df = merge_papers(existing_df, new_df)
             df = df.drop(columns=["group", "group_id_v2"], errors="ignore")
             print(f"  Rolling DB: {len(df)} papers after merge.")
@@ -872,10 +878,11 @@ if __name__ == "__main__":
         save_author_cache(author_cache)
         print(f"  h-index enrichment complete. Cache now has {len(author_cache)} entries.")
 
-        # Compute Reputation now that author_hindices is populated
-        df["Reputation"] = df.apply(calculate_reputation, axis=1)
-        enhanced = (df["Reputation"] == "Reputation Enhanced").sum()
-        print(f"  Reputation: {enhanced} Enhanced, {len(df) - enhanced} Std.")
+        # Compute Prominence now that author_hindices is populated
+        df["Prominence"] = df.apply(calculate_prominence, axis=1)
+        tier_counts = df["Prominence"].value_counts()
+        for tier in ["Elite", "Enhanced", "Emerging", "Unverified"]:
+            print(f"  {tier}: {tier_counts.get(tier, 0)}")
 
         # ── Stage 2: SPECTER2 embed + UMAP ──────────────────────────────────
         print("\n▶  Stage 2 — SPECTER2 embedding + UMAP...")
