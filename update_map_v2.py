@@ -54,9 +54,11 @@ import arxiv
 from atlas_utils import (
     DB_PATH,
     ARXIV_MAX,
+    RETENTION_DAYS,
     _strip_urls,
     scrub_model_words,
     calculate_prominence,
+    calculate_citation_tier,
     categorize_authors,
     load_author_cache,
     save_author_cache,
@@ -176,6 +178,11 @@ VARIANCE_AMPLIFIER = 2.0
 # Must match --x / --y args passed to the Atlas CLI.
 PROJ_X_COL = "projection_v2_x"
 PROJ_Y_COL = "projection_v2_y"
+
+# ── Significant papers ───────────────────────────────────────────────────────
+# Written by the weekly update_significant.py script.
+# Loaded at Stage 1 and merged with the recent-window papers.
+SIGNIFICANT_PATH = "significant.parquet"
 
 # ── Haiku model ──────────────────────────────────────────────────────────────
 HAIKU_MODEL = "claude-haiku-4-5-20251001"
@@ -772,7 +779,7 @@ if __name__ == "__main__":
         # Migrate Reputation → Prominence column name if present from older runs
         if "Reputation" in df.columns and "Prominence" not in df.columns:
             df = df.rename(columns={"Reputation": "Prominence"})
-            print("  Migrated 'Reputation' column → 'Prominence'.")
+            print("  Migrated 'Reputation' column -> 'Prominence'.")
 
         # Recompute Prominence tier values if they look like the old two-value system
         if "Prominence" in df.columns:
@@ -783,6 +790,24 @@ if __name__ == "__main__":
                 tier_counts = df["Prominence"].value_counts()
                 for tier in ["Elite", "Enhanced", "Emerging", "Unverified"]:
                     print(f"    {tier}: {tier_counts.get(tier, 0)}")
+
+        # Ensure paper_source exists (needed for CitationTier)
+        if "paper_source" not in df.columns:
+            df["paper_source"] = "Recent"
+
+        # Note: significant.parquet is NOT loaded in offline mode.
+        # Significant papers lack embeddings and group_id_v2, so they cannot
+        # participate in Stage 4 (MDS layout). Offline mode is for layout/UI
+        # iteration only — CitationTier is still computed for Recent papers
+        # (all "Cited" or blank) so the column exists in the build.
+
+        # Ensure CitationTier exists; recompute so layout reflects current pool
+        print("\n▶  (Offline) Computing CitationTier (Recent papers only)...")
+        if "ss_citation_count" not in df.columns:
+            df["ss_citation_count"] = 0
+        if "ss_influential_citations" not in df.columns:
+            df["ss_influential_citations"] = 0
+        df["CitationTier"] = calculate_citation_tier(df)
 
         group_names = _load_group_names_cache(df)
 
@@ -812,13 +837,67 @@ if __name__ == "__main__":
         haiku_client = anthropic.Anthropic(api_key=api_key)
 
         # ── Stage 1: Load & prune rolling DB ────────────────────────────────
-        print("\n▶  Stage 1 — Loading rolling database...")
-        existing_df  = load_existing_db()
+        print("\n▶  Stage 1 -- Loading rolling database...")
 
-        # Migrate Reputation → Prominence column if present from older runs
+        # ── Load database.parquet (Recent papers only) ───────────────────────
+        if os.path.exists(DB_PATH):
+            existing_df = pd.read_parquet(DB_PATH)
+        else:
+            existing_df = pd.DataFrame()
+
+        # Ensure paper_source column exists and default to "Recent"
+        if not existing_df.empty and "paper_source" not in existing_df.columns:
+            existing_df["paper_source"] = "Recent"
+
+        # Remove any Significant papers that leaked into database.parquet from
+        # a prior run — they'll be re-added cleanly from significant.parquet below
+        if not existing_df.empty and "paper_source" in existing_df.columns:
+            before_sig = len(existing_df)
+            existing_df = existing_df[
+                existing_df["paper_source"] != "Significant"
+            ].copy().reset_index(drop=True)
+            removed = before_sig - len(existing_df)
+            if removed:
+                print(f"  Removed {removed} Significant rows from database.parquet "
+                      f"(will reload from significant.parquet).")
+
+        # Prune Recent papers older than RETENTION_DAYS
+        if not existing_df.empty and "date_added" in existing_df.columns:
+            cutoff = datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)
+            existing_df["date_added"] = pd.to_datetime(
+                existing_df["date_added"], utc=True, errors="coerce"
+            )
+            before = len(existing_df)
+            existing_df = existing_df[
+                existing_df["date_added"] >= cutoff
+            ].reset_index(drop=True)
+            pruned = before - len(existing_df)
+            if pruned:
+                print(f"  Pruned {pruned} Recent papers older than {RETENTION_DAYS} days.")
+
+        # Migrate Reputation → Prominence column name if present from older runs
         if "Reputation" in existing_df.columns and "Prominence" not in existing_df.columns:
             existing_df = existing_df.rename(columns={"Reputation": "Prominence"})
-            print("  Migrated 'Reputation' column → 'Prominence'.")
+            print("  Migrated 'Reputation' column -> 'Prominence'.")
+
+        print(f"  Loaded {len(existing_df)} existing Recent papers.")
+
+        # ── Load and merge significant.parquet ──────────────────────────────
+        if os.path.exists(SIGNIFICANT_PATH):
+            sig_df = pd.read_parquet(SIGNIFICANT_PATH)
+            sig_df["paper_source"] = "Significant"
+            n_sig = len(sig_df)
+            # Remove Significant papers that are also in the recent window
+            # (prefer Recent so they get pruned naturally when they age out)
+            sig_df = sig_df[~sig_df["id"].isin(existing_df["id"])].reset_index(drop=True)
+            if len(sig_df) < n_sig:
+                print(f"  {n_sig - len(sig_df)} Significant paper(s) already in "
+                      f"recent window -- skipping duplicates.")
+            existing_df = pd.concat([existing_df, sig_df], ignore_index=True)
+            print(f"  Merged {len(sig_df)} Significant papers "
+                  f"(total: {len(existing_df)}).")
+        else:
+            print("  No significant.parquet found -- running without Significant papers.")
 
         is_first_run = existing_df.empty and not os.path.exists(DB_PATH)
         days_back = 5 if is_first_run else 1
@@ -876,12 +955,16 @@ if __name__ == "__main__":
                     "authors_list": [a.name for a in r.authors],
                 })
             new_df = pd.DataFrame(rows)
-            new_df["Prominence"] = "Unverified"   # placeholder; recalculated in 1c
+            new_df["Prominence"]   = "Unverified"   # placeholder; recalculated in 1c
+            new_df["paper_source"] = "Recent"
             df = merge_papers(existing_df, new_df)
             df = df.drop(columns=["group", "group_id_v2"], errors="ignore")
             print(f"  Rolling DB: {len(df)} papers after merge.")
         else:
             df = existing_df.drop(columns=["group", "group_id_v2"], errors="ignore")
+            # Ensure paper_source is set for all rows
+            if "paper_source" not in df.columns:
+                df["paper_source"] = "Recent"
 
         # ── Stage 1c: Author h-index enrichment ─────────────────────────────
         print("\n▶  Stage 1c — Author h-index enrichment (OpenAlex)...")
@@ -1001,6 +1084,10 @@ if __name__ == "__main__":
         print(f"  S2 enrichment complete: "
               f"{n_with_cites}/{len(df)} papers with citations, "
               f"{n_with_tldr}/{len(df)} with TLDRs.")
+
+        # ── Stage 1e: CitationTier ────────────────────────────────────────────
+        print("\n▶  Stage 1e -- Computing CitationTier...")
+        df["CitationTier"] = calculate_citation_tier(df)
 
         # ── Stage 2: SPECTER2 embed + UMAP ──────────────────────────────────
         print("\n▶  Stage 2 — SPECTER2 embedding + UMAP...")
