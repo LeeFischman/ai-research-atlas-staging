@@ -9,128 +9,128 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 0.9150455757229572,
-                "y": -2.591241617109501,
-                "text": "Time Series Forecasting And Prediction",
+                "x": -1.6333090422202936,
+                "y": 0.9302729411376065,
+                "text": "Time-Series Forecasting With Transfer Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.5523202637817533,
-                "y": 0.41685207408562713,
-                "text": "Llm Agent Benchmarking And Evaluation",
+                "x": 0.7463859356818627,
+                "y": -0.5767793606078818,
+                "text": "Llm Agent Evaluation Benchmarks",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.06629847734865504,
-                "y": -0.30596723386910557,
-                "text": "Efficient Inference In Transformers",
+                "x": -1.8977521748603925,
+                "y": 1.961874321516876,
+                "text": "Robotic Control And Dynamics",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.25641317101941,
-                "y": -0.3187689404797221,
-                "text": "Multimodal Foundation Models",
+                "x": -0.7155482419268725,
+                "y": 0.28325286343101636,
+                "text": "Quantization And Model Compression",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.8960349541108252,
-                "y": 1.430351102703645,
-                "text": "Multi-Agent Interaction And Feedback",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -0.3361177695413038,
-                "y": -2.214121904031956,
-                "text": "Generative Models For Drug Discovery",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -0.22104919086317415,
-                "y": 1.0700872136432522,
-                "text": "Safety And Reliability In Llms",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 2.5753885798211473,
-                "y": 0.22827014030178988,
-                "text": "Robot Learning From Demonstrations",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 1.7227186197911382,
-                "y": 1.4073708545816803,
-                "text": "Memory And Reasoning In Agents",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -2.146823799712436,
-                "y": -1.4473965769968582,
-                "text": "Quantization And Compression",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -1.1303410613823501,
-                "y": -0.6726469893047244,
-                "text": "Learning Theory And Generalization",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -1.0663921933956484,
-                "y": 2.5510109010079405,
-                "text": "Stance Detection And Opinion Mining",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -1.3144382195309896,
-                "y": -1.9869617766010816,
+                "x": -0.8844154906653292,
+                "y": 2.0444451253387865,
                 "text": "Geometric Deep Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.2618126339777507,
-                "y": -1.0682461298625756,
-                "text": "Ai Safety And Cybersecurity",
+                "x": 0.17105890735675605,
+                "y": 2.8822080243383064,
+                "text": "Scientific Computing With Ai",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.038788057472512,
-                "y": 0.5308791405639188,
-                "text": "Transfer Learning And Domain Adaptation",
+                "x": 1.1659780968302105,
+                "y": -3.3459875348639363,
+                "text": "Service Deployment And Operations",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.5552841068863569,
-                "y": 2.589822560691765,
-                "text": "Cognitive Reasoning In Language Models",
+                "x": -0.5739714776830771,
+                "y": -3.2863243550008825,
+                "text": "Content Integrity And Watermarking",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.174137377217494,
-                "y": 1.3111264519215247,
-                "text": "Knowledge Integration In Vision",
+                "x": -2.608647692002225,
+                "y": 0.16216497864035567,
+                "text": "Video Generation And Consistency",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.8943163286005489,
-                "y": -1.3377699518511295,
-                "text": "Retrieval And Ranking Systems",
+                "x": 2.560055718529709,
+                "y": 0.5959164495561222,
+                "text": "Knowledge Graph Refinement",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 2.4814612320947993,
+                "y": -0.474529565743041,
+                "text": "Testing And Quality Assurance",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 1.7467378443922914,
+                "y": -1.389606306351553,
+                "text": "Finance And Ai Applications",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 0.8365868146760205,
+                "y": 0.7033346445547406,
+                "text": "Participatory Systems And Democracy",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -1.3354402714579783,
+                "y": -0.9417206851019125,
+                "text": "Neural Information Retrieval",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -2.727450842211107,
+                "y": -1.312559405172116,
+                "text": "Audio Codec And Compression",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 1.7387064808365782,
+                "y": 0.9858389578288843,
+                "text": "Llm As Experimental Participants",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.3312786270071358,
+                "y": -1.5230396837193252,
+                "text": "Federated Learning",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 0.9508684429589948,
+                "y": 2.4436137997379213,
+                "text": "Human-Robot Interaction",
                 "level": 0,
                 "priority": 10
             }
