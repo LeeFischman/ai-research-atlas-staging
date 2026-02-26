@@ -302,7 +302,6 @@ calculate_reputation = calculate_prominence
 #   citation_count             — total citations received
 #   influential_citation_count — citations that "heavily build on" this paper
 #                                (S2's own classifier; per-citation signal)
-#   citation_velocity          — approx citations in the last 3 months
 #   tldr                       — S2's one-sentence AI-generated summary
 #
 # Implementation notes
@@ -312,8 +311,7 @@ calculate_reputation = calculate_prominence
 # • arXiv IDs from the parquet (e.g. "2501.12345v1") are stripped of their
 #   version suffix before being sent as "arXiv:2501.12345".
 # • Cache key  : base arXiv ID (version-stripped, e.g. "2501.12345")
-# • Cache value: {citation_count, influential_citation_count, citation_velocity,
-#                 tldr, fetched_at}
+# • Cache value: {citation_count, influential_citation_count, tldr, fetched_at}
 # • Cache TTL  : SS_CACHE_TTL_DAYS (7 days — citations move faster than h-index)
 # • Papers not yet indexed in S2 (brand-new, or outside its corpus) are stored
 #   with all-zero counts and empty TLDR; they are re-fetched after the TTL expires.
@@ -328,7 +326,7 @@ SS_CACHE_TTL_DAYS = 7     # re-fetch after 7 days so citation counts stay fresh
 
 _SS_BATCH_URL = (
     "https://api.semanticscholar.org/graph/v1/paper/batch"
-    "?fields=citationCount,influentialCitationCount,citationVelocity,tldr"
+    "?fields=citationCount,influentialCitationCount,tldr"
 )
 
 
@@ -371,7 +369,6 @@ def fetch_semantic_scholar_data(arxiv_ids: list, cache: dict) -> dict:
     dict mapping base_arxiv_id → {
         "citation_count":             int,
         "influential_citation_count": int,
-        "citation_velocity":          int,   # approx citations in last 3 months
         "tldr":                       str,   # AI-generated one-liner, or ""
         "fetched_at":                 str,   # ISO timestamp
     }
@@ -441,7 +438,6 @@ def fetch_semantic_scholar_data(arxiv_ids: list, cache: dict) -> dict:
                     entry = {
                         "citation_count":             0,
                         "influential_citation_count": 0,
-                        "citation_velocity":          0,
                         "tldr":                       "",
                         "fetched_at":                 now_iso,
                     }
@@ -453,7 +449,6 @@ def fetch_semantic_scholar_data(arxiv_ids: list, cache: dict) -> dict:
                     entry = {
                         "citation_count":             int(paper.get("citationCount")            or 0),
                         "influential_citation_count": int(paper.get("influentialCitationCount") or 0),
-                        "citation_velocity":          int(paper.get("citationVelocity")         or 0),
                         "tldr":                       tldr_text,
                         "fetched_at":                 now_iso,
                     }
@@ -472,7 +467,6 @@ def fetch_semantic_scholar_data(arxiv_ids: list, cache: dict) -> dict:
                     entry = {
                         "citation_count":             0,
                         "influential_citation_count": 0,
-                        "citation_velocity":          0,
                         "tldr":                       "",
                         "fetched_at":                 now_iso,
                     }
