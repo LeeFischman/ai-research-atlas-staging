@@ -32,7 +32,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add database.parquet run_state.json author_stats_cache.json label_diagnostics.json group_names_v2.json labels_v2.parquet 2>/dev/null || true
+          git add database.parquet run_state.json author_stats_cache.json author_cache.json label_diagnostics.json group_names_v2.json labels_v2.parquet 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
