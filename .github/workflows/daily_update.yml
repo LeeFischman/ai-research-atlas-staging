@@ -21,20 +21,63 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt anthropic
+
+      # ════════════════════════════════════════════════════════════════════
+      # RUN MODES — set env vars below to match your current goal
+      #
+      # ── STATIC TEST (layout / UI iteration, no API calls) ───────────────
+      #   Use when: tweaking SCATTER_FRACTION, LAYOUT_SCALE, CSS, panel HTML,
+      #             or anything in the docs/ build that doesn't need fresh data.
+      #   Cost: $0. Runtime: ~2 min (just layout + Atlas build).
+      #   Requires: database.parquet and group_names_v2.json already committed
+      #             from a previous normal run.
+      #
+      #   Set:  OFFLINE_MODE: "true"   (uncomment the line below)
+      #   Keep: ANTHROPIC_API_KEY present but unused
+      #   Rest: all other vars are ignored in this mode
+      #
+      # ── RUNNING TEST (full pipeline, triggered manually) ─────────────────
+      #   Use when: validating a code change end-to-end before it goes live,
+      #             or after a multi-day gap where papers may have accumulated.
+      #   Cost: ~$0.10–0.20 Haiku + OpenAlex/S2 free tier. Runtime: ~10 min.
+      #
+      #   Set:  OFFLINE_MODE commented out (normal mode)
+      #   Keep: ANTHROPIC_API_KEY active
+      #   Note: BACKFILL_HINDICES only needed if author_hindices was lost or
+      #         corrupted — comment it back out after one successful run
+      #
+      # ── PRODUCTION (daily scheduled run, 00:00 UTC) ──────────────────────
+      #   The cron trigger handles this automatically. No changes needed
+      #   beyond confirming the two "must be off" items below are off.
+      #
+      #   OFFLINE_MODE:     must be commented out
+      #   BACKFILL_HINDICES: must be commented out
+      #   Everything else:  leave as configured
+      # ════════════════════════════════════════════════════════════════════
+
       - name: Run Update Script
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           EMBEDDING_MODEL: sbert
-          # Uncomment BACKFILL_HINDICES if indices need to be rebuilt
-          # BACKFILL_HINDICES: "true"
-          # Comment the below line when in production or recalcs are needed 
+
+          # ── STATIC TEST: uncomment to skip all API calls ─────────────────
           # OFFLINE_MODE: "true"
+
+          # ── One-time repair: rebuilds author h-index for all papers ──────
+          # Comment out immediately after one successful run.
+          # BACKFILL_HINDICES: "true"
+
+          # ── Optional: higher Semantic Scholar API rate limits ────────────
+          # Unnecessary for daily volume — only add if you see S2 rate errors.
+          # SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
+
         run: python update_map_v2.py
+
       - name: Commit and Push Database Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add database.parquet run_state.json author_stats_cache.json author_cache.json label_diagnostics.json group_names_v2.json labels_v2.parquet 2>/dev/null || true
+          git add database.parquet run_state.json author_stats_cache.json author_cache.json label_diagnostics.json group_names_v2.json labels_v2.parquet ss_cache.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
@@ -42,6 +85,7 @@ jobs:
             git pull --rebase origin main
             git push
           fi
+
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
