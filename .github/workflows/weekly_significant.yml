@@ -1,0 +1,63 @@
+name: Update Significant Papers
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # Monday 06:00 UTC — arXiv-idle, offset from daily run
+  workflow_dispatch:       # Manual trigger for testing
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # ════════════════════════════════════════════════════════════════════
+      # SIGNIFICANT PAPERS SCAN
+      #
+      # What this does:
+      #   Queries Semantic Scholar for the most-cited cs.AI papers published
+      #   15-180 days ago, maintains a pool of top-75 by influential citations,
+      #   applies two-strike retirement, enriches new papers with author
+      #   h-indices, and writes significant.parquet.
+      #
+      # Cost: ~$0. Uses only free APIs (S2, OpenAlex). Runtime: ~5 min.
+      #
+      # After this runs, the next daily build automatically picks up the
+      # updated significant.parquet at Stage 1.
+      #
+      # OPTIONAL: S2 API key for higher rate limits.
+      # Free tier handles the weekly volume (~4-10 pages x 100 papers).
+      # Only uncomment if you see 429 errors in the logs.
+      # ════════════════════════════════════════════════════════════════════
+
+      - name: Run Significant Papers Scan
+        env:
+          # SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
+          placeholder: "no-api-key-needed"
+        run: python update_significant.py
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add significant.parquet author_cache.json ss_cache.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update significant papers pool: $(date -u +'%Y-%m-%d')"
+            git pull --rebase origin main
+            git push
+          fi
