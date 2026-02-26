@@ -9,8 +9,8 @@
 # --------
 #   §1  Text helpers          scrub_model_words, _strip_urls
 #   §2  Docs cleanup          clear_docs_contents
-#   §3  Reputation scoring    load_author_cache, save_author_cache,
-#                             fetch_author_hindices, calculate_reputation
+#   §3  Prominence scoring    load_author_cache, save_author_cache,
+#                             fetch_author_hindices, calculate_prominence
 #   §4  Rolling database      load_existing_db, merge_papers
 #   §5  arXiv fetch           fetch_arxiv  (exponential back-off)
 #   §6  Embedding / UMAP      embed_and_project, _embed_only,
@@ -96,58 +96,54 @@ def clear_docs_contents(target_dir: str) -> None:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# §3  REPUTATION SCORING  (h-index based, multi-author aware)
+# §3  PROMINENCE SCORING  (h-index based)
 #
-# Signals
+# Formula
 # ───────
-# 1. Best author h-index (capped so one mega-author can't hit Enhanced alone):
-#      h ≥ HINDEX_TIER_HIGH  → HINDEX_SCORE_HIGH  pts  (capped to HINDEX_SOLO_CAP)
-#      h ≥ HINDEX_TIER_MID   → HINDEX_SCORE_MID   pts  (capped to HINDEX_SOLO_CAP)
-#      h ≥ HINDEX_TIER_LOW   → HINDEX_SCORE_LOW   pts
+#   h_score = log1p(max_h)    * W_MAX
+#           + log1p(median_h) * W_MEDIAN
 #
-# 2. Multi-author bonus (rewards genuine collaborations between senior researchers):
-#      ≥ MULTI_COUNT_HIGH authors with h ≥ MULTI_HINDEX_THRESH → MULTI_BONUS_HIGH pts
-#      ≥ MULTI_COUNT_LOW  authors with h ≥ MULTI_HINDEX_THRESH → MULTI_BONUS_LOW  pts
-#      (tiers checked highest first; only one bonus applies)
+#   max_h    : highest h-index across all authors
+#   median_h : median h-index across all authors
+#   log1p    : compresses the long right tail of h-index distributions
+#              (log1p(x) = log(1+x), so h=0→0, h=9≈2.3, h=29≈3.4, h=79≈4.4)
 #
-# 3. Open-source artifact (github.com / huggingface.co in title+abstract):
-#      → OPENSOURCE_BOOST pts
-#
-# Threshold: total score ≥ REPUTATION_THRESHOLD → "Reputation Enhanced"
+# Four tiers (h_score thresholds are first-guess constants — tune after seeing
+# real distributions in run_state.json):
+#   h_score ≥ TIER_ELITE     → "Elite"
+#   h_score ≥ TIER_ENHANCED  → "Enhanced"
+#   h_score ≥ TIER_EMERGING  → "Emerging"
+#   h_score <  TIER_EMERGING → "Unverified"
 #
 # Author h-index cache
 #   File  : author_cache.json  (alongside database.parquet)
 #   Key   : normalised author name (stripped, lowercased)
 #   Value : {"hindex": int, "fetched_at": ISO timestamp}
 #   TTL   : AUTHOR_CACHE_TTL_DAYS (30 days — h-index changes slowly)
-#   Scope : ALL authors per paper (no per-paper author cap)
+#   Scope : ALL authors per paper
 # ══════════════════════════════════════════════════════════════════════════════
 
 AUTHOR_CACHE_PATH     = "author_cache.json"
 AUTHOR_CACHE_TTL_DAYS = 30
 
-# ── Individual h-index signal ────────────────────────────────────────────────
-HINDEX_TIER_HIGH  = 30    # h ≥ this → HINDEX_SCORE_HIGH
-HINDEX_TIER_MID   = 15    # h ≥ this → HINDEX_SCORE_MID
-HINDEX_TIER_LOW   = 5     # h ≥ this → HINDEX_SCORE_LOW
-HINDEX_SCORE_HIGH = 3
-HINDEX_SCORE_MID  = 2
-HINDEX_SCORE_LOW  = 1
-HINDEX_SOLO_CAP   = 2     # max points a single author can contribute
-                           # (ensures one h=80 author alone can't hit Enhanced)
+# ── Formula weights ───────────────────────────────────────────────────────────
+# Both start at 1.0. max_h naturally exceeds median_h so no artificial
+# multiplier is needed. Tune after inspecting real tier distributions.
+W_MAX    = 1.0
+W_MEDIAN = 1.0
 
-# ── Multi-author tiered bonus ────────────────────────────────────────────────
-MULTI_HINDEX_THRESH = 10  # authors must have h ≥ this to count toward bonus
-MULTI_COUNT_HIGH    = 3   # ≥ this many qualifying authors → MULTI_BONUS_HIGH
-MULTI_BONUS_HIGH    = 3
-MULTI_COUNT_LOW     = 2   # ≥ this many qualifying authors → MULTI_BONUS_LOW
-MULTI_BONUS_LOW     = 2
-
-# ── Open-source signal ───────────────────────────────────────────────────────
-OPENSOURCE_BOOST = 2      # github.com or huggingface.co in title+abstract
-
-# ── Classification threshold ─────────────────────────────────────────────────
-REPUTATION_THRESHOLD = 3  # score ≥ this → "Reputation Enhanced"
+# ── Tier thresholds ───────────────────────────────────────────────────────────
+# Representative h_score values with W_MAX=W_MEDIAN=1.0:
+#   Unknown solo author          max=0,  median=0  → 0.0
+#   Grad students only           max=2,  median=1  → 1.8
+#   One mid-career researcher    max=10, median=3  → 3.8
+#   Solid team                   max=20, median=10 → 5.4
+#   Strong PI + good team        max=40, median=15 → 6.5
+#   Elite collaboration          max=60, median=25 → 7.6
+TIER_ELITE    = 7.0
+TIER_ENHANCED = 5.0
+TIER_EMERGING = 3.0
+# below TIER_EMERGING            → "Unverified"
 
 
 def categorize_authors(n: int) -> str:
@@ -263,46 +259,38 @@ def _safe_hindices(row) -> list:
     return [0]
 
 
-def calculate_reputation(row) -> str:
-    """Score a paper's reputation from author h-indices + open-source signals.
+def calculate_prominence(row) -> str:
+    """Compute prominence tier from author h-indices.
 
     Reads row["author_hindices"] (list of ints, one per author).
     Falls back to row["max_author_hindex"] for rows written by older pipeline.
 
-    Scoring
+    Formula
     -------
-    Individual signal  : best author h-index, tiered, capped at HINDEX_SOLO_CAP
-    Multi-author bonus : tiered bonus when ≥N authors exceed MULTI_HINDEX_THRESH
-    Open-source boost  : github.com / huggingface.co in title+abstract
-    Enhanced if total  ≥ REPUTATION_THRESHOLD
+    h_score = log1p(max_h) * W_MAX + log1p(median_h) * W_MEDIAN
+
+    Returns one of: "Elite" / "Enhanced" / "Emerging" / "Unverified"
     """
+    import math
     hindices = _safe_hindices(row)
 
-    # ── Individual signal (capped) ───────────────────────────────────────────
-    best = max(hindices) if hindices else 0
-    if best >= HINDEX_TIER_HIGH:
-        indiv = HINDEX_SCORE_HIGH
-    elif best >= HINDEX_TIER_MID:
-        indiv = HINDEX_SCORE_MID
-    elif best >= HINDEX_TIER_LOW:
-        indiv = HINDEX_SCORE_LOW
+    max_h    = max(hindices) if hindices else 0
+    median_h = float(np.median(hindices)) if hindices else 0.0
+
+    h_score = math.log1p(max_h) * W_MAX + math.log1p(median_h) * W_MEDIAN
+
+    if h_score >= TIER_ELITE:
+        return "Elite"
+    elif h_score >= TIER_ENHANCED:
+        return "Enhanced"
+    elif h_score >= TIER_EMERGING:
+        return "Emerging"
     else:
-        indiv = 0
-    score = min(indiv, HINDEX_SOLO_CAP)
+        return "Unverified"
 
-    # ── Multi-author bonus (highest tier wins) ───────────────────────────────
-    n_qualifying = sum(1 for h in hindices if h >= MULTI_HINDEX_THRESH)
-    if n_qualifying >= MULTI_COUNT_HIGH:
-        score += MULTI_BONUS_HIGH
-    elif n_qualifying >= MULTI_COUNT_LOW:
-        score += MULTI_BONUS_LOW
 
-    # ── Open-source signal ───────────────────────────────────────────────────
-    full_text = f"{row['title']} {row['abstract']}".lower()
-    if any(k in full_text for k in ["github.com", "huggingface.co"]):
-        score += OPENSOURCE_BOOST
-
-    return "Reputation Enhanced" if score >= REPUTATION_THRESHOLD else "Reputation Std"
+# Alias so callers using the old name continue to work during transition
+calculate_reputation = calculate_prominence
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -618,11 +606,11 @@ def build_and_deploy_atlas(
 
         conf["name_column"]  = "title"
         conf["label_column"] = "title"
-        conf["color_by"]     = "Reputation"
+        conf["color_by"]     = "Prominence"
         conf.setdefault("column_mappings", {}).update({
             "title":        "title",
             "abstract":     "abstract",
-            "Reputation":   "Reputation",
+            "Prominence":   "Prominence",
             "author_count": "author_count",
             "author_tier":  "author_tier",
             "url":          "url",
@@ -830,11 +818,11 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     document.querySelectorAll('.arm-tab').forEach(function(t) { t.style.display = ''; });
   }
 
-  // Atlas color-by: find the select whose options include Reputation,
+  // Atlas color-by: find the select whose options include Prominence,
   // set value via native setter (Svelte needs this), fire change event.
   function armSetColor(columnName, tileEl) {
     var colorSelect = Array.from(document.querySelectorAll('select')).find(function(sel) {
-      return Array.from(sel.options).some(function(o) { return o.text.includes('Reputation'); });
+      return Array.from(sel.options).some(function(o) { return o.text.includes('Prominence'); });
     });
     if (colorSelect) {
       var nativeSetter = Object.getOwnPropertyDescriptor(
@@ -986,9 +974,9 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     </div>
     <p class="arm-sc-intro">Click a tile to see points colored by</p>
 
-    <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('Reputation', this)">
+    <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('Prominence', this)">
       <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="9,2 11.1,6.6 16.2,7.3 12.6,10.7 13.5,15.8 9,13.4 4.5,15.8 5.4,10.7 1.8,7.3 6.9,6.6"/></svg></span>
-      <span class="arm-tile-text"><span class="arm-tile-label">Reputation score</span><span class="arm-tile-sub">Institution &amp; open-source signals</span></span>
+      <span class="arm-tile-text"><span class="arm-tile-label">Author prominence</span><span class="arm-tile-sub">Elite · Enhanced · Emerging · Unverified</span></span>
     </a>
 
     <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('author_count', this)">
