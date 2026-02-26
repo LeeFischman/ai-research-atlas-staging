@@ -929,7 +929,6 @@ if __name__ == "__main__":
         for col, default in [
             ("ss_citation_count",        0),
             ("ss_influential_citations", 0),
-            ("ss_citation_velocity",     0),
             ("ss_tldr",                  ""),
         ]:
             if col not in df.columns:
@@ -995,7 +994,6 @@ if __name__ == "__main__":
             if entry:
                 df.at[idx, "ss_citation_count"]        = int(entry.get("citation_count",             0))
                 df.at[idx, "ss_influential_citations"]  = int(entry.get("influential_citation_count", 0))
-                df.at[idx, "ss_citation_velocity"]      = int(entry.get("citation_velocity",          0))
                 df.at[idx, "ss_tldr"]                   = entry.get("tldr", "") or ""
 
         n_with_tldr  = (df["ss_tldr"].astype(str).str.len() > 0).sum()
