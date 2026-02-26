@@ -11,6 +11,8 @@
 #   §2  Docs cleanup          clear_docs_contents
 #   §3  Prominence scoring    load_author_cache, save_author_cache,
 #                             fetch_author_hindices, calculate_prominence
+#   §3b Semantic Scholar      load_ss_cache, save_ss_cache,
+#                             fetch_semantic_scholar_data, _arxiv_id_base
 #   §4  Rolling database      load_existing_db, merge_papers
 #   §5  arXiv fetch           fetch_arxiv  (exponential back-off)
 #   §6  Embedding / UMAP      embed_and_project, _embed_only,
@@ -291,6 +293,196 @@ def calculate_prominence(row) -> str:
 
 # Alias so callers using the old name continue to work during transition
 calculate_reputation = calculate_prominence
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §3b  SEMANTIC SCHOLAR ENRICHMENT
+#
+# For each arXiv paper, fetches from the Semantic Scholar API:
+#   citation_count             — total citations received
+#   influential_citation_count — citations that "heavily build on" this paper
+#                                (S2's own classifier; per-citation signal)
+#   citation_velocity          — approx citations in the last 3 months
+#   tldr                       — S2's one-sentence AI-generated summary
+#
+# Implementation notes
+# ────────────────────
+# • Uses the batch endpoint (POST /graph/v1/paper/batch) — up to 500 IDs per
+#   request, so even 400 papers is a single HTTP call.
+# • arXiv IDs from the parquet (e.g. "2501.12345v1") are stripped of their
+#   version suffix before being sent as "arXiv:2501.12345".
+# • Cache key  : base arXiv ID (version-stripped, e.g. "2501.12345")
+# • Cache value: {citation_count, influential_citation_count, citation_velocity,
+#                 tldr, fetched_at}
+# • Cache TTL  : SS_CACHE_TTL_DAYS (7 days — citations move faster than h-index)
+# • Papers not yet indexed in S2 (brand-new, or outside its corpus) are stored
+#   with all-zero counts and empty TLDR; they are re-fetched after the TTL expires.
+# • Optional env var SEMANTIC_SCHOLAR_API_KEY unlocks higher rate limits.
+#   Without it the free tier allows ~1 req/s (plenty for a daily batch job).
+# • "Highly influential" in S2 is a per-citation signal, not a per-paper boolean.
+#   The paper-level equivalent is influential_citation_count, stored here.
+# ══════════════════════════════════════════════════════════════════════════════
+
+SS_CACHE_PATH     = "ss_cache.json"
+SS_CACHE_TTL_DAYS = 7     # re-fetch after 7 days so citation counts stay fresh
+
+_SS_BATCH_URL = (
+    "https://api.semanticscholar.org/graph/v1/paper/batch"
+    "?fields=citationCount,influentialCitationCount,citationVelocity,tldr"
+)
+
+
+def load_ss_cache() -> dict:
+    """Load the Semantic Scholar cache from disk; return empty dict if missing."""
+    if os.path.exists(SS_CACHE_PATH):
+        with open(SS_CACHE_PATH) as f:
+            return json.load(f)
+    return {}
+
+
+def save_ss_cache(cache: dict) -> None:
+    """Persist the Semantic Scholar cache to disk."""
+    with open(SS_CACHE_PATH, "w") as f:
+        json.dump(cache, f, indent=2)
+
+
+def _arxiv_id_base(arxiv_id: str) -> str:
+    """Strip version suffix from an arXiv entry ID.
+
+    '2501.12345v1' → '2501.12345'
+    '2501.12345'   → '2501.12345'
+    """
+    return re.sub(r'v\d+$', '', arxiv_id.strip())
+
+
+def fetch_semantic_scholar_data(arxiv_ids: list, cache: dict) -> dict:
+    """Fetch Semantic Scholar metadata for a list of arXiv IDs.
+
+    Checks the cache first; sends a batch request for uncached / stale IDs.
+    Mutates `cache` in-place with new entries (caller is responsible for saving).
+
+    Parameters
+    ----------
+    arxiv_ids : list of str — raw arXiv entry IDs (may include version suffix)
+    cache     : the shared in-memory cache dict (mutated in-place)
+
+    Returns
+    -------
+    dict mapping base_arxiv_id → {
+        "citation_count":             int,
+        "influential_citation_count": int,
+        "citation_velocity":          int,   # approx citations in last 3 months
+        "tldr":                       str,   # AI-generated one-liner, or ""
+        "fetched_at":                 str,   # ISO timestamp
+    }
+    All values default to 0 / "" for papers not found in S2.
+    """
+    import urllib.request as _req
+
+    cutoff_ts = (
+        datetime.now(timezone.utc) - timedelta(days=SS_CACHE_TTL_DAYS)
+    ).isoformat()
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    results   = {}
+    to_fetch  = []
+
+    for arxiv_id in arxiv_ids:
+        base  = _arxiv_id_base(arxiv_id)
+        entry = cache.get(base)
+        if entry and entry.get("fetched_at", "") > cutoff_ts:
+            results[base] = entry
+        else:
+            to_fetch.append(base)
+
+    if not to_fetch:
+        print(f"  All {len(arxiv_ids)} papers found in S2 cache.")
+        return results
+
+    # De-duplicate while preserving order
+    seen      = set()
+    to_fetch  = [b for b in to_fetch if not (b in seen or seen.add(b))]
+    cached_n  = len(arxiv_ids) - len(to_fetch)
+    print(f"  Fetching {len(to_fetch)} papers from Semantic Scholar "
+          f"({cached_n} cache hits)...")
+
+    ss_api_key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY", "").strip()
+    base_headers = {
+        "Content-Type": "application/json",
+        "User-Agent": (
+            "ai-research-atlas/2.0 "
+            "(https://github.com/LeeFischman/ai-research-atlas; "
+            "mailto:lee.fischman@gmail.com)"
+        ),
+    }
+    if ss_api_key:
+        base_headers["x-api-key"] = ss_api_key
+    # Rate limit: ~1 req/s free tier, ~3 req/s with key
+    inter_chunk_sleep = 0.4 if ss_api_key else 1.2
+
+    BATCH_SIZE = 500
+    for chunk_i, chunk_start in enumerate(range(0, len(to_fetch), BATCH_SIZE)):
+        chunk  = to_fetch[chunk_start:chunk_start + BATCH_SIZE]
+        ss_ids = [f"arXiv:{b}" for b in chunk]
+
+        payload = json.dumps({"ids": ss_ids}).encode("utf-8")
+        req     = _req.Request(
+            _SS_BATCH_URL, data=payload, headers=base_headers, method="POST"
+        )
+
+        try:
+            with _req.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode())
+
+            found_n = null_n = 0
+            for base, paper in zip(chunk, data):
+                if paper is None:
+                    # Not yet indexed in S2 (brand-new paper, or outside corpus)
+                    entry = {
+                        "citation_count":             0,
+                        "influential_citation_count": 0,
+                        "citation_velocity":          0,
+                        "tldr":                       "",
+                        "fetched_at":                 now_iso,
+                    }
+                    null_n += 1
+                else:
+                    tldr_text = ""
+                    if isinstance(paper.get("tldr"), dict):
+                        tldr_text = paper["tldr"].get("text", "") or ""
+                    entry = {
+                        "citation_count":             int(paper.get("citationCount")            or 0),
+                        "influential_citation_count": int(paper.get("influentialCitationCount") or 0),
+                        "citation_velocity":          int(paper.get("citationVelocity")         or 0),
+                        "tldr":                       tldr_text,
+                        "fetched_at":                 now_iso,
+                    }
+                    found_n += 1
+                cache[base]   = entry
+                results[base] = entry
+
+            print(f"  S2 chunk {chunk_i + 1}: "
+                  f"{found_n} found, {null_n} not indexed.")
+
+        except Exception as e:
+            print(f"  S2 batch fetch failed (chunk {chunk_i + 1}): {e}")
+            # Store default zeros for the failed chunk so pipeline continues
+            for base in chunk:
+                if base not in results:
+                    entry = {
+                        "citation_count":             0,
+                        "influential_citation_count": 0,
+                        "citation_velocity":          0,
+                        "tldr":                       "",
+                        "fetched_at":                 now_iso,
+                    }
+                    cache[base]   = entry
+                    results[base] = entry
+
+        if chunk_start + BATCH_SIZE < len(to_fetch):
+            time.sleep(inter_chunk_sleep)
+
+    return results
 
 
 # ══════════════════════════════════════════════════════════════════════════════
