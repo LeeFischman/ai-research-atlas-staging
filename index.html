@@ -143,9 +143,13 @@
   .arm-cp-badge-emerging   { color:#34d399; background:rgba(52,211,153,0.10); border-color:rgba(52,211,153,0.30); }
   .arm-cp-badge-unverified { color:#64748b; background:rgba(100,116,139,0.10); border-color:rgba(100,116,139,0.25); }
   .arm-cp-topic { font-size:11px; color:var(--arm-accent); font-weight:500; }
-  .arm-cp-abstract { font-size:11.5px; color:#94a3b8; line-height:1.6; max-height:9.6em; overflow-y:auto; scrollbar-width:thin; scrollbar-color:#334155 transparent; }
+  .arm-cp-tldr { font-size:11.5px; color:#94a3b8; line-height:1.6; }
+  .arm-cp-expand { display:inline-block; margin-top:5px; font-size:11px; font-weight:500; color:#60a5fa; cursor:pointer; background:none; border:none; padding:0; font-family:var(--arm-font); text-decoration:none; opacity:0.8; transition:opacity 0.15s; }
+  .arm-cp-expand:hover { opacity:1; }
+  .arm-cp-abstract { font-size:11.5px; color:#94a3b8; line-height:1.6; max-height:9.6em; overflow-y:auto; scrollbar-width:thin; scrollbar-color:#334155 transparent; margin-top:6px; }
   .arm-cp-abstract::-webkit-scrollbar { width:4px; }
   .arm-cp-abstract::-webkit-scrollbar-thumb { background:#334155; border-radius:4px; }
+  .arm-cp-abstract.arm-cp-abstract-hidden { display:none; }
   .arm-cp-meta { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
   .arm-cp-meta span { font-size:11px; color:#64748b; }
   .arm-cp-badge { font-size:10px; font-weight:600; letter-spacing:0.04em; padding:2px 7px; border-radius:99px; border:1px solid; }
@@ -200,7 +204,9 @@
 <div id="arm-cp">
   <div class="arm-cp-body">
     <a class="arm-cp-title" id="arm-cp-title" href="#" target="_blank" rel="noopener"></a>
-    <div class="arm-cp-abstract" id="arm-cp-abstract"></div>
+    <div class="arm-cp-tldr" id="arm-cp-tldr"></div>
+    <button class="arm-cp-expand" id="arm-cp-expand"></button>
+    <div class="arm-cp-abstract arm-cp-abstract-hidden" id="arm-cp-abstract"></div>
     <div class="arm-cp-meta"   id="arm-cp-meta"></div>
   </div>
   <div class="arm-cp-footer">
@@ -211,6 +217,32 @@
 <script>
 (function() {
   var cp = document.getElementById('arm-cp');
+
+  // Persistent preference: remembers whether the user last expanded to full
+  // abstract. Resets to false (show TLDR by default) on page load.
+  var _armShowFull = false;
+
+  function armSetAbstractView(hasTldr, showFull) {
+    var tldrEl     = document.getElementById('arm-cp-tldr');
+    var expandEl   = document.getElementById('arm-cp-expand');
+    var abstractEl = document.getElementById('arm-cp-abstract');
+    if (!hasTldr) {
+      // No TLDR: show abstract directly, no toggle affordance
+      tldrEl.style.display    = 'none';
+      expandEl.style.display  = 'none';
+      abstractEl.classList.remove('arm-cp-abstract-hidden');
+      return;
+    }
+    tldrEl.style.display   = '';
+    expandEl.style.display = '';
+    if (showFull) {
+      abstractEl.classList.remove('arm-cp-abstract-hidden');
+      expandEl.textContent = '▾ Hide abstract';
+    } else {
+      abstractEl.classList.add('arm-cp-abstract-hidden');
+      expandEl.textContent = '▸ Full abstract';
+    }
+  }
 
   function extractData(popup) {
     var data = {};
@@ -224,18 +256,33 @@
   }
 
   function showCP(data, atlasPopup) {
-    var title      = data['title']      || '';
-    var url        = data['url']        || '#';
-    var abs        = data['abstract']   || '';
+    var title      = data['title']        || '';
+    var url        = data['url']          || '#';
+    var abs        = data['abstract']     || '';
+    var tldr       = data['ss_tldr']      || '';
     var count      = data['author_count'] || '';
-    var date       = (data['date_added'] || '').substring(0, 10);
-    var prominence = data['Prominence'] || '';
+    var date       = (data['date_added']  || '').substring(0, 10);
+    var prominence = data['Prominence']   || '';
+    var hasTldr    = tldr.trim().length > 0;
 
     document.getElementById('arm-cp-title').textContent = title;
     document.getElementById('arm-cp-title').href = url;
     document.getElementById('arm-cp-btn').href = url;
 
+    document.getElementById('arm-cp-tldr').textContent     = hasTldr ? tldr : '';
     document.getElementById('arm-cp-abstract').textContent = abs;
+
+    // Re-wire expand button each open (clone removes any prior listener)
+    var expandEl  = document.getElementById('arm-cp-expand');
+    var newExpand = expandEl.cloneNode(true);
+    expandEl.parentNode.replaceChild(newExpand, expandEl);
+    newExpand.addEventListener('click', function() {
+      _armShowFull = !_armShowFull;
+      armSetAbstractView(hasTldr, _armShowFull);
+    });
+
+    // Apply persistent preference; new papers snap to user's last choice
+    armSetAbstractView(hasTldr, _armShowFull);
 
     var metaEl = document.getElementById('arm-cp-meta');
     metaEl.innerHTML = '';

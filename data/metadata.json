@@ -9,128 +9,128 @@
         },
         "embeddingViewLabels": [
             {
-                "x": -1.6333090422202936,
-                "y": 0.9302729411376065,
-                "text": "Time-Series Forecasting With Transfer Learning",
+                "x": 0.33667533036719194,
+                "y": -0.8832229710864201,
+                "text": "Molecular Generation Methods",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.7463859356818627,
-                "y": -0.5767793606078818,
-                "text": "Llm Agent Evaluation Benchmarks",
+                "x": 1.8369160058422445,
+                "y": -1.9315110648695708,
+                "text": "Representation Learning Theory",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.8977521748603925,
-                "y": 1.961874321516876,
-                "text": "Robotic Control And Dynamics",
+                "x": -1.2037357947697094,
+                "y": 2.4027978477859473,
+                "text": "Cybercrime Ai Research",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.7155482419268725,
-                "y": 0.28325286343101636,
-                "text": "Quantization And Model Compression",
+                "x": -3.584491931390442,
+                "y": 0.4251465415129265,
+                "text": "Model Serving Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.8844154906653292,
-                "y": 2.0444451253387865,
-                "text": "Geometric Deep Learning",
+                "x": -0.09671146345053229,
+                "y": 3.302721992370779,
+                "text": "Robotic Assistance Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.17105890735675605,
-                "y": 2.8822080243383064,
-                "text": "Scientific Computing With Ai",
+                "x": -0.15627659697580856,
+                "y": 1.7317292446355288,
+                "text": "Causal Reasoning Frameworks",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.1659780968302105,
-                "y": -3.3459875348639363,
-                "text": "Service Deployment And Operations",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -0.5739714776830771,
-                "y": -3.2863243550008825,
-                "text": "Content Integrity And Watermarking",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -2.608647692002225,
-                "y": 0.16216497864035567,
-                "text": "Video Generation And Consistency",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 2.560055718529709,
-                "y": 0.5959164495561222,
+                "x": 1.0580686384423728,
+                "y": 2.5346697440107584,
                 "text": "Knowledge Graph Refinement",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.4814612320947993,
-                "y": -0.474529565743041,
-                "text": "Testing And Quality Assurance",
+                "x": 1.8438679371893298,
+                "y": -0.6874987281863139,
+                "text": "Multimodal Anomaly Detection",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.7467378443922914,
-                "y": -1.389606306351553,
-                "text": "Finance And Ai Applications",
+                "x": 3.402190157715887,
+                "y": -0.09034931075947478,
+                "text": "Code Change Classification",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.8365868146760205,
-                "y": 0.7033346445547406,
-                "text": "Participatory Systems And Democracy",
+                "x": -1.6898046183747664,
+                "y": 1.0323630524597636,
+                "text": "Deliberative Sampling Methods",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.3354402714579783,
-                "y": -0.9417206851019125,
-                "text": "Neural Information Retrieval",
+                "x": -0.9356880340265015,
+                "y": -1.7664388015316914,
+                "text": "Large-Scale Retrieval Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.727450842211107,
-                "y": -1.312559405172116,
-                "text": "Audio Codec And Compression",
+                "x": -2.03782749801881,
+                "y": -1.969015067133403,
+                "text": "Federated Learning Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.7387064808365782,
-                "y": 0.9858389578288843,
-                "text": "Llm As Experimental Participants",
+                "x": -0.3929500888525717,
+                "y": -3.013477899010727,
+                "text": "Audio Codec Design",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.3312786270071358,
-                "y": -1.5230396837193252,
-                "text": "Federated Learning",
+                "x": 0.984573186654261,
+                "y": 0.7779559318439064,
+                "text": "Partial Observability In Mas",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.9508684429589948,
-                "y": 2.4436137997379213,
+                "x": 0.8436111249757532,
+                "y": -2.3692444588414623,
+                "text": "Graph Embedding Methods",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.49075196568108415,
+                "y": 0.15747632018949112,
+                "text": "Goal Recognition Systems",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 2.2610232810108513,
+                "y": 1.0315787214201975,
                 "text": "Human-Robot Interaction",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -1.9836328788656519,
+                "y": -0.4877262864918449,
+                "text": "Federated Learning Security",
                 "level": 0,
                 "priority": 10
             }
