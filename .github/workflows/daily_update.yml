@@ -1,7 +1,7 @@
 name: Update AI Research Atlas
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 3 * * *'
   workflow_dispatch: # Allows manual runs for testing
 permissions:
   contents: write
