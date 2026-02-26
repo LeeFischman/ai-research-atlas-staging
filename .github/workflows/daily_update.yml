@@ -25,7 +25,8 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           EMBEDDING_MODEL: sbert
-          BACKFILL_HINDICES: "true"
+          # Uncomment BACKFILL_HINDICES if indices need to be rebuilt
+          # BACKFILL_HINDICES: "true"
           # Comment the below line when in production or recalcs are needed 
           # OFFLINE_MODE: "true"
         run: python update_map_v2.py
