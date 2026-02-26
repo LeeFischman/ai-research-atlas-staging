@@ -91,12 +91,6 @@ OFFLINE_MODE = os.environ.get("OFFLINE_MODE", "false").strip().lower() == "true"
 # Remove after one successful backfill run.
 BACKFILL_HINDICES = os.environ.get("BACKFILL_HINDICES", "false").strip().lower() == "true"
 
-# When True: re-fetch Semantic Scholar data for ALL papers, including those
-# already cached (e.g. after the first deployment of S2 integration).
-# Set via env var:  BACKFILL_SS=true
-# Remove after one successful backfill run.
-BACKFILL_SS = os.environ.get("BACKFILL_SS", "false").strip().lower() == "true"
-
 # Cache file written after every successful Haiku grouping call.
 # Loaded automatically in offline mode.
 GROUP_NAMES_CACHE = "group_names_v2.json"
@@ -741,7 +735,6 @@ if __name__ == "__main__":
     print(f"  AI Research Atlas v2 — {run_date} UTC")
     print(f"  OFFLINE_MODE       : {OFFLINE_MODE}")
     print(f"  BACKFILL_HINDICES  : {BACKFILL_HINDICES}")
-    print(f"  BACKFILL_SS        : {BACKFILL_SS}")
     print(f"  GROUP_COUNT        : {GROUP_COUNT_MIN}–{GROUP_COUNT_MAX}")
     print(f"  LAYOUT_SCALE       : {LAYOUT_SCALE}")
     print(f"  SCATTER_FRACTION   : {SCATTER_FRACTION}")
@@ -944,53 +937,49 @@ if __name__ == "__main__":
 
         ss_cache = load_ss_cache()
 
-        if BACKFILL_SS:
-            arxiv_ids_to_fetch = df["id"].tolist()
-            print(f"  BACKFILL_SS=true — re-fetching all {len(df)} papers.")
-        else:
-            # Fetch a paper if any of these are true:
-            #   (a) not in cache at all
-            #   (b) cache entry is older than SS_CACHE_TTL_DAYS (normal TTL)
-            #   (c) cache entry has zero signal — citation_count=0, tldr="" —
-            #       meaning S2 hadn't indexed it yet; retry every run until it
-            #       appears (brand-new papers typically land in S2 within days)
-            cutoff_ss = (
-                datetime.now(timezone.utc) - timedelta(days=SS_CACHE_TTL_DAYS)
-            ).isoformat()
+        # Fetch a paper if any of these are true:
+        #   (a) not in cache at all
+        #   (b) cache entry is older than SS_CACHE_TTL_DAYS (normal TTL)
+        #   (c) cache entry has zero signal — citation_count=0, tldr="" —
+        #       meaning S2 hadn't indexed it yet; retry every run until it
+        #       appears (brand-new papers typically land in S2 within days)
+        cutoff_ss = (
+            datetime.now(timezone.utc) - timedelta(days=SS_CACHE_TTL_DAYS)
+        ).isoformat()
 
-            def _needs_ss_fetch(arxiv_id):
-                """Return a reason string if the paper needs a fetch, else None."""
-                base  = _arxiv_id_base(arxiv_id)
-                entry = ss_cache.get(base)
-                if entry is None:
-                    return "not cached"
-                if entry.get("fetched_at", "") < cutoff_ss:
-                    return "stale (TTL expired)"
-                no_signal = (
-                    int(entry.get("citation_count",             0)) == 0
-                    and int(entry.get("influential_citation_count", 0)) == 0
-                    and not (entry.get("tldr") or "").strip()
-                )
-                if no_signal:
-                    return "unindexed (no signal yet)"
-                return None
+        def _needs_ss_fetch(arxiv_id):
+            """Return a reason string if the paper needs a fetch, else None."""
+            base  = _arxiv_id_base(arxiv_id)
+            entry = ss_cache.get(base)
+            if entry is None:
+                return "not cached"
+            if entry.get("fetched_at", "") < cutoff_ss:
+                return "stale (TTL expired)"
+            no_signal = (
+                int(entry.get("citation_count",             0)) == 0
+                and int(entry.get("influential_citation_count", 0)) == 0
+                and not (entry.get("tldr") or "").strip()
+            )
+            if no_signal:
+                return "unindexed (no signal yet)"
+            return None
 
-            reason_map = {
-                aid: _needs_ss_fetch(aid)
-                for aid in df["id"].tolist()
-            }
-            arxiv_ids_to_fetch = [aid for aid, reason in reason_map.items()
-                                   if reason is not None]
-            n_cached    = len(df) - len(arxiv_ids_to_fetch)
-            n_unindexed = sum(1 for r in reason_map.values()
-                              if r == "unindexed (no signal yet)")
-            n_stale     = sum(1 for r in reason_map.values()
-                              if r == "stale (TTL expired)")
-            n_missing   = sum(1 for r in reason_map.values() if r == "not cached")
-            print(f"  {len(arxiv_ids_to_fetch)} papers need S2 fetch "
-                  f"({n_cached} skipped: already have data within TTL). "
-                  f"Breakdown: {n_missing} missing, {n_stale} stale, "
-                  f"{n_unindexed} not yet indexed.")
+        reason_map = {
+            aid: _needs_ss_fetch(aid)
+            for aid in df["id"].tolist()
+        }
+        arxiv_ids_to_fetch = [aid for aid, reason in reason_map.items()
+                               if reason is not None]
+        n_cached    = len(df) - len(arxiv_ids_to_fetch)
+        n_unindexed = sum(1 for r in reason_map.values()
+                          if r == "unindexed (no signal yet)")
+        n_stale     = sum(1 for r in reason_map.values()
+                          if r == "stale (TTL expired)")
+        n_missing   = sum(1 for r in reason_map.values() if r == "not cached")
+        print(f"  {len(arxiv_ids_to_fetch)} papers need S2 fetch "
+              f"({n_cached} skipped: already have data within TTL). "
+              f"Breakdown: {n_missing} missing, {n_stale} stale, "
+              f"{n_unindexed} not yet indexed.")
 
         if arxiv_ids_to_fetch:
             fetch_semantic_scholar_data(arxiv_ids_to_fetch, ss_cache)
