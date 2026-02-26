@@ -14,7 +14,8 @@
 #   §3b Semantic Scholar      load_ss_cache, save_ss_cache,
 #                             fetch_semantic_scholar_data, _arxiv_id_base
 #   §4  Rolling database      load_existing_db, merge_papers
-#   §5  arXiv fetch           fetch_arxiv  (exponential back-off)
+#   §5  arXiv fetch           fetch_arxiv_oai  (OAI-PMH announcement-date)
+#                             fetch_arxiv      (legacy submission-date, v1 only)
 #   §6  Embedding / UMAP      embed_and_project, _embed_only,
 #                             compute_hybrid_distances, embed_and_project_hybrid
 #   §7  Atlas build + deploy  build_and_deploy_atlas
@@ -578,10 +579,323 @@ def merge_papers(existing: pd.DataFrame, new: pd.DataFrame) -> pd.DataFrame:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# §5  arXiv FETCH WITH EXPONENTIAL BACK-OFF
+# §5  arXiv FETCH — OAI-PMH ANNOUNCEMENT-DATE APPROACH
+#
+# Background
+# ──────────
+# The standard arXiv API filters by *submission date* — when the author
+# clicked "Upload".  But the daily website listings show papers by
+# *announcement date* — when arXiv moderators released them to the public.
+# Papers can sit in moderation for days, so submission-date queries silently
+# miss or misplace a significant fraction of each day's announced papers.
+#
+# The fix is a two-step pipeline:
+#   1. OAI-PMH (Open Archives Initiative Protocol for Metadata Harvesting):
+#      query by `datestamp` (announcement date) to get arXiv IDs.
+#   2. arXiv Search API: batch-fetch full metadata for those IDs.
+#
+# Date arithmetic
+# ───────────────
+# The pipeline runs at 03:00 UTC.  arXiv announces at ~01:00 UTC, so we
+# query TODAY's UTC date.  On weekends (Sat/Sun UTC) arXiv doesn't release;
+# the function returns [] and the caller handles that gracefully.
+#
+# For first-run backfill (days_back > 1) we query multiple past dates.
+#
+# Monday quirk
+# ────────────
+# arXiv's Monday list includes Friday + Sunday submissions and is the
+# largest batch of the week.  The OAI datestamp for Monday's announcement
+# is typically Monday UTC (occasionally Tuesday UTC if the server is slow).
+# By querying today + yesterday we reliably catch it without special-casing.
+#
+# Rate limits
+# ───────────
+# OAI-PMH: 20s sleep between resumption-token requests (strictly enforced).
+# Search API: 3s sleep between 50-ID batches (polite use).
 # ══════════════════════════════════════════════════════════════════════════════
 
+import urllib.parse
+import urllib.request as _ureq
+import xml.etree.ElementTree as ET
+from dataclasses import dataclass, field
+
+# XML namespace map for OAI-PMH + arXiv metadata prefix
+_OAI_NS = {
+    "oai":    "http://www.openarchives.org/OAI/2.0/",
+    "arxiv":  "http://arxiv.org/OAI/2.0/",
+    "atom":   "http://www.w3.org/2005/Atom",
+}
+
+_OAI_BASE_URL    = "https://export.arxiv.org/oai2"
+_SEARCH_BASE_URL = "https://export.arxiv.org/api/query"
+_OAI_RESUMPTION_SLEEP  = 20   # seconds — strictly required by arXiv
+_SEARCH_BATCH_SIZE     = 50   # IDs per Search API request
+_SEARCH_BATCH_SLEEP    = 3    # seconds between Search API batches
+_OAI_UA = (
+    "ai-research-atlas/2.0 "
+    "(https://github.com/LeeFischman/ai-research-atlas; "
+    "mailto:lee.fischman@gmail.com)"
+)
+
+
+@dataclass
+class _Author:
+    """Minimal author object — matches the .name interface of arxiv.Result."""
+    name: str
+
+
+@dataclass
+class _ArxivPaper:
+    """Lightweight paper object matching the arxiv.Result interface used in
+    update_map_v2.py Stage 1b:
+        r.title, r.summary, r.pdf_url, r.entry_id, r.authors (list of _Author)
+    """
+    title:    str
+    summary:  str
+    pdf_url:  str
+    entry_id: str
+    authors:  list = field(default_factory=list)
+
+
+def _oai_fetch_ids_for_date(date_str: str, category: str = "cs.AI") -> list[str]:
+    """Fetch arXiv IDs announced on `date_str` (YYYY-MM-DD) via OAI-PMH.
+
+    Uses the broad 'cs' set and filters by category in code, because arXiv
+    OAI does not expose fine-grained set names like 'cs.AI' directly.
+
+    Returns a deduplicated list of base arXiv IDs (e.g. '2501.12345').
+    """
+    params: dict = {
+        "verb":           "ListRecords",
+        "metadataPrefix": "arXiv",
+        "from":           date_str,
+        "until":          date_str,
+        "set":            "cs",
+    }
+
+    found: list[str] = []
+    seen:  set[str]  = set()
+    page  = 0
+
+    while True:
+        page += 1
+        url = f"{_OAI_BASE_URL}?{urllib.parse.urlencode(params)}"
+        req = _ureq.Request(url, headers={"User-Agent": _OAI_UA})
+
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                with _ureq.urlopen(req, timeout=30) as resp:
+                    raw = resp.read()
+                break
+            except urllib.error.HTTPError as e:
+                if e.code == 503:
+                    retry_after = int(e.headers.get("Retry-After", 30))
+                    print(f"    OAI 503 — waiting {retry_after}s (attempt {attempt})...")
+                    time.sleep(retry_after)
+                elif e.code == 429:
+                    wait = BASE_WAIT * (2 ** (attempt - 1))
+                    print(f"    OAI 429 — waiting {wait}s (attempt {attempt})...")
+                    time.sleep(wait)
+                else:
+                    raise
+            except Exception as e:
+                if attempt < MAX_RETRIES:
+                    wait = BASE_WAIT * (2 ** (attempt - 1))
+                    print(f"    OAI error: {e} — waiting {wait}s (attempt {attempt})...")
+                    time.sleep(wait)
+                else:
+                    raise
+        else:
+            print(f"    OAI fetch failed after {MAX_RETRIES} attempts on page {page}.")
+            break
+
+        root = ET.fromstring(raw)
+
+        # Check for OAI error (e.g. noRecordsMatch)
+        error_el = root.find(".//oai:error", _OAI_NS)
+        if error_el is not None:
+            code = error_el.get("code", "")
+            if code == "noRecordsMatch":
+                print(f"    OAI: no records for {date_str} (weekend or holiday).")
+            else:
+                print(f"    OAI error code='{code}': {error_el.text}")
+            break
+
+        for record in root.findall(".//oai:record", _OAI_NS):
+            # Skip deleted records
+            header = record.find("oai:header", _OAI_NS)
+            if header is not None and header.get("status") == "deleted":
+                continue
+
+            cats_el = record.find(".//arxiv:categories", _OAI_NS)
+            if cats_el is None or cats_el.text is None:
+                continue
+            if category not in cats_el.text.split():
+                continue
+
+            id_el = record.find(".//oai:identifier", _OAI_NS)
+            if id_el is None or not id_el.text:
+                continue
+
+            # "oai:arXiv.org:2501.12345" -> "2501.12345"
+            raw_id  = id_el.text.split(":")[-1].strip()
+            base_id = _arxiv_id_base(raw_id)
+            if base_id not in seen:
+                seen.add(base_id)
+                found.append(base_id)
+
+        # Resumption token for next page
+        token_el = root.find(".//oai:resumptionToken", _OAI_NS)
+        if token_el is not None and token_el.text and token_el.text.strip():
+            print(f"    OAI page {page}: {len(found)} IDs so far — "
+                  f"resuming in {_OAI_RESUMPTION_SLEEP}s...")
+            time.sleep(_OAI_RESUMPTION_SLEEP)
+            params = {"verb": "ListRecords",
+                      "resumptionToken": token_el.text.strip()}
+        else:
+            break
+
+    return found
+
+
+def _search_fetch_metadata(arxiv_ids: list[str]) -> list[_ArxivPaper]:
+    """Fetch full metadata for a list of arXiv IDs via the Search API.
+
+    Batches IDs in groups of _SEARCH_BATCH_SIZE to avoid URL length errors.
+    Returns a list of _ArxivPaper objects in no guaranteed order.
+    """
+    papers: list[_ArxivPaper] = []
+
+    for batch_start in range(0, len(arxiv_ids), _SEARCH_BATCH_SIZE):
+        batch   = arxiv_ids[batch_start:batch_start + _SEARCH_BATCH_SIZE]
+        id_list = ",".join(batch)
+        url     = f"{_SEARCH_BASE_URL}?id_list={id_list}&max_results={len(batch)}"
+        req     = _ureq.Request(url, headers={"User-Agent": _OAI_UA})
+
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                with _ureq.urlopen(req, timeout=30) as resp:
+                    raw = resp.read()
+                break
+            except Exception as e:
+                if attempt < MAX_RETRIES:
+                    wait = min(BASE_WAIT * (2 ** (attempt - 1)), MAX_WAIT)
+                    print(f"    Search API error: {e} — "
+                          f"waiting {wait}s (attempt {attempt})...")
+                    time.sleep(wait)
+                else:
+                    print(f"    Search API batch failed: {e}")
+                    raw = None
+                    break
+
+        if raw is None:
+            continue
+
+        root = ET.fromstring(raw)
+        for entry in root.findall("atom:entry", _OAI_NS):
+            title_el    = entry.find("atom:title",   _OAI_NS)
+            summary_el  = entry.find("atom:summary", _OAI_NS)
+            id_el       = entry.find("atom:id",      _OAI_NS)
+
+            if title_el is None or id_el is None:
+                continue
+
+            title   = (title_el.text   or "").strip().replace("\n", " ")
+            summary = (summary_el.text or "").strip().replace("\n", " ") \
+                      if summary_el is not None else ""
+            abs_url = (id_el.text or "").strip()   # e.g. http://arxiv.org/abs/2501.12345v1
+
+            # Derive PDF URL from abstract URL
+            pdf_url = abs_url.replace("/abs/", "/pdf/") if "/abs/" in abs_url else abs_url
+
+            authors = [
+                _Author(name=(a.find("atom:name", _OAI_NS).text or "").strip())
+                for a in entry.findall("atom:author", _OAI_NS)
+                if a.find("atom:name", _OAI_NS) is not None
+            ]
+
+            papers.append(_ArxivPaper(
+                title    = title,
+                summary  = summary,
+                pdf_url  = pdf_url,
+                entry_id = abs_url,
+                authors  = authors,
+            ))
+
+        if batch_start + _SEARCH_BATCH_SIZE < len(arxiv_ids):
+            time.sleep(_SEARCH_BATCH_SLEEP)
+
+    return papers
+
+
+def fetch_arxiv_oai(
+    days_back: int = 1,
+    category:  str = "cs.AI",
+    max_results: int = ARXIV_MAX,
+) -> list[_ArxivPaper]:
+    """Fetch papers announced on arXiv by announcement date via OAI-PMH.
+
+    Parameters
+    ----------
+    days_back   : number of past calendar days to query (1 = today only;
+                  >1 used for first-run backfill)
+    category    : arXiv category filter (default: cs.AI)
+    max_results : hard cap on total papers returned
+
+    Returns a deduplicated list of _ArxivPaper objects, capped at max_results.
+
+    Date strategy
+    ─────────────
+    Run at 03:00 UTC, announcement at ~01:00 UTC.  We query today's UTC date
+    as the primary target, then yesterday as a fallback (catches the Monday
+    announcement which occasionally carries a Tuesday UTC datestamp on slow
+    servers).  For backfill runs (days_back > 1) we extend further back.
+    """
+    now_utc  = datetime.now(timezone.utc)
+    # Build list of candidate dates: today first, then going back
+    dates = [
+        (now_utc - timedelta(days=d)).strftime("%Y-%m-%d")
+        for d in range(days_back + 1)   # +1 so today+yesterday always included
+    ]
+    # Deduplicate while preserving order
+    seen_dates: set[str] = set()
+    dates = [d for d in dates if not (d in seen_dates or seen_dates.add(d))]
+
+    all_ids: list[str] = []
+    seen_ids: set[str] = set()
+
+    for date_str in dates:
+        print(f"  OAI-PMH: fetching {category} IDs for {date_str}...")
+        ids = _oai_fetch_ids_for_date(date_str, category)
+        new_ids = [i for i in ids if i not in seen_ids]
+        seen_ids.update(new_ids)
+        all_ids.extend(new_ids)
+        print(f"    {len(new_ids)} new IDs (running total: {len(all_ids)})")
+
+        if len(all_ids) >= max_results:
+            print(f"  Reached max_results cap ({max_results}) — stopping.")
+            break
+
+    if not all_ids:
+        return []
+
+    # Apply cap before fetching metadata (saves Search API calls)
+    all_ids = all_ids[:max_results]
+
+    print(f"  Fetching metadata for {len(all_ids)} IDs via Search API...")
+    papers = _search_fetch_metadata(all_ids)
+    print(f"  Retrieved metadata for {len(papers)}/{len(all_ids)} papers.")
+    return papers
+
+
+# Legacy alias — kept so update_map.py (v1) continues to work unchanged
 def fetch_arxiv(client, search) -> list:
+    """Legacy submission-date fetch via the arxiv Python library.
+
+    Retained for backward compatibility with update_map.py (v1 pipeline).
+    update_map_v2.py uses fetch_arxiv_oai() instead.
+    """
     last_exc = None
     for attempt in range(MAX_RETRIES):
         try:
