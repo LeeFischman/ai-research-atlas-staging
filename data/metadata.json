@@ -9,128 +9,128 @@
         },
         "embeddingViewLabels": [
             {
-                "x": -1.3207228564530238,
-                "y": -1.861592210854459,
-                "text": "Time Series Forecasting And Prediction",
+                "x": 0.5269743212826599,
+                "y": 1.4897505638949817,
+                "text": "Demand Forecasting And Time Series",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.245091846194586,
-                "y": 0.6720168345744365,
-                "text": "Llm Agent Benchmarking And Evaluation",
+                "x": -1.1414653950493718,
+                "y": 0.34262836703244237,
+                "text": "Search And Retrieval Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.9868408826756759,
-                "y": -0.6504695181718823,
-                "text": "Multimodal Foundation Models",
+                "x": -1.2833571459359279,
+                "y": -1.085110862018088,
+                "text": "Safety And Robustness",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.6160406358654781,
-                "y": 0.5911988908328057,
-                "text": "Information Retrieval Systems",
+                "x": 0.6497759697611455,
+                "y": -2.5147590211774213,
+                "text": "Embodied Ai And Robotics",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.4988223124729359,
-                "y": -1.2415100790092615,
-                "text": "Generative Models For Molecular Design",
+                "x": -1.4704948435896805,
+                "y": 1.7437513495422843,
+                "text": "Scaling Laws And Model Capabilities",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.4502363949007593,
-                "y": -0.8729642767614194,
-                "text": "Llm Safety And Alignment",
+                "x": 0.8027627988563912,
+                "y": -0.45965145483214115,
+                "text": "Model Quantization",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.3061551249450596,
-                "y": 2.1957839096704017,
-                "text": "Embodied Agent Learning",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -0.6145107108453266,
-                "y": -2.4320604637026877,
-                "text": "Model Scaling And Efficiency",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -1.5635488649145413,
-                "y": 1.8756550880186902,
-                "text": "Memory And Planning In Agents",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 0.19745312095193754,
-                "y": 1.9086068550878619,
-                "text": "Multi-Agent Coordination And Safety",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -1.0561489530531971,
-                "y": 0.7304449996018003,
-                "text": "Representational Learning Analysis",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 1.2991448986940228,
-                "y": -2.4883494184904125,
-                "text": "Model Quantization And Compression",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -2.534588443197228,
-                "y": -0.4924507719881696,
-                "text": "Natural Language Understanding Tasks",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 2.205867414532459,
-                "y": 1.0175929884669055,
-                "text": "Geometric Deep Learning",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -0.33148185478024494,
-                "y": 0.02228945175944426,
-                "text": "Reinforcement Learning With Verifiable Rewards",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -0.6238978005797867,
-                "y": 2.480956345200993,
-                "text": "Scientific Discovery With Ai",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 2.06316775954078,
-                "y": -1.161819610421814,
-                "text": "Medical Image Understanding",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 2.5269152507060064,
-                "y": -0.015298220675128241,
+                "x": 2.056943751288613,
+                "y": 0.34579892923018,
                 "text": "Graph Neural Networks",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -2.541432486952806,
+                "y": -1.4100885732117074,
+                "text": "Security And Adversarial Analysis",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.22079006880720373,
+                "y": -1.555815892678114,
+                "text": "Reinforcement Learning From Rewards",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 2.3772492473453135,
+                "y": -0.8604004450725157,
+                "text": "Scientific Machine Learning",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.5670397077450839,
+                "y": -2.518879084105925,
+                "text": "Knowledge-Grounded Reasoning",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -3.1242735851656778,
+                "y": 1.4737266072291564,
+                "text": "Watermarking And Provenance",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -2.4315349049900514,
+                "y": -0.3196044316282803,
+                "text": "Knowledge Graph Methods",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.3016465400668775,
+                "y": 3.3206982343653118,
+                "text": "Software Engineering And Ml",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 1.9339401086417536,
+                "y": -1.9389364845546644,
+                "text": "Autonomous Control Systems",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 0.014536685317754275,
+                "y": 0.5094483794812042,
+                "text": "Federated Learning",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 1.85105120974778,
+                "y": 2.437772015233264,
+                "text": "Audio And Speech Processing",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 2.7637920056379386,
+                "y": 1.0339555354373013,
+                "text": "Social Choice Theory",
                 "level": 0,
                 "priority": 10
             }
