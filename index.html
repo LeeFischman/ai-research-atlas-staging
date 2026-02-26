@@ -168,11 +168,11 @@
     document.querySelectorAll('.arm-tab').forEach(function(t) { t.style.display = ''; });
   }
 
-  // Atlas color-by: find the select whose options include Reputation,
+  // Atlas color-by: find the select whose options include Prominence,
   // set value via native setter (Svelte needs this), fire change event.
   function armSetColor(columnName, tileEl) {
     var colorSelect = Array.from(document.querySelectorAll('select')).find(function(sel) {
-      return Array.from(sel.options).some(function(o) { return o.text.includes('Reputation'); });
+      return Array.from(sel.options).some(function(o) { return o.text.includes('Prominence'); });
     });
     if (colorSelect) {
       var nativeSetter = Object.getOwnPropertyDescriptor(
@@ -324,9 +324,9 @@
     </div>
     <p class="arm-sc-intro">Click a tile to see points colored by</p>
 
-    <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('Reputation', this)">
+    <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('Prominence', this)">
       <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="9,2 11.1,6.6 16.2,7.3 12.6,10.7 13.5,15.8 9,13.4 4.5,15.8 5.4,10.7 1.8,7.3 6.9,6.6"/></svg></span>
-      <span class="arm-tile-text"><span class="arm-tile-label">Reputation score</span><span class="arm-tile-sub">Institution &amp; open-source signals</span></span>
+      <span class="arm-tile-text"><span class="arm-tile-label">Author prominence</span><span class="arm-tile-sub">Elite · Enhanced · Emerging · Unverified</span></span>
     </a>
 
     <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('author_count', this)">
@@ -342,7 +342,7 @@
   </div>
   <div class="arm-footer">
     <div class="arm-status-dot"></div>
-    <span class="arm-status-text">Last updated <strong>February 25, 2026 UTC</strong></span>
+    <span class="arm-status-text">Last updated <strong>February 26, 2026 UTC</strong></span>
   </div>
 </div>
 
@@ -381,7 +381,7 @@
   </div>
   <div class="arm-footer">
     <div class="arm-status-dot"></div>
-    <span class="arm-status-text">Last updated <strong>February 25, 2026 UTC</strong></span>
+    <span class="arm-status-text">Last updated <strong>February 26, 2026 UTC</strong></span>
   </div>
 </div>
 
