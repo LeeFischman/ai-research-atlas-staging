@@ -9,128 +9,128 @@
         },
         "embeddingViewLabels": [
             {
-                "x": -0.7674688758443331,
-                "y": -1.8859447534126499,
-                "text": "Energy System Forecasting",
+                "x": -0.9241676104693534,
+                "y": 1.422233665662618,
+                "text": "Demand Forecasting And Time Series Prediction",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.48579700369735906,
-                "y": -0.08647298346930145,
-                "text": "Agentic System Benchmarking",
+                "x": -2.3729713428478183,
+                "y": -1.138763823184185,
+                "text": "Long-Horizon Agentic Task Planning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.2892592463284864,
-                "y": 0.9298572899415642,
-                "text": "Search And Retrieval Systems",
+                "x": -0.07399291405739689,
+                "y": -1.598269142389628,
+                "text": "Generative Molecular Design",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.529967875165557,
-                "y": -0.294271635060065,
-                "text": "Llm Safety And Reliability",
+                "x": -2.250404533101457,
+                "y": 1.8024779408828404,
+                "text": "Memory And Spatial Navigation",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.122234655392261,
-                "y": 1.0758300526567672,
-                "text": "Neural Network Representation Analysis",
+                "x": -0.5742546891038184,
+                "y": 0.3249738382235201,
+                "text": "Data Quality And Fine-Tuning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.6263832410166006,
-                "y": -0.5332382300514189,
-                "text": "Ai For Materials Science",
+                "x": -1.3640322000486793,
+                "y": -1.5893459460009873,
+                "text": "Clinical Ai And Case Analysis",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.6430912122504377,
-                "y": -2.365182163103996,
-                "text": "Ai Service Infrastructure",
+                "x": 2.9738371714939804,
+                "y": 1.8282074821397276,
+                "text": "Model Selection And Deployment",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.260471155481927,
-                "y": -0.37929894465948794,
-                "text": "Content Provenance And Watermarking",
+                "x": -3.2303850593567507,
+                "y": 0.6455182426560273,
+                "text": "Human-Robot Interaction And Assistance",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.190430735345149,
-                "y": 3.2940161433052735,
-                "text": "Robotic Assistance For Accessibility",
+                "x": -0.2765521444423615,
+                "y": 2.6109999249288722,
+                "text": "Video Generation And World Consistency",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.3908922883180297,
-                "y": 2.028127835698129,
-                "text": "Llm Evaluation And Bias",
+                "x": -0.5302359261936797,
+                "y": -3.531500469270961,
+                "text": "Code Change Classification",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.685428316622469,
-                "y": -2.5003087228106744,
-                "text": "Video Generation And Consistency",
+                "x": -1.9101329932558535,
+                "y": -0.12789567655273565,
+                "text": "Deliberative Democratic Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.3405129047911144,
-                "y": 2.275673554963694,
-                "text": "Software Development Automation",
+                "x": 0.46541673495600266,
+                "y": 1.555912616252001,
+                "text": "Large-Scale Recommendation Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.0294014370636275,
-                "y": 0.9578338275251179,
-                "text": "Participatory Systems",
+                "x": 1.9161172455293318,
+                "y": 2.3061528234763844,
+                "text": "Federated Learning Communication",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.9564612345075627,
-                "y": -1.52213716176647,
-                "text": "Federated Learning Systems",
+                "x": 0.9265792359680015,
+                "y": -2.182605998613762,
+                "text": "Financial Risk Modeling",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.5801457362208444,
-                "y": -2.327066301850305,
-                "text": "Financial Risk Prediction",
+                "x": 3.127147280757186,
+                "y": -0.11982441592791043,
+                "text": "Audio Codec Design",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.9838917355384487,
-                "y": -1.630255220863702,
-                "text": "Audio Processing And Compression",
+                "x": 1.8220770093227936,
+                "y": -1.8229490828393182,
+                "text": "Self-Supervised Medical Imaging",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.3584755461198574,
-                "y": 2.0586157965095437,
-                "text": "Ai Strategic Behavior",
+                "x": 1.676591472876643,
+                "y": -0.20975285898178375,
+                "text": "Backdoor Attacks In Federated Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.6370156207798754,
-                "y": 0.6064964981316401,
-                "text": "Human-Robot Interaction",
+                "x": 0.37726941622282567,
+                "y": -0.3693813962487935,
+                "text": "Geometric Neural Operators",
                 "level": 0,
                 "priority": 10
             }
