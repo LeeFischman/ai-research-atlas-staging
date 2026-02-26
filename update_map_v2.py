@@ -79,6 +79,12 @@ from atlas_utils import (
 # Set via env var:  OFFLINE_MODE=true python update_map_v2.py
 OFFLINE_MODE = os.environ.get("OFFLINE_MODE", "false").strip().lower() == "true"
 
+# When True: re-fetch OpenAlex h-indices for ALL papers, including those that
+# already have an author_hindices list (e.g. empty lists from a first run).
+# Set via env var:  BACKFILL_HINDICES=true
+# Remove after one successful backfill run.
+BACKFILL_HINDICES = os.environ.get("BACKFILL_HINDICES", "false").strip().lower() == "true"
+
 # Cache file written after every successful Haiku grouping call.
 # Loaded automatically in offline mode.
 GROUP_NAMES_CACHE = "group_names_v2.json"
@@ -722,6 +728,7 @@ if __name__ == "__main__":
     print("=" * 60)
     print(f"  AI Research Atlas v2 — {run_date} UTC")
     print(f"  OFFLINE_MODE       : {OFFLINE_MODE}")
+    print(f"  BACKFILL_HINDICES  : {BACKFILL_HINDICES}")
     print(f"  GROUP_COUNT        : {GROUP_COUNT_MIN}–{GROUP_COUNT_MAX}")
     print(f"  LAYOUT_SCALE       : {LAYOUT_SCALE}")
     print(f"  SCATTER_FRACTION   : {SCATTER_FRACTION}")
@@ -755,6 +762,21 @@ if __name__ == "__main__":
                 "database.parquet is missing projection_x/y (SPECTER2 UMAP). "
                 "Run once in normal mode first."
             )
+
+        # Migrate Reputation → Prominence column name if present from older runs
+        if "Reputation" in df.columns and "Prominence" not in df.columns:
+            df = df.rename(columns={"Reputation": "Prominence"})
+            print("  Migrated 'Reputation' column → 'Prominence'.")
+
+        # Recompute Prominence tier values if they look like the old two-value system
+        if "Prominence" in df.columns:
+            old_values = {"Reputation Enhanced", "Reputation Std"}
+            if set(df["Prominence"].dropna().unique()).issubset(old_values):
+                print("  Recomputing Prominence tiers (old two-value system detected)...")
+                df["Prominence"] = df.apply(calculate_prominence, axis=1)
+                tier_counts = df["Prominence"].value_counts()
+                for tier in ["Elite", "Enhanced", "Emerging", "Unverified"]:
+                    print(f"    {tier}: {tier_counts.get(tier, 0)}")
 
         group_names = _load_group_names_cache(df)
 
@@ -863,10 +885,20 @@ if __name__ == "__main__":
             df["authors_list"] = None
 
         author_cache = load_author_cache()
-        needs_hindex = df["author_hindices"].isna()
-        n_needs      = needs_hindex.sum()
+
+        if BACKFILL_HINDICES:
+            # Re-fetch for all rows, including those with empty lists
+            needs_hindex = pd.Series([True] * len(df), index=df.index)
+            print(f"  BACKFILL_HINDICES=true — re-fetching all {len(df)} papers.")
+        else:
+            # Normal mode: only fetch for rows missing h-index data
+            needs_hindex = df["author_hindices"].isna() | df["author_hindices"].apply(
+                lambda x: isinstance(x, list) and len(x) == 0
+            )
+
+        n_needs = needs_hindex.sum()
         print(f"  {n_needs} papers need h-index lookup"
-              f" ({len(df) - n_needs} already cached in DB).")
+              f" ({len(df) - n_needs} already have data).")
 
         for idx in df.index[needs_hindex]:
             authors = df.at[idx, "authors_list"]
