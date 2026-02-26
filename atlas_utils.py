@@ -787,13 +787,22 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
   .arm-cp-title-row { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
   .arm-cp-title { font-size:13px; font-weight:700; color:#f1f5f9; line-height:1.4; text-decoration:none; flex:1; }
   .arm-cp-title:hover { color:var(--arm-accent); text-decoration:underline; }
-  .arm-cp-badge { flex-shrink:0; font-size:10px; font-weight:600; color:#fbbf24; background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.25); border-radius:4px; padding:2px 6px; white-space:nowrap; margin-top:2px; }
+  .arm-cp-badge { flex-shrink:0; font-size:10px; font-weight:600; border-radius:4px; padding:2px 6px; white-space:nowrap; margin-top:2px; border:1px solid; }
+  .arm-cp-badge-elite      { color:#fbbf24; background:rgba(251,191,36,0.12); border-color:rgba(251,191,36,0.35); }
+  .arm-cp-badge-enhanced   { color:#60a5fa; background:rgba(96,165,250,0.12); border-color:rgba(96,165,250,0.35); }
+  .arm-cp-badge-emerging   { color:#34d399; background:rgba(52,211,153,0.10); border-color:rgba(52,211,153,0.30); }
+  .arm-cp-badge-unverified { color:#64748b; background:rgba(100,116,139,0.10); border-color:rgba(100,116,139,0.25); }
   .arm-cp-topic { font-size:11px; color:var(--arm-accent); font-weight:500; }
   .arm-cp-abstract { font-size:11.5px; color:#94a3b8; line-height:1.6; max-height:9.6em; overflow-y:auto; scrollbar-width:thin; scrollbar-color:#334155 transparent; }
   .arm-cp-abstract::-webkit-scrollbar { width:4px; }
   .arm-cp-abstract::-webkit-scrollbar-thumb { background:#334155; border-radius:4px; }
-  .arm-cp-meta { display:flex; flex-wrap:wrap; gap:8px; }
+  .arm-cp-meta { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
   .arm-cp-meta span { font-size:11px; color:#64748b; }
+  .arm-cp-badge { font-size:10px; font-weight:600; letter-spacing:0.04em; padding:2px 7px; border-radius:99px; border:1px solid; }
+  .arm-cp-badge-elite      { color:#f59e0b; background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.35); }
+  .arm-cp-badge-enhanced   { color:#60a5fa; background:rgba(96,165,250,0.12); border-color:rgba(96,165,250,0.35); }
+  .arm-cp-badge-emerging   { color:#4ade80; background:rgba(74,222,128,0.10); border-color:rgba(74,222,128,0.30); }
+  .arm-cp-badge-unverified { color:#475569; background:rgba(71,85,105,0.15);  border-color:rgba(71,85,105,0.35); }
   .arm-cp-keywords { font-size:10.5px; color:#475569; line-height:1.5; }
   .arm-cp-footer { padding:10px 16px; border-top:1px solid var(--arm-border); display:flex; justify-content:flex-end; }
   .arm-cp-btn { font-size:11px; font-weight:600; color:var(--arm-accent); background:var(--arm-accent-dim); border:1px solid rgba(96,165,250,0.25); border-radius:6px; padding:5px 12px; text-decoration:none; transition:background 0.15s; font-family:var(--arm-font); cursor:pointer; }
@@ -865,11 +874,12 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
   }
 
   function showCP(data, atlasPopup) {
-    var title  = data['title'] || '';
-    var url    = data['url']   || '#';
-    var abs    = data['abstract'] || '';
-    var count  = data['author_count'] || '';
-    var date   = (data['date_added'] || '').substring(0, 10);
+    var title      = data['title']      || '';
+    var url        = data['url']        || '#';
+    var abs        = data['abstract']   || '';
+    var count      = data['author_count'] || '';
+    var date       = (data['date_added'] || '').substring(0, 10);
+    var prominence = data['Prominence'] || '';
 
     document.getElementById('arm-cp-title').textContent = title;
     document.getElementById('arm-cp-title').href = url;
@@ -881,6 +891,18 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     metaEl.innerHTML = '';
     if (count) { var s1 = document.createElement('span'); s1.textContent = '\\u{1F465}\\uFE0E ' + count + ' authors'; metaEl.appendChild(s1); }
     if (date)  { var s2 = document.createElement('span'); s2.textContent = '\\u{1F4C5}\\uFE0E ' + date; metaEl.appendChild(s2); }
+    if (prominence) {
+      var pill = document.createElement('span');
+      pill.textContent = prominence;
+      var tierClass = {
+        'Elite':      'arm-cp-badge-elite',
+        'Enhanced':   'arm-cp-badge-enhanced',
+        'Emerging':   'arm-cp-badge-emerging',
+        'Unverified': 'arm-cp-badge-unverified'
+      }[prominence] || 'arm-cp-badge-unverified';
+      pill.className = 'arm-cp-badge ' + tierClass;
+      metaEl.appendChild(pill);
+    }
 
     // Smart positioning: right of Atlas popup, flip left if near viewport edge
     var rect = atlasPopup.getBoundingClientRect();
