@@ -841,7 +841,17 @@ def oai_fetch_ids_for_range(
             break
 
         page_new = 0
-        for record in root.findall(".//oai:record", _OAI_NS):
+        records = root.findall(".//oai:record", _OAI_NS)
+
+        # ── DIAGNOSTIC: print first record of first page raw XML ─────────────
+        if page == 1 and records:
+            import xml.etree.ElementTree as _ET
+            print(f"    DIAGNOSTIC: first record raw XML snippet:")
+            first_rec = records[0]
+            print(_ET.tostring(first_rec, encoding="unicode")[:2000])
+        # ── END DIAGNOSTIC ───────────────────────────────────────────────────
+
+        for record in records:
             header = record.find("oai:header", _OAI_NS)
             if header is not None and header.get("status") == "deleted":
                 continue
