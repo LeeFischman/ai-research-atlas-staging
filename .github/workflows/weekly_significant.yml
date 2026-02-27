@@ -46,7 +46,7 @@ jobs:
       - name: Run Significant Papers Scan
         env:
           SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
-          placeholder: "no-api-key-needed"
+          # placeholder: "no-api-key-needed"
         run: python update_significant.py
 
       - name: Commit and Push
