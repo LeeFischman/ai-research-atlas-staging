@@ -651,11 +651,12 @@ class _ArxivPaper:
     update_map_v2.py Stage 1b:
         r.title, r.summary, r.pdf_url, r.entry_id, r.authors (list of _Author)
     """
-    title:    str
-    summary:  str
-    pdf_url:  str
-    entry_id: str
-    authors:  list = field(default_factory=list)
+    title:            str
+    summary:          str
+    pdf_url:          str
+    entry_id:         str
+    authors:          list = field(default_factory=list)
+    publication_date: str  = ""    # YYYY-MM-DD, parsed from atom:published
 
 
 def _oai_fetch_ids_for_date(date_str: str, category: str = "cs.AI") -> list[str]:
@@ -759,6 +760,128 @@ def _oai_fetch_ids_for_date(date_str: str, category: str = "cs.AI") -> list[str]
     return found
 
 
+def oai_fetch_ids_for_range(
+    date_from_str: str,
+    date_to_str:   str,
+    category:      str = "cs.AI",
+) -> list[str]:
+    """Fetch arXiv IDs announced between date_from_str and date_to_str via OAI-PMH.
+
+    Unlike _oai_fetch_ids_for_date (which queries a single day), this function
+    queries a full date range in one OAI-PMH request, using resumption tokens
+    to page through all results. Suitable for the initial 150-day backfill in
+    update_significant.py, and for weekly delta fetches.
+
+    Parameters
+    ----------
+    date_from_str : start date inclusive, YYYY-MM-DD
+    date_to_str   : end date inclusive, YYYY-MM-DD
+    category      : arXiv category filter (default: cs.AI)
+
+    Returns
+    -------
+    Deduplicated list of base arXiv IDs (e.g. '2501.12345'), no version suffix.
+    """
+    params: dict = {
+        "verb":           "ListRecords",
+        "metadataPrefix": "arXiv",
+        "from":           date_from_str,
+        "until":          date_to_str,
+        "set":            "cs",
+    }
+
+    found: list[str] = []
+    seen:  set[str]  = set()
+    page  = 0
+
+    print(f"  OAI-PMH range fetch: {date_from_str} to {date_to_str} "
+          f"(category={category})...")
+
+    while True:
+        page += 1
+        url = f"{_OAI_BASE_URL}?{urllib.parse.urlencode(params)}"
+        req = _ureq.Request(url, headers={"User-Agent": _OAI_UA})
+
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                with _ureq.urlopen(req, timeout=60) as resp:
+                    raw = resp.read()
+                break
+            except urllib.error.HTTPError as e:
+                if e.code == 503:
+                    retry_after = int(e.headers.get("Retry-After", 30))
+                    print(f"    OAI 503 — waiting {retry_after}s (attempt {attempt})...")
+                    time.sleep(retry_after)
+                elif e.code == 429:
+                    wait = BASE_WAIT * (2 ** (attempt - 1))
+                    print(f"    OAI 429 — waiting {wait}s (attempt {attempt})...")
+                    time.sleep(wait)
+                else:
+                    raise
+            except Exception as e:
+                if attempt < MAX_RETRIES:
+                    wait = BASE_WAIT * (2 ** (attempt - 1))
+                    print(f"    OAI error: {e} — waiting {wait}s (attempt {attempt})...")
+                    time.sleep(wait)
+                else:
+                    raise
+        else:
+            print(f"    OAI range fetch failed after {MAX_RETRIES} attempts on page {page}.")
+            break
+
+        root = ET.fromstring(raw)
+
+        error_el = root.find(".//oai:error", _OAI_NS)
+        if error_el is not None:
+            code = error_el.get("code", "")
+            if code == "noRecordsMatch":
+                print(f"    OAI: no records for range {date_from_str}:{date_to_str}.")
+            else:
+                print(f"    OAI error code='{code}': {error_el.text}")
+            break
+
+        page_new = 0
+        for record in root.findall(".//oai:record", _OAI_NS):
+            header = record.find("oai:header", _OAI_NS)
+            if header is not None and header.get("status") == "deleted":
+                continue
+
+            cats_el = record.find(".//arxiv:categories", _OAI_NS)
+            if cats_el is None or cats_el.text is None:
+                continue
+            if category not in cats_el.text.split():
+                continue
+
+            id_el = record.find(".//oai:identifier", _OAI_NS)
+            if id_el is None or not id_el.text:
+                continue
+
+            raw_id  = id_el.text.split(":")[-1].strip()
+            base_id = _arxiv_id_base(raw_id)
+            if base_id not in seen:
+                seen.add(base_id)
+                found.append(base_id)
+                page_new += 1
+
+        token_el = root.find(".//oai:resumptionToken", _OAI_NS)
+        if token_el is not None and token_el.text and token_el.text.strip():
+            print(f"    OAI page {page}: {page_new} new IDs "
+                  f"(running total: {len(found)}) — resuming in {_OAI_RESUMPTION_SLEEP}s...")
+            time.sleep(_OAI_RESUMPTION_SLEEP)
+            params = {"verb": "ListRecords",
+                      "resumptionToken": token_el.text.strip()}
+        else:
+            print(f"    OAI page {page}: {page_new} new IDs "
+                  f"(total: {len(found)}) — complete.")
+            break
+
+    return found
+
+
+# Public alias so update_significant.py can import without the leading underscore
+fetch_arxiv_metadata = _search_fetch_metadata
+
+
 def _search_fetch_metadata(arxiv_ids: list[str]) -> list[_ArxivPaper]:
     """Fetch full metadata for a list of arXiv IDs via the Search API.
 
@@ -809,6 +932,13 @@ def _search_fetch_metadata(arxiv_ids: list[str]) -> list[_ArxivPaper]:
             # Derive PDF URL from abstract URL
             pdf_url = abs_url.replace("/abs/", "/pdf/") if "/abs/" in abs_url else abs_url
 
+            # Publication date — arXiv Atom feed <published> is the original
+            # submission date, e.g. "2025-01-22T00:00:00Z" → "2025-01-22"
+            published_el = entry.find("atom:published", _OAI_NS)
+            pub_date = ""
+            if published_el is not None and published_el.text:
+                pub_date = published_el.text.strip()[:10]
+
             authors = [
                 _Author(name=(a.find("atom:name", _OAI_NS).text or "").strip())
                 for a in entry.findall("atom:author", _OAI_NS)
@@ -816,11 +946,12 @@ def _search_fetch_metadata(arxiv_ids: list[str]) -> list[_ArxivPaper]:
             ]
 
             papers.append(_ArxivPaper(
-                title    = title,
-                summary  = summary,
-                pdf_url  = pdf_url,
-                entry_id = abs_url,
-                authors  = authors,
+                title            = title,
+                summary          = summary,
+                pdf_url          = pdf_url,
+                entry_id         = abs_url,
+                authors          = authors,
+                publication_date = pub_date,
             ))
 
         if batch_start + _SEARCH_BATCH_SIZE < len(arxiv_ids):
