@@ -45,8 +45,6 @@
 import json
 import os
 import time
-import urllib.parse
-import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import pandas as pd
@@ -62,6 +60,8 @@ from atlas_utils import (
     load_ss_cache,
     save_ss_cache,
     fetch_semantic_scholar_data,
+    oai_fetch_ids_for_range,
+    fetch_arxiv_metadata,
     _arxiv_id_base,
 )
 
@@ -70,279 +70,252 @@ from atlas_utils import (
 # CONFIGURATION
 # ══════════════════════════════════════════════════════════════════════════════
 
-SIGNIFICANT_PATH             = "significant.parquet"
+SIGNIFICANT_PATH          = "significant.parquet"
+SIG_CANDIDATES_PATH       = "sig_candidates.json"
 
-# Pool size and pagination
-SIGNIFICANT_POOL_SIZE        = 75    # max papers kept in the significant set
-SIGNIFICANT_MIN_INFLUENTIAL  = 3     # stop paginating when page min drops below this
-SIGNIFICANT_PAGE_SIZE        = 100   # papers per S2 API request
-SIGNIFICANT_MAX_PAGES        = 10    # hard safety limit on pagination
+# How many papers to track in the candidate pool for weekly citation refresh.
+# Must be <= 500 so the refresh fits in a single S2 batch call.
+SIG_CANDIDATES_POOL_SIZE  = 500
+
+# How many top candidates (by influential citations) enter significant.parquet.
+SIGNIFICANT_POOL_SIZE     = 75
 
 # Date window
-SIGNIFICANT_LOOKBACK_DAYS    = 180   # max age: papers older than this are retired
+SIGNIFICANT_LOOKBACK_DAYS    = 150   # max age: papers older than this are retired
 SIGNIFICANT_LOOKFORWARD_DAYS = 15    # min age: younger papers are in the recent window
 
 # Retirement
 SIGNIFICANT_STRIKES_LIMIT    = 2     # retire after this many consecutive absences
 
-# S2 search
-_S2_SEARCH_URL    = "https://api.semanticscholar.org/graph/v1/paper/search"
-_S2_SEARCH_FIELDS = (
-    "externalIds,title,abstract,authors,"
-    "citationCount,influentialCitationCount,tldr,publicationDate"
-)
-# Broad AI query -- fieldsOfStudy + date range do the real filtering
-_S2_SEARCH_QUERY  = (
-    "artificial intelligence OR machine learning OR deep learning "
-    "OR neural network OR large language model"
-)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CANDIDATE POOL STATE
+#
+# sig_candidates.json persists the top-SIG_CANDIDATES_POOL_SIZE papers between
+# weekly runs, enabling incremental delta fetches instead of full re-scans.
+#
+# Schema:
+#   last_fetched_date : YYYY-MM-DD — the `until` date of the last OAI fetch.
+#                       Next run fetches from this date forward (delta).
+#   pool              : list of {id, ss_citation_count, ss_influential_citations}
+#                       sorted by ss_citation_count desc, capped at
+#                       SIG_CANDIDATES_POOL_SIZE entries.
+# ══════════════════════════════════════════════════════════════════════════════
+
+def load_sig_candidates() -> dict | None:
+    """Load the candidate pool state from disk. Returns None on first run."""
+    if os.path.exists(SIG_CANDIDATES_PATH):
+        with open(SIG_CANDIDATES_PATH) as f:
+            return json.load(f)
+    return None
+
+
+def save_sig_candidates(state: dict) -> None:
+    """Persist the candidate pool state to disk."""
+    with open(SIG_CANDIDATES_PATH, "w") as f:
+        json.dump(state, f, indent=2)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# S2 DISCOVERY
+# DISCOVERY  (arXiv OAI-PMH → S2 batch citations)
+#
+# Replaces the previous S2 search-based approach, which was unreliable:
+#   • S2's /paper/search endpoint returned total=0 for multi-term OR queries
+#   • fieldsOfStudy filter also returned total=0
+#   • sort=citationCount:desc was undocumented and unreliable
+#
+# New approach:
+#   1. Fetch cs.AI paper IDs from arXiv OAI-PMH (authoritative source).
+#      First run: full SIGNIFICANT_LOOKBACK_DAYS window (~150 days, ~15-30k IDs).
+#      Subsequent runs: delta from last_fetched_date (typically ~200 new IDs/week).
+#   2. S2 batch lookup for new IDs → get citation counts (proven reliable).
+#   3. Merge new IDs into existing candidate pool, keep top-SIG_CANDIDATES_POOL_SIZE
+#      by citation count.
+#   4. Weekly citation refresh: re-fetch S2 citations for the full top-500 in one
+#      batch call. Catches citation growth on existing candidates.
+#   5. Select top-SIGNIFICANT_POOL_SIZE by influential citations → significant pool.
+#   6. For new entrants not in existing significant.parquet: fetch full metadata
+#      (title, abstract, authors, publication_date) from arXiv Search API.
 # ══════════════════════════════════════════════════════════════════════════════
 
-def _s2_search_page(
-    offset: int,
-    date_from_str: str,
-    date_to_str: str,
-    headers: dict,
-    inter_page_sleep: float = 1.2,
-) -> dict:
-    """Fetch one page of S2 paper search results with exponential backoff.
-
-    Uses publicationDateOrYear for server-side date filtering and
-    sort=citationCount:desc to front-load the most impactful papers.
-    Retries up to 5 times on 429 / 5xx errors.
-    """
-    params = {
-        "query":                 _S2_SEARCH_QUERY,
-        "fields":                _S2_SEARCH_FIELDS,
-        "publicationDateOrYear": f"{date_from_str}:{date_to_str}",
-        "limit":                 str(SIGNIFICANT_PAGE_SIZE),
-        "offset":                str(offset),
-    }
-    # Note: fieldsOfStudy omitted — S2 requires exact format ("computer-science"
-    # vs "Computer Science" is inconsistent). The broad AI/ML query provides
-    # sufficient specificity. Date filtering is done per-year to avoid S2's
-    # cross-year range bug (returns total=0).
-    url = f"{_S2_SEARCH_URL}?{urllib.parse.urlencode(params)}"
-    req = urllib.request.Request(url, headers=headers)
-
-    max_retries = 5
-    base_wait   = 30
-    for attempt in range(1, max_retries + 1):
-        try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                raw = resp.read().decode()
-                return json.loads(raw)
-        except urllib.error.HTTPError as e:
-            if e.code in (429, 500, 502, 503, 504):
-                wait = base_wait * (2 ** (attempt - 1))
-                print(f"    S2 HTTP {e.code} on attempt {attempt}/{max_retries} "
-                      f"(offset={offset}) — retrying in {wait}s...")
-                time.sleep(wait)
-            else:
-                raise
-        except Exception as e:
-            if attempt < max_retries:
-                wait = base_wait * (2 ** (attempt - 1))
-                print(f"    S2 error on attempt {attempt}/{max_retries}: {e} "
-                      f"— retrying in {wait}s...")
-                time.sleep(wait)
-            else:
-                raise
-
-    raise RuntimeError(
-        f"S2 search failed after {max_retries} attempts at offset={offset}."
-    )
-
-
-def _parse_s2_paper(paper: dict) -> dict | None:
-    """Extract a normalised paper dict from one S2 search result entry.
-
-    Returns None if the paper has no arXiv ID or no publication date.
-    """
-    if not paper:
-        return None
-
-    external  = paper.get("externalIds") or {}
-    # S2 uses "ArXiv" (capital X) for the arXiv field
-    arxiv_id  = external.get("ArXiv") or external.get("arxiv")
-    if not arxiv_id:
-        return None
-
-    pub_date  = (paper.get("publicationDate") or "").strip()
-    if not pub_date:
-        return None
-
-    tldr_text = ""
-    if isinstance(paper.get("tldr"), dict):
-        tldr_text = paper["tldr"].get("text", "") or ""
-
-    authors      = paper.get("authors") or []
-    authors_list = [a.get("name", "") for a in authors if a.get("name")]
-
-    title    = (paper.get("title")    or "").strip()
-    abstract = (paper.get("abstract") or "").strip()
-    scrubbed = scrub_model_words(f"{title}. {title}. {abstract}")
+def _build_paper_dict(arxiv_paper, ss_cache: dict) -> dict:
+    """Convert an _ArxivPaper + cached S2 data into a significant pool schema dict."""
+    base_id      = _arxiv_id_base(arxiv_paper.entry_id.split("/")[-1])
+    title        = arxiv_paper.title
+    abstract     = arxiv_paper.summary
+    authors_list = [a.name for a in arxiv_paper.authors]
+    scrubbed     = scrub_model_words(f"{title}. {title}. {abstract}")
+    ss_entry     = ss_cache.get(base_id, {})
 
     return {
-        "id":                      _arxiv_id_base(arxiv_id),
+        "id":                      base_id,
         "title":                   title,
         "abstract":                abstract,
         "text":                    scrubbed,
         "label_text":              scrub_model_words(f"{title}. {title}. {title}."),
-        "url":                     f"https://arxiv.org/pdf/{arxiv_id}",
+        "url":                     arxiv_paper.pdf_url,
         "author_count":            len(authors_list),
         "author_tier":             categorize_authors(len(authors_list)),
         "authors_list":            authors_list,
-        "ss_citation_count":       int(paper.get("citationCount")             or 0),
-        "ss_influential_citations":int(paper.get("influentialCitationCount")  or 0),
-        "ss_tldr":                 tldr_text,
-        "publication_date":        pub_date,
+        "ss_citation_count":       int(ss_entry.get("citation_count",             0)),
+        "ss_influential_citations":int(ss_entry.get("influential_citation_count", 0)),
+        "ss_tldr":                 ss_entry.get("tldr", "") or "",
+        "publication_date":        arxiv_paper.publication_date,
     }
-
-
-
-def _year_segments(date_from: datetime, date_to: datetime) -> list[tuple[str, str]]:
-    """Split a date range into same-year segments.
-
-    S2's publicationDateOrYear parameter returns total=0 for cross-year ranges.
-    Splitting by year keeps each segment within one calendar year.
-    """
-    segments = []
-    current  = date_from
-    while current <= date_to:
-        year_end = datetime(current.year, 12, 31, tzinfo=timezone.utc)
-        seg_end  = min(year_end, date_to)
-        segments.append((current.strftime("%Y-%m-%d"), seg_end.strftime("%Y-%m-%d")))
-        current  = datetime(current.year + 1, 1, 1, tzinfo=timezone.utc)
-    return segments
 
 
 def discover_candidates(
-    db_ids: set,
-    date_from: datetime,
-    date_to: datetime,
-    ss_cache: dict,
+    db_ids:       set,
+    date_from:    datetime,
+    date_to:      datetime,
+    ss_cache:     dict,
+    existing_sig: "pd.DataFrame | None",
 ) -> list[dict]:
-    """Query S2 for top-cited AI papers in the lookback window.
+    """Discover top-SIGNIFICANT_POOL_SIZE cs.AI candidates for the significant pool.
 
-    Splits the date range into per-year segments to work around S2's
-    cross-year publicationDateOrYear bug. Paginates each segment up to
-    SIGNIFICANT_MAX_PAGES pages.
+    Uses arXiv OAI-PMH for authoritative cs.AI paper discovery and S2 batch
+    endpoint for citation data. Maintains a persistent candidate pool in
+    sig_candidates.json for efficient incremental weekly updates.
 
-    Filters:
-      - Must have an arXiv ID
-      - Must have a publication date within [date_from, date_to]
-      - Must NOT already be in database.parquet (those are "Recent")
+    Parameters
+    ----------
+    db_ids       : arXiv IDs already in database.parquet (recent window) — excluded
+    date_from    : oldest publication date to consider (today - LOOKBACK_DAYS)
+    date_to      : newest publication date to consider (today - LOOKFORWARD_DAYS)
+    ss_cache     : shared S2 cache dict (mutated in-place)
+    existing_sig : current significant.parquet DataFrame, or None
 
-    Updates ss_cache in-place. Returns top SIGNIFICANT_POOL_SIZE papers
-    sorted by influentialCitationCount descending.
+    Returns
+    -------
+    List of paper dicts ready for apply_retirement. Existing-pool papers include
+    only citation fields (apply_retirement reads the rest from significant.parquet).
+    New entrants include full metadata fetched from arXiv.
     """
-    ss_api_key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY", "").strip()
-    headers    = {
-        "Content-Type": "application/json",
-        "User-Agent": (
-            "ai-research-atlas/2.0 "
-            "(https://github.com/LeeFischman/ai-research-atlas; "
-            "mailto:lee.fischman@gmail.com)"
-        ),
-    }
-    if ss_api_key:
-        headers["x-api-key"] = ss_api_key
+    date_from_str = date_from.strftime("%Y-%m-%d")
+    date_to_str   = date_to.strftime("%Y-%m-%d")
+    existing_ids  = set(existing_sig["id"].tolist()) if existing_sig is not None else set()
 
-    date_from_str    = date_from.strftime("%Y-%m-%d")
-    date_to_str      = date_to.strftime("%Y-%m-%d")
-    inter_page_sleep = 0.4 if ss_api_key else 1.2
+    # ── Load or initialise candidate pool ────────────────────────────────────
+    state = load_sig_candidates()
+    if state is None:
+        print("  No sig_candidates.json found — performing full backfill "
+              f"({SIGNIFICANT_LOOKBACK_DAYS}-day window).")
+        fetch_from = date_from_str
+        pool_by_id: dict[str, dict] = {}
+    else:
+        fetch_from  = state["last_fetched_date"]
+        pool_by_id  = {p["id"]: p for p in state.get("pool", [])}
+        print(f"  Loaded {len(pool_by_id)} existing candidates from "
+              f"{SIG_CANDIDATES_PATH} (last fetched: {fetch_from}).")
 
-    segments = _year_segments(date_from, date_to)
-    print(f"  Date window: {date_from_str} to {date_to_str} "
-          f"({len(segments)} year segment(s))")
+    # ── Step 1: Fetch new arXiv IDs (delta or full) ───────────────────────────
+    if fetch_from < date_to_str:
+        print(f"\n  Step 1 — OAI-PMH fetch: {fetch_from} to {date_to_str}")
+        new_ids = oai_fetch_ids_for_range(fetch_from, date_to_str)
+        # Exclude papers already in the recent window or already in candidate pool
+        new_ids = [i for i in new_ids
+                   if i not in db_ids and i not in pool_by_id]
+        print(f"  {len(new_ids)} new IDs after excluding recent-window "
+              f"and existing candidates.")
+    else:
+        new_ids = []
+        print(f"\n  Step 1 — No new IDs to fetch "
+              f"(last_fetched_date {fetch_from} >= date_to {date_to_str}).")
 
-    candidates: list[dict] = []
-    seen_ids:   set[str]   = set()
+    # ── Step 2: S2 batch lookup for new IDs ──────────────────────────────────
+    if new_ids:
+        print(f"\n  Step 2 — S2 citation lookup for {len(new_ids)} new IDs...")
+        fetch_semantic_scholar_data(new_ids, ss_cache)
+        for aid in new_ids:
+            entry = ss_cache.get(aid, {})
+            pool_by_id[aid] = {
+                "id":                      aid,
+                "ss_citation_count":       int(entry.get("citation_count",             0)),
+                "ss_influential_citations":int(entry.get("influential_citation_count", 0)),
+            }
+    else:
+        print(f"\n  Step 2 — No new IDs to look up in S2.")
 
-    for seg_from, seg_to in segments:
-        print(f"\n  Segment: {seg_from} to {seg_to}")
-        time.sleep(inter_page_sleep)
+    # ── Step 3: Rank and keep top-SIG_CANDIDATES_POOL_SIZE ───────────────────
+    ranked = sorted(pool_by_id.values(),
+                    key=lambda p: p["ss_citation_count"], reverse=True)
+    top_pool = ranked[:SIG_CANDIDATES_POOL_SIZE]
+    print(f"\n  Step 3 — Candidate pool: {len(pool_by_id)} total → "
+          f"keeping top {len(top_pool)} by citation count.")
+    if top_pool:
+        print(f"  Citation range in pool: "
+              f"{top_pool[-1]['ss_citation_count']}–{top_pool[0]['ss_citation_count']}")
 
-        for page_num in range(SIGNIFICANT_MAX_PAGES):
-            offset = page_num * SIGNIFICANT_PAGE_SIZE
-            print(f"  S2 search page {page_num + 1}/{SIGNIFICANT_MAX_PAGES} "
-                  f"(offset={offset})...")
+    # ── Step 4: Weekly citation refresh for full top-500 (single batch) ──────
+    top_pool_ids = [p["id"] for p in top_pool]
+    print(f"\n  Step 4 — Refreshing S2 citations for top {len(top_pool_ids)} "
+          f"candidates (single batch call)...")
+    fetch_semantic_scholar_data(top_pool_ids, ss_cache)
 
-            try:
-                data   = _s2_search_page(offset, seg_from, seg_to,
-                                         headers, inter_page_sleep)
-                papers = data.get("data", []) or []
-                total  = data.get("total", "?")
-            except Exception as e:
-                print(f"  S2 search error at page {page_num + 1}: {e}")
-                break
+    # Update pool with refreshed counts
+    for p in top_pool:
+        entry = ss_cache.get(p["id"], {})
+        p["ss_citation_count"]        = int(entry.get("citation_count",             0))
+        p["ss_influential_citations"] = int(entry.get("influential_citation_count", 0))
 
-            if not papers:
-                print(f"  No more results (total reported: {total}).")
-                break
+    # ── Persist updated candidate pool ───────────────────────────────────────
+    save_sig_candidates({
+        "last_fetched_date": date_to_str,
+        "pool":              top_pool,
+    })
+    print(f"  Saved {len(top_pool)} candidates to {SIG_CANDIDATES_PATH}.")
 
-            page_accepted = 0
-            page_min_inf  = float("inf")
-            page_max_inf  = 0
+    # ── Step 5: Select top-SIGNIFICANT_POOL_SIZE by influential citations ─────
+    top_sig = sorted(top_pool,
+                     key=lambda p: p["ss_influential_citations"], reverse=True)
+    top_sig = top_sig[:SIGNIFICANT_POOL_SIZE]
+    print(f"\n  Step 5 — Top {len(top_sig)} by influential citations: "
+          f"range {top_sig[-1]['ss_influential_citations'] if top_sig else 0}"
+          f"–{top_sig[0]['ss_influential_citations'] if top_sig else 0}")
 
-            for paper in papers:
-                parsed = _parse_s2_paper(paper)
-                if parsed is None:
-                    continue
+    # ── Step 6: Fetch arXiv metadata for new entrants ─────────────────────────
+    need_metadata = [p["id"] for p in top_sig if p["id"] not in existing_ids]
+    metadata_map: dict[str, object] = {}
+    if need_metadata:
+        print(f"\n  Step 6 — Fetching arXiv metadata for "
+              f"{len(need_metadata)} new entrants...")
+        arxiv_papers = fetch_arxiv_metadata(need_metadata)
+        for ap in arxiv_papers:
+            bid = _arxiv_id_base(ap.entry_id.split("/")[-1])
+            metadata_map[bid] = ap
+        print(f"  Metadata retrieved for {len(metadata_map)}/{len(need_metadata)} papers.")
+    else:
+        print(f"\n  Step 6 — All {len(top_sig)} candidates already in significant pool "
+              f"— no metadata fetch needed.")
 
-                inf          = parsed["ss_influential_citations"]
-                page_min_inf = min(page_min_inf, inf)
-                page_max_inf = max(page_max_inf, inf)
+    # ── Step 7: Build candidate dicts for apply_retirement ───────────────────
+    candidates = []
+    n_existing = n_new = n_skipped = 0
 
-                if (parsed["publication_date"] < date_from_str
-                        or parsed["publication_date"] > date_to_str):
-                    continue
+    for p in top_sig:
+        aid      = p["id"]
+        ss_entry = ss_cache.get(aid, {})
 
-                pid = parsed["id"]
-                if pid in db_ids or pid in seen_ids:
-                    continue
+        if aid in existing_ids:
+            # Already in pool — pass citation update only; apply_retirement
+            # reads all other fields from the existing significant.parquet row
+            candidates.append({
+                "id":                      aid,
+                "ss_citation_count":       p["ss_citation_count"],
+                "ss_influential_citations":p["ss_influential_citations"],
+                "ss_tldr":                 ss_entry.get("tldr", "") or "",
+            })
+            n_existing += 1
+        elif aid in metadata_map:
+            candidates.append(_build_paper_dict(metadata_map[aid], ss_cache))
+            n_new += 1
+        else:
+            print(f"  Warning: no arXiv metadata for {aid} — skipping.")
+            n_skipped += 1
 
-                seen_ids.add(pid)
-                candidates.append(parsed)
-                page_accepted += 1
-
-            page_min_display = page_min_inf if page_min_inf < float("inf") else 0
-            print(f"    Accepted {page_accepted} arXiv papers "
-                  f"(page influential: min={page_min_display}, max={page_max_inf})")
-
-            total_int = int(total) if str(total).isdigit() else 999999
-            if offset + SIGNIFICANT_PAGE_SIZE >= total_int:
-                print(f"  All {total} results for this segment exhausted.")
-                break
-
-            time.sleep(inter_page_sleep)
-
-    print(f"\n  Discovery complete: {len(candidates)} candidates found.")
-
-    candidates.sort(key=lambda p: p["ss_influential_citations"], reverse=True)
-    pool = candidates[:SIGNIFICANT_POOL_SIZE]
-    if pool:
-        print(f"  Keeping top {len(pool)} -- "
-              f"influential range: {pool[-1]['ss_influential_citations']}"
-              f"--{pool[0]['ss_influential_citations']}")
-
-    now_iso = datetime.now(timezone.utc).isoformat()
-    for p in pool:
-        ss_cache[p["id"]] = {
-            "citation_count":             p["ss_citation_count"],
-            "influential_citation_count": p["ss_influential_citations"],
-            "tldr":                       p["ss_tldr"],
-            "fetched_at":                 now_iso,
-        }
-
-    return pool
-
-
+    print(f"\n  Discovery complete: {n_existing} existing, {n_new} new, "
+          f"{n_skipped} skipped (no metadata).")
+    return candidates
 
 # ══════════════════════════════════════════════════════════════════════════════
 # RETIREMENT LOGIC
@@ -632,11 +605,11 @@ if __name__ == "__main__":
     print("=" * 60)
     print(f"  AI Research Atlas -- Significant Papers Weekly Scan")
     print(f"  {run_date} UTC")
-    print(f"  Pool size        : {SIGNIFICANT_POOL_SIZE}")
-    print(f"  Lookback         : {SIGNIFICANT_LOOKBACK_DAYS} days")
-    print(f"  Min age          : {SIGNIFICANT_LOOKFORWARD_DAYS} days")
-    print(f"  Min influential  : {SIGNIFICANT_MIN_INFLUENTIAL}")
-    print(f"  Strikes limit    : {SIGNIFICANT_STRIKES_LIMIT}")
+    print(f"  Significant pool size : {SIGNIFICANT_POOL_SIZE}")
+    print(f"  Candidate pool size   : {SIG_CANDIDATES_POOL_SIZE}")
+    print(f"  Lookback              : {SIGNIFICANT_LOOKBACK_DAYS} days")
+    print(f"  Min age               : {SIGNIFICANT_LOOKFORWARD_DAYS} days")
+    print(f"  Strikes limit         : {SIGNIFICANT_STRIKES_LIMIT}")
     print("=" * 60)
 
     # ── Date window ──────────────────────────────────────────────────────────
@@ -668,9 +641,9 @@ if __name__ == "__main__":
     ss_cache     = load_ss_cache()
     author_cache = load_author_cache()
 
-    # ── Stage 1: Discover candidates via S2 ─────────────────────────────────
-    print("\n▶  Stage 1 -- Discovering candidates via Semantic Scholar...")
-    candidates = discover_candidates(db_ids, date_from, date_to, ss_cache)
+    # ── Stage 1: Discover candidates via arXiv OAI-PMH + S2 batch ──────────────
+    print("\n▶  Stage 1 -- Discovering candidates via arXiv + Semantic Scholar...")
+    candidates = discover_candidates(db_ids, date_from, date_to, ss_cache, existing_sig)
 
     if not candidates:
         print("  No candidates found. Keeping existing pool unchanged.")
