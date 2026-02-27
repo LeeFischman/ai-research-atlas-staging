@@ -115,28 +115,25 @@ def _s2_search_page(
     Retries up to 5 times on 429 / 5xx errors.
     """
     params = {
-        "query":                 _S2_SEARCH_QUERY,
-        "fields":                _S2_SEARCH_FIELDS,
-        "publicationDateOrYear": f"{date_from_str}:{date_to_str}",
-        "fieldsOfStudy":         "Computer Science",
-        "limit":                 str(SIGNIFICANT_PAGE_SIZE),
-        "offset":                str(offset),
+        "query":        _S2_SEARCH_QUERY,
+        "fields":       _S2_SEARCH_FIELDS,
+        "fieldsOfStudy":"Computer Science",
+        "limit":        str(SIGNIFICANT_PAGE_SIZE),
+        "offset":       str(offset),
     }
-    # Note: sort=citationCount:desc is NOT used — S2 search does not reliably
-    # support server-side citation sorting. We fetch by relevance and sort
-    # client-side by influentialCitationCount before selecting the top-N pool.
+    # Note: publicationDateOrYear is omitted — S2 search returns total=0 for
+    # cross-year date ranges. Date filtering is done client-side instead.
     url = f"{_S2_SEARCH_URL}?{urllib.parse.urlencode(params)}"
-    print(f"    DEBUG URL: {url}")
     req = urllib.request.Request(url, headers=headers)
 
     max_retries = 5
-    base_wait   = 30   # seconds; doubles each attempt: 30, 60, 120, 240, 480
+    base_wait   = 30
     for attempt in range(1, max_retries + 1):
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 raw = resp.read().decode()
                 if offset == 0:
-                    print(f"    DEBUG response (first 500 chars): {raw[:500]}")
+                    print(f"    DEBUG response (first 300 chars): {raw[:300]}")
                 return json.loads(raw)
         except urllib.error.HTTPError as e:
             if e.code in (429, 500, 502, 503, 504):
