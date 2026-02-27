@@ -61,6 +61,7 @@ from atlas_utils import (
     fetch_author_hindices,
     load_ss_cache,
     save_ss_cache,
+    fetch_semantic_scholar_data,
     _arxiv_id_base,
 )
 
@@ -561,6 +562,36 @@ if __name__ == "__main__":
         ).dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     sig_df.to_parquet(SIGNIFICANT_PATH, index=False)
+
+    # ── Stage 4: Weekly citation refresh for all recent-window papers ────────
+    #
+    # Significant papers had their citations refreshed during Stage 1 discovery.
+    # Recent-window papers (database.parquet) are excluded from that search, so
+    # their citations only update via the daily pipeline's 7-day TTL — staggered
+    # per-paper with no coordinated refresh point.
+    #
+    # This stage force-refreshes S2 citation data for ALL papers currently in
+    # database.parquet, unconditionally bypassing the TTL. It runs once a week
+    # on the same Monday cadence as this script, giving a clean citation snapshot
+    # across the full dataset.
+    #
+    # Note: fetch_semantic_scholar_data mutates ss_cache in-place and updates
+    # fetched_at timestamps, so the daily pipeline will see fresh data and skip
+    # re-fetching for another 7 days.
+    # ──────────────────────────────────────────────────────────────────────────
+    print("\n▶  Stage 4 -- Weekly citation refresh for recent-window papers...")
+
+    if os.path.exists(DB_PATH):
+        db_full    = pd.read_parquet(DB_PATH, columns=["id"])
+        db_all_ids = [str(i) for i in db_full["id"].tolist()]
+        print(f"  {len(db_all_ids)} recent-window papers to refresh.")
+
+        if db_all_ids:
+            fetch_semantic_scholar_data(db_all_ids, ss_cache)
+            save_ss_cache(ss_cache)
+            print(f"  Citation refresh complete. SS cache now has {len(ss_cache)} entries.")
+    else:
+        print(f"  {DB_PATH} not found — skipping recent-window refresh.")
 
     # ── Final summary ─────────────────────────────────────────────────────────
     print("\n-- Pool summary --")
