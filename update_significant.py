@@ -115,14 +115,16 @@ def _s2_search_page(
     Retries up to 5 times on 429 / 5xx errors.
     """
     params = {
-        "query":        _S2_SEARCH_QUERY,
-        "fields":       _S2_SEARCH_FIELDS,
-        "fieldsOfStudy":"Computer Science",
-        "limit":        str(SIGNIFICANT_PAGE_SIZE),
-        "offset":       str(offset),
+        "query":                 _S2_SEARCH_QUERY,
+        "fields":                _S2_SEARCH_FIELDS,
+        "publicationDateOrYear": f"{date_from_str}:{date_to_str}",
+        "limit":                 str(SIGNIFICANT_PAGE_SIZE),
+        "offset":                str(offset),
     }
-    # Note: publicationDateOrYear is omitted — S2 search returns total=0 for
-    # cross-year date ranges. Date filtering is done client-side instead.
+    # Note: fieldsOfStudy omitted — S2 requires exact format ("computer-science"
+    # vs "Computer Science" is inconsistent). The broad AI/ML query provides
+    # sufficient specificity. Date filtering is done per-year to avoid S2's
+    # cross-year range bug (returns total=0).
     url = f"{_S2_SEARCH_URL}?{urllib.parse.urlencode(params)}"
     req = urllib.request.Request(url, headers=headers)
 
@@ -132,8 +134,6 @@ def _s2_search_page(
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 raw = resp.read().decode()
-                if offset == 0:
-                    print(f"    DEBUG response (first 300 chars): {raw[:300]}")
                 return json.loads(raw)
         except urllib.error.HTTPError as e:
             if e.code in (429, 500, 502, 503, 504):
@@ -203,6 +203,23 @@ def _parse_s2_paper(paper: dict) -> dict | None:
     }
 
 
+
+def _year_segments(date_from: datetime, date_to: datetime) -> list[tuple[str, str]]:
+    """Split a date range into same-year segments.
+
+    S2's publicationDateOrYear parameter returns total=0 for cross-year ranges.
+    Splitting by year keeps each segment within one calendar year.
+    """
+    segments = []
+    current  = date_from
+    while current <= date_to:
+        year_end = datetime(current.year, 12, 31, tzinfo=timezone.utc)
+        seg_end  = min(year_end, date_to)
+        segments.append((current.strftime("%Y-%m-%d"), seg_end.strftime("%Y-%m-%d")))
+        current  = datetime(current.year + 1, 1, 1, tzinfo=timezone.utc)
+    return segments
+
+
 def discover_candidates(
     db_ids: set,
     date_from: datetime,
@@ -211,21 +228,17 @@ def discover_candidates(
 ) -> list[dict]:
     """Query S2 for top-cited AI papers in the lookback window.
 
-    Paginates until either:
-      - The minimum influentialCitationCount on a page drops below
-        SIGNIFICANT_MIN_INFLUENTIAL (normal termination), or
-      - SIGNIFICANT_MAX_PAGES pages have been fetched (safety limit).
+    Splits the date range into per-year segments to work around S2's
+    cross-year publicationDateOrYear bug. Paginates each segment up to
+    SIGNIFICANT_MAX_PAGES pages.
 
     Filters:
       - Must have an arXiv ID
       - Must have a publication date within [date_from, date_to]
       - Must NOT already be in database.parquet (those are "Recent")
 
-    Updates ss_cache in-place with fresh citation data so the daily pipeline
-    won't re-fetch these papers within the normal TTL window.
-
-    Returns the top SIGNIFICANT_POOL_SIZE papers sorted by
-    influentialCitationCount descending.
+    Updates ss_cache in-place. Returns top SIGNIFICANT_POOL_SIZE papers
+    sorted by influentialCitationCount descending.
     """
     ss_api_key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY", "").strip()
     headers    = {
@@ -239,85 +252,84 @@ def discover_candidates(
     if ss_api_key:
         headers["x-api-key"] = ss_api_key
 
-    date_from_str = date_from.strftime("%Y-%m-%d")
-    date_to_str   = date_to.strftime("%Y-%m-%d")
+    date_from_str    = date_from.strftime("%Y-%m-%d")
+    date_to_str      = date_to.strftime("%Y-%m-%d")
     inter_page_sleep = 0.4 if ss_api_key else 1.2
 
+    segments = _year_segments(date_from, date_to)
+    print(f"  Date window: {date_from_str} to {date_to_str} "
+          f"({len(segments)} year segment(s))")
+
     candidates: list[dict] = []
-    seen_ids: set[str]     = set()
+    seen_ids:   set[str]   = set()
 
-    print(f"  Date window: {date_from_str} to {date_to_str}")
-
-    # Brief pause before first request — S2 free tier is strict on cold starts
-    time.sleep(inter_page_sleep)
-
-    for page_num in range(SIGNIFICANT_MAX_PAGES):
-        offset = page_num * SIGNIFICANT_PAGE_SIZE
-        print(f"  S2 search page {page_num + 1}/{SIGNIFICANT_MAX_PAGES} "
-              f"(offset={offset})...")
-
-        try:
-            data   = _s2_search_page(offset, date_from_str, date_to_str,
-                                     headers, inter_page_sleep)
-            papers = data.get("data", []) or []
-            total  = data.get("total", "?")
-        except Exception as e:
-            print(f"  S2 search error at page {page_num + 1}: {e}")
-            break
-
-        if not papers:
-            print(f"  No more results (total reported: {total}).")
-            break
-
-        page_accepted = 0
-        page_min_inf  = float("inf")
-        page_max_inf  = 0
-
-        for paper in papers:
-            parsed = _parse_s2_paper(paper)
-            if parsed is None:
-                continue
-
-            inf          = parsed["ss_influential_citations"]
-            page_min_inf = min(page_min_inf, inf)
-            page_max_inf = max(page_max_inf, inf)
-
-            # Post-filter: exact date range (server filter may be approximate)
-            if (parsed["publication_date"] < date_from_str
-                    or parsed["publication_date"] > date_to_str):
-                continue
-
-            pid = parsed["id"]
-            if pid in db_ids or pid in seen_ids:
-                continue
-
-            seen_ids.add(pid)
-            candidates.append(parsed)
-            page_accepted += 1
-
-        page_min_display = page_min_inf if page_min_inf < float("inf") else 0
-        print(f"    Accepted {page_accepted} papers "
-              f"(page influential: min={page_min_display}, max={page_max_inf})")
-
-        # Also stop if we've exhausted the result set
-        total_int = int(total) if str(total).isdigit() else 999999
-        if offset + SIGNIFICANT_PAGE_SIZE >= total_int:
-            print(f"  All {total} results exhausted.")
-            break
-
+    for seg_from, seg_to in segments:
+        print(f"\n  Segment: {seg_from} to {seg_to}")
         time.sleep(inter_page_sleep)
+
+        for page_num in range(SIGNIFICANT_MAX_PAGES):
+            offset = page_num * SIGNIFICANT_PAGE_SIZE
+            print(f"  S2 search page {page_num + 1}/{SIGNIFICANT_MAX_PAGES} "
+                  f"(offset={offset})...")
+
+            try:
+                data   = _s2_search_page(offset, seg_from, seg_to,
+                                         headers, inter_page_sleep)
+                papers = data.get("data", []) or []
+                total  = data.get("total", "?")
+            except Exception as e:
+                print(f"  S2 search error at page {page_num + 1}: {e}")
+                break
+
+            if not papers:
+                print(f"  No more results (total reported: {total}).")
+                break
+
+            page_accepted = 0
+            page_min_inf  = float("inf")
+            page_max_inf  = 0
+
+            for paper in papers:
+                parsed = _parse_s2_paper(paper)
+                if parsed is None:
+                    continue
+
+                inf          = parsed["ss_influential_citations"]
+                page_min_inf = min(page_min_inf, inf)
+                page_max_inf = max(page_max_inf, inf)
+
+                if (parsed["publication_date"] < date_from_str
+                        or parsed["publication_date"] > date_to_str):
+                    continue
+
+                pid = parsed["id"]
+                if pid in db_ids or pid in seen_ids:
+                    continue
+
+                seen_ids.add(pid)
+                candidates.append(parsed)
+                page_accepted += 1
+
+            page_min_display = page_min_inf if page_min_inf < float("inf") else 0
+            print(f"    Accepted {page_accepted} arXiv papers "
+                  f"(page influential: min={page_min_display}, max={page_max_inf})")
+
+            total_int = int(total) if str(total).isdigit() else 999999
+            if offset + SIGNIFICANT_PAGE_SIZE >= total_int:
+                print(f"  All {total} results for this segment exhausted.")
+                break
+
+            time.sleep(inter_page_sleep)
 
     print(f"\n  Discovery complete: {len(candidates)} candidates found.")
 
-    # Sort by influential citations desc, keep top N
     candidates.sort(key=lambda p: p["ss_influential_citations"], reverse=True)
     pool = candidates[:SIGNIFICANT_POOL_SIZE]
     if pool:
-        print(f"  Keeping top {len(pool)} — "
+        print(f"  Keeping top {len(pool)} -- "
               f"influential range: {pool[-1]['ss_influential_citations']}"
-              f"–{pool[0]['ss_influential_citations']}")
+              f"--{pool[0]['ss_influential_citations']}")
 
-    # Update ss_cache so daily pipeline skips re-fetching these papers
     now_iso = datetime.now(timezone.utc).isoformat()
     for p in pool:
         ss_cache[p["id"]] = {
@@ -328,6 +340,7 @@ def discover_candidates(
         }
 
     return pool
+
 
 
 # ══════════════════════════════════════════════════════════════════════════════
