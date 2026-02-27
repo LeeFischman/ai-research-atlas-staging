@@ -879,9 +879,6 @@ def oai_fetch_ids_for_range(
 
 
 # Public alias so update_significant.py can import without the leading underscore
-fetch_arxiv_metadata = _search_fetch_metadata
-
-
 def _search_fetch_metadata(arxiv_ids: list[str]) -> list[_ArxivPaper]:
     """Fetch full metadata for a list of arXiv IDs via the Search API.
 
@@ -958,6 +955,9 @@ def _search_fetch_metadata(arxiv_ids: list[str]) -> list[_ArxivPaper]:
             time.sleep(_SEARCH_BATCH_SLEEP)
 
     return papers
+
+
+fetch_arxiv_metadata = _search_fetch_metadata
 
 
 def fetch_arxiv_oai(
