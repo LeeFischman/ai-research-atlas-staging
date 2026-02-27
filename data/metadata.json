@@ -9,128 +9,128 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 1.6165863915456118,
-                "y": 1.8258910082380198,
-                "text": "Time Series Forecasting",
+                "x": -0.6697514473253458,
+                "y": -0.5769200882602918,
+                "text": "Search And Retrieval Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.5127025938784294,
-                "y": -1.1865354864837474,
-                "text": "Llm Safety Mechanisms",
+                "x": 2.899686749092685,
+                "y": 0.0024266793932154716,
+                "text": "Debugging Distributed Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.506667906293217,
-                "y": -1.4098302029785075,
-                "text": "Embodied Robot Control",
+                "x": 1.084962863355811,
+                "y": -0.189553684148507,
+                "text": "Knowledge Extraction From Llms",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.0397661499524102,
-                "y": -0.38036467136772234,
-                "text": "Spatial Navigation Learning",
+                "x": -1.4948622578653477,
+                "y": 0.18432840257631625,
+                "text": "Quantization And Model Compression",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.5953223817206649,
-                "y": -2.7824813056368685,
-                "text": "Social Media Analysis",
+                "x": 2.0188646548808924,
+                "y": 1.0034862749072655,
+                "text": "Stance Detection And Argument Mining",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.2982856926300315,
-                "y": 0.7287211579283135,
+                "x": -2.7063541874098713,
+                "y": 0.535887843023109,
                 "text": "Geometric Deep Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.9039979462673718,
-                "y": 0.65859012146571,
-                "text": "Data Quality For Training",
+                "x": 2.68066521168637,
+                "y": -1.4005246966435654,
+                "text": "Ai Security And Cybercrime",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.3193738009872527,
-                "y": 0.12247282473320058,
-                "text": "Scientific Data Analysis",
+                "x": -0.23637331886223004,
+                "y": 0.7033098100880601,
+                "text": "Reinforcement Learning Dynamics",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -3.363128604013959,
-                "y": 0.8624174898154662,
-                "text": "Model Serving Infrastructure",
+                "x": -0.4651145751797972,
+                "y": 1.540935308405114,
+                "text": "Domain-Specific Ai Applications",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.0013848480985175,
-                "y": 2.932852620199073,
-                "text": "Content Verification Methods",
+                "x": -2.1891033597545895,
+                "y": -2.7315661681526047,
+                "text": "Infrastructure And Deployment",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.3621435902339951,
-                "y": -0.31555473032388215,
-                "text": "Personalization Systems",
+                "x": 1.1844338966058132,
+                "y": -2.3733127096982516,
+                "text": "Content Verification And Watermarking",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.6045169358227539,
-                "y": -3.026164132724213,
-                "text": "Domain Expert Collaboration",
+                "x": 1.0873809946221755,
+                "y": 1.1327297208505274,
+                "text": "Interpretable Knowledge Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.1701940506630235,
-                "y": -2.561070727547806,
-                "text": "Source Code Analysis",
+                "x": 1.0492839415349893,
+                "y": 2.4135659901869437,
+                "text": "Testing And Verification",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.5829574721205848,
-                "y": -1.3742469738273124,
-                "text": "Temporal Selection Algorithms",
+                "x": -1.9350770199969058,
+                "y": -1.1798895602916482,
+                "text": "Distributed Communication",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.05220097698531,
-                "y": 2.287070627750361,
-                "text": "Wireless Communication Learning",
+                "x": 0.33853241366398557,
+                "y": -1.3662360977803896,
+                "text": "Privacy-Preserving Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.0106419028453377,
-                "y": -0.656999006797587,
-                "text": "Financial Risk Modeling",
+                "x": -0.6214631939567964,
+                "y": -2.7921447935849684,
+                "text": "Audio Processing",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.8755484924006011,
-                "y": 3.0494724121891412,
-                "text": "Audio Codec Design",
+                "x": -2.208511384313204,
+                "y": 2.045313140435791,
+                "text": "Social Choice And Voting",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.6494895145326822,
-                "y": 1.094830404468318,
-                "text": "Federated Learning Optimization",
+                "x": -0.4811665463703123,
+                "y": 2.8533769263710247,
+                "text": "Human-Robot Interaction",
                 "level": 0,
                 "priority": 10
             }
