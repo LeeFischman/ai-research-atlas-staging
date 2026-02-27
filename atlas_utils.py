@@ -787,7 +787,7 @@ def oai_fetch_ids_for_range(
         "metadataPrefix": "arXiv",
         "from":           date_from_str,
         "until":          date_to_str,
-        "set":            "cs",
+        "set":            "cs.AI",   # Try fine-grained set first; falls back gracefully
     }
 
     found: list[str] = []
@@ -843,23 +843,38 @@ def oai_fetch_ids_for_range(
         page_new = 0
         records = root.findall(".//oai:record", _OAI_NS)
 
-        # ── DIAGNOSTIC: print first record of first page raw XML ─────────────
-        if page == 1 and records:
-            import xml.etree.ElementTree as _ET
-            print(f"    DIAGNOSTIC: first record raw XML snippet:")
-            first_rec = records[0]
-            print(_ET.tostring(first_rec, encoding="unicode")[:2000])
-        # ── END DIAGNOSTIC ───────────────────────────────────────────────────
-
         for record in records:
             header = record.find("oai:header", _OAI_NS)
             if header is not None and header.get("status") == "deleted":
                 continue
 
-            cats_el = record.find(".//arxiv:categories", _OAI_NS)
-            if cats_el is None or cats_el.text is None:
+            # Use namespace-agnostic search for categories — arXiv uses different
+            # namespace URIs depending on record type (new vs revised):
+            #   new papers:  http://arxiv.org/OAI/2.0/
+            #   revised:     http://arxiv.org/OAI/arXiv/
+            # Searching by local name avoids brittle namespace URI matching.
+            cats_el = next(
+                (el for el in record.iter()
+                 if el.tag.split("}")[-1] == "categories"),
+                None
+            )
+            if cats_el is None or not cats_el.text:
                 continue
             if category not in cats_el.text.split():
+                continue
+
+            # OAI-PMH date range matches on last-updated datestamp, not submission
+            # date. Filter by <created> date to get only newly submitted papers,
+            # not revisions of old papers.
+            created_el = next(
+                (el for el in record.iter()
+                 if el.tag.split("}")[-1] == "created"),
+                None
+            )
+            if created_el is None or not created_el.text:
+                continue
+            created_date = created_el.text.strip()[:10]  # YYYY-MM-DD
+            if created_date < date_from_str or created_date > date_to_str:
                 continue
 
             id_el = record.find(".//oai:identifier", _OAI_NS)
