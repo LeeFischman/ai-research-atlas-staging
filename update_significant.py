@@ -126,6 +126,7 @@ def _s2_search_page(
     # support server-side citation sorting. We fetch by relevance and sort
     # client-side by influentialCitationCount before selecting the top-N pool.
     url = f"{_S2_SEARCH_URL}?{urllib.parse.urlencode(params)}"
+    print(f"    DEBUG URL: {url}")
     req = urllib.request.Request(url, headers=headers)
 
     max_retries = 5
@@ -133,7 +134,10 @@ def _s2_search_page(
     for attempt in range(1, max_retries + 1):
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:
-                return json.loads(resp.read().decode())
+                raw = resp.read().decode()
+                if offset == 0:
+                    print(f"    DEBUG response (first 500 chars): {raw[:500]}")
+                return json.loads(raw)
         except urllib.error.HTTPError as e:
             if e.code in (429, 500, 502, 503, 504):
                 wait = base_wait * (2 ** (attempt - 1))
