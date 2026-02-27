@@ -787,7 +787,7 @@ def oai_fetch_ids_for_range(
         "metadataPrefix": "arXiv",
         "from":           date_from_str,
         "until":          date_to_str,
-        "set":            "cs.AI",   # Try fine-grained set first; falls back gracefully
+        "set":            "cs",      # cs.AI is not a valid OAI set; filter by category in code
     }
 
     found: list[str] = []
