@@ -9,128 +9,128 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 0.8352989797775502,
-                "y": -1.5120114823429762,
+                "x": 1.6165863915456118,
+                "y": 1.8258910082380198,
                 "text": "Time Series Forecasting",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.3944976585658169,
-                "y": 2.2405672553827096,
-                "text": "Generative Molecular Design",
+                "x": -0.5127025938784294,
+                "y": -1.1865354864837474,
+                "text": "Llm Safety Mechanisms",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.2526837015406032,
-                "y": -2.2998702114760796,
+                "x": 2.506667906293217,
+                "y": -1.4098302029785075,
+                "text": "Embodied Robot Control",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 3.0397661499524102,
+                "y": -0.38036467136772234,
                 "text": "Spatial Navigation Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.2817253456187825,
-                "y": 1.9936648643827324,
-                "text": "Representation Learning Theory",
+                "x": 0.5953223817206649,
+                "y": -2.7824813056368685,
+                "text": "Social Media Analysis",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.682552906597379,
-                "y": 1.9647710965885359,
-                "text": "Simulation For Agent Training",
+                "x": 2.2982856926300315,
+                "y": 0.7287211579283135,
+                "text": "Geometric Deep Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.444150226533465,
-                "y": 2.138091955774698,
-                "text": "Ai Crime Analysis",
+                "x": 0.9039979462673718,
+                "y": 0.65859012146571,
+                "text": "Data Quality For Training",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.9276747544448076,
-                "y": -0.5505151118058456,
-                "text": "Visual Tracking",
+                "x": -1.3193738009872527,
+                "y": 0.12247282473320058,
+                "text": "Scientific Data Analysis",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.02499244327267868,
-                "y": -3.524607318553961,
-                "text": "Ml Systems Deployment",
+                "x": -3.363128604013959,
+                "y": 0.8624174898154662,
+                "text": "Model Serving Infrastructure",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -3.1420205566982107,
-                "y": 0.6291793877404512,
-                "text": "Content Watermarking",
+                "x": -1.0013848480985175,
+                "y": 2.932852620199073,
+                "text": "Content Verification Methods",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.8891912884093753,
-                "y": 1.0052227852828612,
-                "text": "Vision Architecture Innovation",
+                "x": 1.3621435902339951,
+                "y": -0.31555473032388215,
+                "text": "Personalization Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.5835464184007197,
-                "y": 1.0715389614243078,
-                "text": "Agentic Authority Constraints",
+                "x": -0.6045169358227539,
+                "y": -3.026164132724213,
+                "text": "Domain Expert Collaboration",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -3.051931402279947,
-                "y": -1.2728646836005622,
-                "text": "Code Change Classification",
+                "x": -2.1701940506630235,
+                "y": -2.561070727547806,
+                "text": "Source Code Analysis",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.4023129811374255,
-                "y": -0.5256047530512831,
-                "text": "Deliberative Democracy",
+                "x": 0.5829574721205848,
+                "y": -1.3742469738273124,
+                "text": "Temporal Selection Algorithms",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.822157085212333,
-                "y": -1.8203172361762001,
-                "text": "Recommendation Retrieval",
+                "x": -2.05220097698531,
+                "y": 2.287070627750361,
+                "text": "Wireless Communication Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.4470107828863883,
-                "y": -0.3946756344731015,
-                "text": "Federated Learning",
+                "x": -2.0106419028453377,
+                "y": -0.656999006797587,
+                "text": "Financial Risk Modeling",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.3887371055681244,
-                "y": -1.1344028163286275,
-                "text": "Financial Risk Prediction",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 3.188327593296675,
-                "y": 1.2816855915506822,
+                "x": 0.8755484924006011,
+                "y": 3.0494724121891412,
                 "text": "Audio Codec Design",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.2850411846560582,
-                "y": 0.539120299788265,
-                "text": "Search Agent Optimization",
+                "x": -0.6494895145326822,
+                "y": 1.094830404468318,
+                "text": "Federated Learning Optimization",
                 "level": 0,
                 "priority": 10
             }
