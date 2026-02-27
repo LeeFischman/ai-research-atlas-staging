@@ -315,6 +315,89 @@ def discover_candidates(
 
     print(f"\n  Discovery complete: {n_existing} existing, {n_new} new, "
           f"{n_skipped} skipped (no metadata).")
+
+    # ╔══════════════════════════════════════════════════════════════╗
+    # ║  TEST HARNESS — REMOVE AFTER VALIDATION                     ║
+    # ╚══════════════════════════════════════════════════════════════╝
+    print("\n  ── TEST HARNESS: DISCOVERY SUMMARY ──────────────────────")
+
+    # ── OAI fetch quality ─────────────────────────────────────────
+    print(f"\n  OAI-PMH fetch:")
+    print(f"    New IDs fetched         : {len(new_ids)}")
+    print(f"    Candidate pool size     : {len(top_pool)} (cap={SIG_CANDIDATES_POOL_SIZE})")
+    print(f"    Pool was pre-existing   : {state is not None}")
+    if state is not None:
+        print(f"    Last fetched date       : {state.get('last_fetched_date', '?')}")
+        print(f"    Delta fetch range       : {fetch_from} → {date_to_str}")
+
+    # ── S2 citation quality ───────────────────────────────────────
+    print(f"\n  S2 citation data (top-{len(top_sig)} significant candidates):")
+    cites     = [p["ss_citation_count"]        for p in top_sig]
+    inf_cites = [p["ss_influential_citations"] for p in top_sig]
+    n_zero_cites = sum(1 for c in cites if c == 0)
+    n_zero_inf   = sum(1 for c in inf_cites if c == 0)
+    if cites:
+        print(f"    Citation count   — max={max(cites)}, "
+              f"median={sorted(cites)[len(cites)//2]}, "
+              f"min={min(cites)}, zero={n_zero_cites}")
+        print(f"    Influential cits — max={max(inf_cites)}, "
+              f"median={sorted(inf_cites)[len(inf_cites)//2]}, "
+              f"min={min(inf_cites)}, zero={n_zero_inf}")
+
+    # ── Sample top-10 significant candidates ─────────────────────
+    print(f"\n  Top 10 candidates by influential citations:")
+    for i, p in enumerate(top_sig[:10], 1):
+        title_preview = ""
+        if p["id"] in metadata_map:
+            title_preview = metadata_map[p["id"]].title[:55]
+        elif p["id"] in existing_ids and existing_sig is not None:
+            row = existing_sig[existing_sig["id"] == p["id"]]
+            if not row.empty:
+                title_preview = str(row.iloc[0].get("title", ""))[:55]
+        print(f"    {i:2}. {p['id']}  "
+              f"cites={p['ss_citation_count']:4}  "
+              f"inf={p['ss_influential_citations']:3}  "
+              f"{title_preview}")
+
+    # ── Metadata fetch quality ────────────────────────────────────
+    print(f"\n  Metadata fetch (new entrants):")
+    print(f"    Needed metadata         : {len(need_metadata)}")
+    print(f"    Successfully retrieved  : {len(metadata_map)}")
+    if need_metadata:
+        n_missing_meta = len(need_metadata) - len(metadata_map)
+        print(f"    Missing (will be skipped): {n_missing_meta}")
+        if metadata_map:
+            sample_meta = list(metadata_map.values())[:3]
+            print(f"    Sample new entrant titles:")
+            for ap in sample_meta:
+                print(f"      - {ap.title[:70]}")
+                print(f"        pub_date={ap.publication_date}  "
+                      f"authors={len(ap.authors)}")
+
+    # ── sig_candidates.json state ────────────────────────────────
+    if os.path.exists(SIG_CANDIDATES_PATH):
+        with open(SIG_CANDIDATES_PATH) as _f:
+            _saved = json.load(_f)
+        print(f"\n  sig_candidates.json:")
+        print(f"    last_fetched_date : {_saved.get('last_fetched_date', '?')}")
+        print(f"    pool size         : {len(_saved.get('pool', []))}")
+        _pool = _saved.get("pool", [])
+        if _pool:
+            print(f"    citation range    : "
+                  f"{_pool[-1]['ss_citation_count']}–{_pool[0]['ss_citation_count']}")
+
+    # ── Candidate breakdown for apply_retirement ─────────────────
+    print(f"\n  Candidates passed to apply_retirement:")
+    print(f"    Existing (citation update only) : {n_existing}")
+    print(f"    New (full metadata)             : {n_new}")
+    print(f"    Skipped (no metadata)           : {n_skipped}")
+    print(f"    Total                           : {len(candidates)}")
+
+    print("  ── END TEST HARNESS ──────────────────────────────────────")
+    # ╔══════════════════════════════════════════════════════════════╗
+    # ║  END TEST HARNESS                                            ║
+    # ╚══════════════════════════════════════════════════════════════╝
+
     return candidates
 
 # ══════════════════════════════════════════════════════════════════════════════
