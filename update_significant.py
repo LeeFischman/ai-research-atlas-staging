@@ -472,6 +472,156 @@ def enrich_new_papers(
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# STAGE 4 — WEEKLY CITATION REFRESH
+# ══════════════════════════════════════════════════════════════════════════════
+
+def refresh_recent_citations(ss_cache: dict) -> None:
+    """Force-refresh S2 citation data for all papers in database.parquet.
+
+    Called unconditionally from __main__ regardless of whether Stage 1
+    found any new significant candidates. This ensures recent-window papers
+    receive a coordinated weekly citation update even on weeks where the
+    significant pool is unchanged.
+    """
+    print("\n▶  Stage 4 -- Weekly citation refresh for recent-window papers...")
+
+    if not os.path.exists(DB_PATH):
+        print(f"  {DB_PATH} not found — skipping recent-window refresh.")
+        return
+
+    db_full    = pd.read_parquet(DB_PATH, columns=["id"])
+    db_all_ids = [str(i) for i in db_full["id"].tolist()]
+    print(f"  {len(db_all_ids)} recent-window papers to refresh.")
+
+    if not db_all_ids:
+        print("  database.parquet is empty — nothing to refresh.")
+        return
+
+    # ╔══════════════════════════════════════════════════════════════╗
+    # ║  TEST HARNESS — REMOVE AFTER VALIDATION                     ║
+    # ╚══════════════════════════════════════════════════════════════╝
+    print("\n  ── TEST HARNESS: PRE-FETCH SNAPSHOT ──────────────────────")
+    base_ids = [_arxiv_id_base(aid) for aid in db_all_ids]
+
+    before = {}
+    n_pre_cached = n_pre_missing = n_pre_no_signal = 0
+    for bid in base_ids:
+        entry = ss_cache.get(bid)
+        if entry is None:
+            before[bid] = None
+            n_pre_missing += 1
+        else:
+            before[bid] = {
+                "fetched_at":                 entry.get("fetched_at", ""),
+                "citation_count":             int(entry.get("citation_count", 0)),
+                "influential_citation_count": int(entry.get("influential_citation_count", 0)),
+                "has_tldr":                   bool((entry.get("tldr") or "").strip()),
+            }
+            n_pre_cached += 1
+            if (before[bid]["citation_count"] == 0
+                    and before[bid]["influential_citation_count"] == 0
+                    and not before[bid]["has_tldr"]):
+                n_pre_no_signal += 1
+
+    print(f"  Papers in DB          : {len(base_ids)}")
+    print(f"  Already in ss_cache   : {n_pre_cached}")
+    print(f"  Missing from ss_cache : {n_pre_missing}")
+    print(f"  In cache, zero signal : {n_pre_no_signal}  "
+          f"(no citations + no TLDR — likely brand-new)")
+
+    sample_ids = [
+        bid for bid in base_ids
+        if before.get(bid) and before[bid]["citation_count"] > 0
+    ][:5]
+    if sample_ids:
+        print(f"\n  Sample (up to 5 papers with existing citations):")
+        for bid in sample_ids:
+            b = before[bid]
+            print(f"    {bid}  citations={b['citation_count']}  "
+                  f"influential={b['influential_citation_count']}  "
+                  f"fetched_at={b['fetched_at']}")
+    else:
+        print("  No cached papers with citations found — all are new or zero.")
+    print("  ── END PRE-FETCH SNAPSHOT ────────────────────────────────\n")
+
+    fetch_semantic_scholar_data(db_all_ids, ss_cache)
+    save_ss_cache(ss_cache)
+    print(f"  Citation refresh complete. SS cache now has {len(ss_cache)} entries.")
+
+    print("\n  ── TEST HARNESS: POST-FETCH COMPARISON ───────────────────")
+    n_timestamp_updated = n_timestamp_unchanged = 0
+    n_newly_cached = n_still_null = 0
+    n_citations_increased = n_citations_unchanged = n_citations_decreased = 0
+    changed_examples = []
+
+    for bid in base_ids:
+        after_entry = ss_cache.get(bid)
+        if after_entry is None:
+            n_still_null += 1
+            continue
+
+        after = {
+            "fetched_at":                 after_entry.get("fetched_at", ""),
+            "citation_count":             int(after_entry.get("citation_count", 0)),
+            "influential_citation_count": int(after_entry.get("influential_citation_count", 0)),
+        }
+
+        b = before.get(bid)
+        if b is None:
+            n_newly_cached += 1
+            n_timestamp_updated += 1
+        else:
+            if after["fetched_at"] != b["fetched_at"]:
+                n_timestamp_updated += 1
+            else:
+                n_timestamp_unchanged += 1
+
+            delta = after["citation_count"] - b["citation_count"]
+            if delta > 0:
+                n_citations_increased += 1
+                if len(changed_examples) < 5:
+                    changed_examples.append((bid, b["citation_count"],
+                                              after["citation_count"], delta))
+            elif delta < 0:
+                n_citations_decreased += 1
+            else:
+                n_citations_unchanged += 1
+
+    print(f"  Timestamps updated    : {n_timestamp_updated} / {len(base_ids)}")
+    print(f"  Timestamps unchanged  : {n_timestamp_unchanged}  "
+          f"(unexpected — fetch should always write new fetched_at)")
+    print(f"  Newly added to cache  : {n_newly_cached}  "
+          f"(were missing before fetch)")
+    print(f"  Still null after fetch: {n_still_null}  "
+          f"(should be 0 — fetch writes zeros for unindexed papers)")
+    print(f"  Citation count increased : {n_citations_increased}")
+    print(f"  Citation count unchanged : {n_citations_unchanged}")
+    print(f"  Citation count decreased : {n_citations_decreased}  "
+          f"(should be 0 — citations don't go backwards)")
+
+    if changed_examples:
+        print(f"\n  Papers with citation count increases (up to 5):")
+        for bid, before_c, after_c, delta in changed_examples:
+            print(f"    {bid}  {before_c} → {after_c}  (+{delta})")
+    else:
+        print("\n  No citation count increases observed.")
+        print("  This is expected if papers are very recent (few days old).")
+
+    if sample_ids:
+        print(f"\n  Spot-check: same {len(sample_ids)} sample papers after fetch:")
+        for bid in sample_ids:
+            a = ss_cache.get(bid, {})
+            print(f"    {bid}  citations={a.get('citation_count', '?')}  "
+                  f"influential={a.get('influential_citation_count', '?')}  "
+                  f"fetched_at={a.get('fetched_at', '?')}")
+
+    print("  ── END POST-FETCH COMPARISON ─────────────────────────────")
+    # ╔══════════════════════════════════════════════════════════════╗
+    # ║  END TEST HARNESS                                            ║
+    # ╚══════════════════════════════════════════════════════════════╝
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # MAIN
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -528,6 +678,7 @@ if __name__ == "__main__":
             existing_sig.to_parquet(SIGNIFICANT_PATH, index=False)
             print(f"  Wrote {len(existing_sig)} papers -> {SIGNIFICANT_PATH} (unchanged).")
         save_ss_cache(ss_cache)
+        refresh_recent_citations(ss_cache)
         print("\n✓  update_significant.py complete (no new candidates).")
         raise SystemExit(0)
 
@@ -563,177 +714,8 @@ if __name__ == "__main__":
 
     sig_df.to_parquet(SIGNIFICANT_PATH, index=False)
 
-    # ── Stage 4: Weekly citation refresh for all recent-window papers ────────
-    #
-    # Significant papers had their citations refreshed during Stage 1 discovery.
-    # Recent-window papers (database.parquet) are excluded from that search, so
-    # their citations only update via the daily pipeline's 7-day TTL — staggered
-    # per-paper with no coordinated refresh point.
-    #
-    # This stage force-refreshes S2 citation data for ALL papers currently in
-    # database.parquet, unconditionally bypassing the TTL. It runs once a week
-    # on the same Monday cadence as this script, giving a clean citation snapshot
-    # across the full dataset.
-    #
-    # Note: fetch_semantic_scholar_data mutates ss_cache in-place and updates
-    # fetched_at timestamps, so the daily pipeline will see fresh data and skip
-    # re-fetching for another 7 days.
-    # ──────────────────────────────────────────────────────────────────────────
-    print("\n▶  Stage 4 -- Weekly citation refresh for recent-window papers...")
-
-    if os.path.exists(DB_PATH):
-        db_full    = pd.read_parquet(DB_PATH, columns=["id"])
-        db_all_ids = [str(i) for i in db_full["id"].tolist()]
-        print(f"  {len(db_all_ids)} recent-window papers to refresh.")
-
-        if db_all_ids:
-
-            # ╔══════════════════════════════════════════════════════════════╗
-            # ║  TEST HARNESS — REMOVE AFTER VALIDATION                     ║
-            # ╚══════════════════════════════════════════════════════════════╝
-            # Captures a before-snapshot of the ss_cache for all
-            # recent-window papers, then after the fetch compares:
-            #   • fetched_at timestamps (did they update?)
-            #   • citation_count / influential_citation_count (did values change?)
-            #   • which papers were missing from cache entirely
-            #   • which papers S2 returned as null (not yet indexed)
-            # ──────────────────────────────────────────────────────────────
-            print("\n  ── TEST HARNESS: PRE-FETCH SNAPSHOT ──────────────────────")
-            base_ids = [_arxiv_id_base(aid) for aid in db_all_ids]
-
-            # Build before-snapshot
-            before = {}
-            n_pre_cached    = 0
-            n_pre_missing   = 0
-            n_pre_no_signal = 0
-            for bid in base_ids:
-                entry = ss_cache.get(bid)
-                if entry is None:
-                    before[bid] = None
-                    n_pre_missing += 1
-                else:
-                    before[bid] = {
-                        "fetched_at":             entry.get("fetched_at", ""),
-                        "citation_count":         int(entry.get("citation_count", 0)),
-                        "influential_citation_count": int(entry.get("influential_citation_count", 0)),
-                        "has_tldr":               bool((entry.get("tldr") or "").strip()),
-                    }
-                    n_pre_cached += 1
-                    if (before[bid]["citation_count"] == 0
-                            and before[bid]["influential_citation_count"] == 0
-                            and not before[bid]["has_tldr"]):
-                        n_pre_no_signal += 1
-
-            print(f"  Papers in DB          : {len(base_ids)}")
-            print(f"  Already in ss_cache   : {n_pre_cached}")
-            print(f"  Missing from ss_cache : {n_pre_missing}")
-            print(f"  In cache, zero signal : {n_pre_no_signal}  "
-                  f"(no citations + no TLDR — likely brand-new)")
-
-            # Sample up to 5 cached papers with non-zero citations for spot-check
-            sample_ids = [
-                bid for bid in base_ids
-                if before.get(bid) and before[bid]["citation_count"] > 0
-            ][:5]
-            if sample_ids:
-                print(f"\n  Sample (up to 5 papers with existing citations):")
-                for bid in sample_ids:
-                    b = before[bid]
-                    print(f"    {bid}  citations={b['citation_count']}  "
-                          f"influential={b['influential_citation_count']}  "
-                          f"fetched_at={b['fetched_at']}")
-            else:
-                print("  No cached papers with citations found — all are new or zero.")
-            print("  ── END PRE-FETCH SNAPSHOT ────────────────────────────────\n")
-            # ── END PRE-FETCH SNAPSHOT ────────────────────────────────────
-
-            fetch_semantic_scholar_data(db_all_ids, ss_cache)
-            save_ss_cache(ss_cache)
-            print(f"  Citation refresh complete. SS cache now has {len(ss_cache)} entries.")
-
-            # ── TEST HARNESS: POST-FETCH COMPARISON ───────────────────────
-            print("\n  ── TEST HARNESS: POST-FETCH COMPARISON ───────────────────")
-            n_timestamp_updated  = 0
-            n_timestamp_unchanged = 0
-            n_newly_cached       = 0
-            n_still_null         = 0
-            n_citations_increased = 0
-            n_citations_unchanged = 0
-            n_citations_decreased = 0   # shouldn't happen but worth tracking
-            changed_examples     = []   # up to 5 papers where citation count changed
-
-            for bid in base_ids:
-                after_entry = ss_cache.get(bid)
-                if after_entry is None:
-                    # S2 returned null and we stored a zero entry — shouldn't
-                    # happen since fetch always writes something, but guard anyway
-                    n_still_null += 1
-                    continue
-
-                after = {
-                    "fetched_at":                 after_entry.get("fetched_at", ""),
-                    "citation_count":             int(after_entry.get("citation_count", 0)),
-                    "influential_citation_count": int(after_entry.get("influential_citation_count", 0)),
-                }
-
-                b = before.get(bid)
-                if b is None:
-                    n_newly_cached += 1
-                    # Treat as timestamp updated (was missing, now present)
-                    n_timestamp_updated += 1
-                else:
-                    if after["fetched_at"] != b["fetched_at"]:
-                        n_timestamp_updated += 1
-                    else:
-                        n_timestamp_unchanged += 1
-
-                    delta = after["citation_count"] - b["citation_count"]
-                    if delta > 0:
-                        n_citations_increased += 1
-                        if len(changed_examples) < 5:
-                            changed_examples.append((bid, b["citation_count"],
-                                                      after["citation_count"], delta))
-                    elif delta < 0:
-                        n_citations_decreased += 1
-                    else:
-                        n_citations_unchanged += 1
-
-            print(f"  Timestamps updated    : {n_timestamp_updated} / {len(base_ids)}")
-            print(f"  Timestamps unchanged  : {n_timestamp_unchanged}  "
-                  f"(unexpected — fetch should always write new fetched_at)")
-            print(f"  Newly added to cache  : {n_newly_cached}  "
-                  f"(were missing before fetch)")
-            print(f"  Still null after fetch: {n_still_null}  "
-                  f"(should be 0 — fetch writes zeros for unindexed papers)")
-            print(f"  Citation count increased : {n_citations_increased}")
-            print(f"  Citation count unchanged : {n_citations_unchanged}")
-            print(f"  Citation count decreased : {n_citations_decreased}  "
-                  f"(should be 0 — citations don't go backwards)")
-
-            if changed_examples:
-                print(f"\n  Papers with citation count increases (up to 5):")
-                for bid, before_c, after_c, delta in changed_examples:
-                    print(f"    {bid}  {before_c} → {after_c}  (+{delta})")
-            else:
-                print("\n  No citation count increases observed.")
-                print("  This is expected if papers are very recent (few days old).")
-
-            # Spot-check the same sample IDs from the pre-fetch snapshot
-            if sample_ids:
-                print(f"\n  Spot-check: same {len(sample_ids)} sample papers after fetch:")
-                for bid in sample_ids:
-                    a = ss_cache.get(bid, {})
-                    print(f"    {bid}  citations={a.get('citation_count', '?')}  "
-                          f"influential={a.get('influential_citation_count', '?')}  "
-                          f"fetched_at={a.get('fetched_at', '?')}")
-
-            print("  ── END POST-FETCH COMPARISON ─────────────────────────────")
-            # ╔══════════════════════════════════════════════════════════════╗
-            # ║  END TEST HARNESS                                            ║
-            # ╚══════════════════════════════════════════════════════════════╝
-
-    else:
-        print(f"  {DB_PATH} not found — skipping recent-window refresh.")
+    # ── Stage 4: Weekly citation refresh ─────────────────────────────────────
+    refresh_recent_citations(ss_cache)
 
     # ── Final summary ─────────────────────────────────────────────────────────
     print("\n-- Pool summary --")
