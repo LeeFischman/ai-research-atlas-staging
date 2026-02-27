@@ -119,10 +119,12 @@ def _s2_search_page(
         "fields":                _S2_SEARCH_FIELDS,
         "publicationDateOrYear": f"{date_from_str}:{date_to_str}",
         "fieldsOfStudy":         "Computer Science",
-        "sort":                  "citationCount:desc",
         "limit":                 str(SIGNIFICANT_PAGE_SIZE),
         "offset":                str(offset),
     }
+    # Note: sort=citationCount:desc is NOT used — S2 search does not reliably
+    # support server-side citation sorting. We fetch by relevance and sort
+    # client-side by influentialCitationCount before selecting the top-N pool.
     url = f"{_S2_SEARCH_URL}?{urllib.parse.urlencode(params)}"
     req = urllib.request.Request(url, headers=headers)
 
@@ -295,12 +297,6 @@ def discover_candidates(
         page_min_display = page_min_inf if page_min_inf < float("inf") else 0
         print(f"    Accepted {page_accepted} papers "
               f"(page influential: min={page_min_display}, max={page_max_inf})")
-
-        # Normal stop: influential citations have dropped below threshold
-        if page_min_display < SIGNIFICANT_MIN_INFLUENTIAL and page_num > 0:
-            print(f"  Stopping: page min influential ({page_min_display}) "
-                  f"< threshold ({SIGNIFICANT_MIN_INFLUENTIAL}).")
-            break
 
         # Also stop if we've exhausted the result set
         total_int = int(total) if str(total).isdigit() else 999999
