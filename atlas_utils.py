@@ -1829,6 +1829,16 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     waitForRoot();
   }
 })();
+
+// Collapse charts panel on load
+(function() {
+  function collapseChartsPanel() {
+    const btn = document.querySelector('button[title="Show / hide charts"]');
+    if (!btn) { setTimeout(collapseChartsPanel, 200); return; }
+    if (!btn.classList.contains('text-slate-400')) { btn.click(); }
+  }
+  window.addEventListener('load', () => setTimeout(collapseChartsPanel, 300));
+})();
 </script>
 
 <!-- ── Top title bar ──────────────────────────────────────────────── -->
