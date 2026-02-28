@@ -3,10 +3,8 @@ on:
   schedule:
     - cron: '0 1 * * *'   # 1 AM UTC -- runs 2 hours before main atlas build (03:00 UTC)
   workflow_dispatch:       # Manual trigger for testing
-
 permissions:
   contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,17 +13,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
       # ════════════════════════════════════════════════════════════════════
       # DAILY SIGNIFICANT PAPERS MAINTENANCE
       #
@@ -47,16 +42,20 @@ jobs:
       #     candidate pool so the next weekly discovery run works from
       #     fresh numbers. Also updates significant.parquet citation columns.
       #
+      # Scheduling note
+      #   Runs at 01:00 UTC — 2 hours before the main atlas build (03:00 UTC).
+      #   Neither task depends on that day's fresh papers, so running before
+      #   the main build is fine. The main build then picks up freshly ranked
+      #   candidates and updated citation counts when it merges significant.parquet.
+      #
       # Cost: ~$0.90 max/day OpenAlex (900 lookups at $0.001) + S2 free.
       # Runtime: ~15–20 min on throttle days; ~2 min when authors are cached.
       # ════════════════════════════════════════════════════════════════════
-
       - name: Run Daily Significant Papers Maintenance
         env:
           OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
           SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
         run: python daily_significant.py
-
       - name: Commit and Push
         run: |
           git config --global user.name "github-actions[bot]"
@@ -66,6 +65,6 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "Daily significant maintenance: $(date -u +'%Y-%m-%d')"
-            git pull --rebase origin main
+            git pull --rebase --autostash origin main
             git push
           fi
