@@ -1,7 +1,7 @@
 name: Daily Significant Papers Maintenance
 on:
   schedule:
-    - cron: '0 8 * * *'   # 3 AM EST / 8 AM UTC — after main atlas build (03:00 UTC)
+    - cron: '0 1 * * *'   # 1 AM UTC -- runs 2 hours before main atlas build (03:00 UTC)
   workflow_dispatch:       # Manual trigger for testing
 
 permissions:
