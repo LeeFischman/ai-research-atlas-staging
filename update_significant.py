@@ -509,9 +509,30 @@ def enrich_new_papers(
 
     new_mask = ~df["id"].isin(prev_ids)
     n_new    = int(new_mask.sum())
-    print(f"  Enriching {n_new} new paper(s) with author h-indices (OpenAlex)...")
 
-    for idx in df.index[new_mask]:
+    # Also retry existing papers whose authors aren't in cache — these are
+    # likely 429 failures from a previous run (429 failures are not cached,
+    # so they appear as cache misses here).
+    def _has_uncached_authors(row) -> bool:
+        authors = row.get("authors_list", [])
+        if not isinstance(authors, list) or not authors:
+            return False
+        return any(
+            author_cache.get(a.strip().lower()) is None
+            for a in authors if a.strip()
+        )
+
+    retry_mask = df.index.isin(
+        df[~new_mask].index[df[~new_mask].apply(_has_uncached_authors, axis=1)]
+    )
+    n_retry = int(retry_mask.sum())
+
+    print(f"  Enriching {n_new} new paper(s) with author h-indices (OpenAlex)...")
+    if n_retry:
+        print(f"  Retrying {n_retry} existing paper(s) with uncached authors "
+              f"(likely prior 429 failures)...")
+
+    for idx in df.index[new_mask | retry_mask]:
         authors = df.at[idx, "authors_list"]
         if not isinstance(authors, list) or not authors:
             df.at[idx, "author_hindices"] = []
