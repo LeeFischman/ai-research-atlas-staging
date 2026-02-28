@@ -96,6 +96,14 @@ jobs:
           print('Model loaded OK')
           "
 
+          echo "=== Attempting SPECTER2 adapter load ==="
+          python -c "
+          from sentence_transformers import SentenceTransformer
+          print('Loading SPECTER2 with adapters...')
+          model = SentenceTransformer('allenai/specter2', trust_remote_code=True)
+          print('SPECTER2 adapter load OK')
+          "
+
           echo "=== Diagnostics complete ==="
 
       - name: Run Update Script
