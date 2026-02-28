@@ -73,6 +73,9 @@ jobs:
 
         run: python update_map_v2.py
 
+      - name: Run nightly assertions
+        run: python nightly_assert.py
+
       - name: Commit and Push Database Changes
         run: |
           git config --global user.name "github-actions[bot]"
@@ -82,7 +85,7 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "Update rolling database: $(date -u +'%Y-%m-%d')"
-            git pull --rebase origin main
+            git pull --rebase --autostash origin main
             git push
           fi
 
@@ -91,6 +94,3 @@ jobs:
         with:
           folder: docs
           branch: gh-pages
-          
-      - name: Run nightly assertions
-        run: python nightly_assert.py
