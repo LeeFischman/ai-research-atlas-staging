@@ -3,14 +3,13 @@ arxiv
 pandas
 pyarrow
 numpy
-sentence-transformers==4.1.0
+sentence-transformers
 umap-learn
 scikit-learn
 keybert
 pyyaml
-peft==0.11.1
 embedding-atlas
 typing_extensions>=4.10.0
-transformers==4.51.3
+transformers
 torch
 pyalex
