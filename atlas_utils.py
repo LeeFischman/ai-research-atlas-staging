@@ -769,8 +769,14 @@ def _oai_fetch_ids_for_date(date_str: str, category: str = "cs.AI") -> list[str]
             if header is not None and header.get("status") == "deleted":
                 continue
 
-            cats_el = record.find(".//arxiv:categories", _OAI_NS)
-            if cats_el is None or cats_el.text is None:
+            # Namespace-agnostic category search — arXiv uses different namespace
+            # URIs depending on record type, so match by local tag name only.
+            cats_el = next(
+                (el for el in record.iter()
+                 if el.tag.split("}")[-1] == "categories"),
+                None
+            )
+            if cats_el is None or not cats_el.text:
                 continue
             if category not in cats_el.text.split():
                 continue
