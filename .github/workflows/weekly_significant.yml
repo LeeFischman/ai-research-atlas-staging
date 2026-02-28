@@ -1,7 +1,7 @@
 name: Update Significant Papers
 on:
   schedule:
-    - cron: '0 6 * * 6'   # Saturday 06:00 UTC — arXiv dead zone between end of week announcements and Monday's large batch
+    - cron: '0 6 * * 1'   # Monday 06:00 UTC — arXiv-idle, offset from daily run
   workflow_dispatch:       # Manual trigger for testing
 permissions:
   contents: write
@@ -25,37 +25,37 @@ jobs:
           pip install -r requirements.txt
 
       # ════════════════════════════════════════════════════════════════════
-      # SIGNIFICANT PAPERS SCAN
+      # WEEKLY SIGNIFICANT PAPERS DISCOVERY
       #
-      # What this does:
-      #   Fetches cs.AI paper IDs from arXiv OAI-PMH (authoritative source),
-      #   uses S2 batch endpoint for citation counts, maintains a pool of
-      #   top-500 candidates refreshed weekly in sig_candidates.json, selects
-      #   top-75 by influential citations into significant.parquet, applies
-      #   two-strike retirement, enriches new papers with author h-indices,
-      #   and refreshes citations for all recent-window papers (Stage 4).
+      # What this does (discovery + retirement only):
+      #   1. Fetches new cs.AI arXiv IDs since last run via OAI-PMH
+      #   2. Looks up citation counts via Semantic Scholar batch API
+      #   3. Maintains a top-500 candidate pool in sig_candidates.json
+      #   4. Selects top-75 by influential citations → significant.parquet
+      #   5. Applies two-strike retirement logic
       #
-      # Cost: ~$0. Uses only free APIs (arXiv OAI-PMH, S2 batch, OpenAlex).
-      # Runtime: ~5-30 min (first run is slow due to 150-day OAI backfill;
-      #          subsequent weekly runs are fast — delta fetch only).
+      # What this does NOT do (handled by daily_significant.yml instead):
+      #   - Author h-index enrichment (OpenAlex)
+      #   - S2 citation refresh for the candidate pool
+      #   - Prominence recomputation
       #
-      # After this runs, the next daily build automatically picks up the
-      # updated significant.parquet at Stage 1.
+      # New papers enter with Prominence="Unverified". The daily job
+      # enriches them within 24 hours (up to 900 authors/day).
       #
-      # S2 API key recommended for higher rate limits on the batch endpoint.
+      # Cost: ~$0. Uses only S2 free tier. Runtime: ~5 min.
       # ════════════════════════════════════════════════════════════════════
 
       - name: Run Significant Papers Scan
         env:
           SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
-          # placeholder: "no-api-key-needed"
+          OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
         run: python update_significant.py
 
       - name: Commit and Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add significant.parquet author_cache.json ss_cache.json sig_candidates.json 2>/dev/null || true
+          git add significant.parquet author_cache.json ss_cache.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
