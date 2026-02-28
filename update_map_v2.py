@@ -96,12 +96,21 @@ GROUP_NAMES_CACHE = "group_names_v2.json"
 
 # ── Haiku grouping ───────────────────────────────────────────────────────────
 
-# Target group count range sent to Haiku in the prompt.
-# If Haiku returns more than GROUP_COUNT_MAX groups, excess groups are merged
-# down automatically — no retry needed for over-grouping.
-# Recommended range: 10-20.
-GROUP_COUNT_MIN = 12
-GROUP_COUNT_MAX = 18
+# ── Haiku grouping ───────────────────────────────────────────────────────────
+
+# Stable bucket count (always offered to Haiku; only used if papers fit).
+GROUP_STABLE_COUNT = 8
+
+# Maximum dynamic groups Haiku may invent beyond the stable buckets.
+GROUP_DYNAMIC_MAX  = 6
+
+# Hard cap on total groups (stable + dynamic).
+# Haiku is not required to reach this — it's a ceiling, not a target.
+GROUP_COUNT_MAX    = 20
+
+# No hard minimum — if 10 groups make sense today, that's fine.
+# Validation rejects responses with 0 groups only.
+GROUP_COUNT_MIN    = 1
 
 # Characters of each abstract sent to Haiku.
 # Recommended range: 150-400.  Shorter = cheaper; longer = better grouping.
@@ -157,13 +166,14 @@ VARIANCE_AMPLIFIER = 2.0
 # Clusters too sparse / papers far from their label:
 #   → Raise SCATTER_FRACTION (0.35 → 0.45)
 #
-# Merge step absorbing groups that feel semantically distinct:
-#   → Raise GROUP_COUNT_MAX (18 → 20 or 22)
-#     Haiku's natural granularity may warrant a higher ceiling.
+# Too many dynamic groups (noise-like topics appearing):
+#   → Lower GROUP_DYNAMIC_MAX (6 → 4)
 #
-# Haiku consistently returns too few groups (< GROUP_COUNT_MIN):
-#   → Lower GROUP_COUNT_MIN (12 → 10), or reduce ABSTRACT_GROUPING_CHARS
-#     so Haiku sees less detail and forms coarser groups.
+# Dynamic groups too coarse (interesting edges being merged into stable):
+#   → Raise GROUP_DYNAMIC_MAX (6 → 8)
+#
+# Merge step absorbing groups that feel semantically distinct:
+#   → Raise GROUP_COUNT_MAX (20 → 24)
 #
 # Ready for production (fresh papers + re-grouping):
 #   → Remove OFFLINE_MODE from the workflow YAML.
@@ -189,28 +199,82 @@ HAIKU_MODEL = "claude-haiku-4-5-20251001"
 # STAGE 3 — HAIKU GROUPING
 # ══════════════════════════════════════════════════════════════════════════════
 
+_STABLE_BUCKETS = """STABLE CATEGORIES (use only those that have papers today — skip empty ones):
+
+ID 0 — Language Models & Reasoning
+  Core LLM research: pretraining, fine-tuning, RLHF, instruction following,
+  chain-of-thought, inference-time scaling, agents, prompt engineering,
+  retrieval-augmented generation, context length, and LLM efficiency.
+
+ID 1 — Computer Vision
+  Image and video understanding, generation, and editing. Object detection,
+  segmentation, recognition, diffusion models for images, 3D reconstruction,
+  video generation and understanding. Primary contribution is visual.
+
+ID 2 — Multimodal Learning
+  Systems jointly processing two or more modalities (vision+language,
+  audio+language, etc.). VLMs, vision-language alignment, captioning,
+  visual QA, audio-language models. Primary contribution is cross-modal fusion.
+
+ID 3 — Reinforcement Learning
+  RL algorithms, policy optimization, reward modeling, multi-agent RL,
+  offline RL, model-based RL, exploration strategies, game-playing agents.
+
+ID 4 — Robotics & Embodied AI
+  Physical robots, manipulation, locomotion, sim-to-real transfer,
+  embodied agents in 3D environments, navigation, dexterous control.
+
+ID 5 — Safety, Alignment & Ethics
+  AI safety, alignment research, red-teaming, jailbreaks, fairness, bias,
+  interpretability for safety, societal impact, governance, privacy.
+
+ID 6 — Theory, Optimization & Efficient ML
+  Mathematical foundations: convergence proofs, generalization bounds,
+  learning theory. Model compression, quantization, pruning, efficient
+  architectures, hardware-aware ML, federated learning.
+
+ID 7 — Domain Applications
+  AI applied to a specific external field as the primary contribution:
+  medicine, biology, climate, law, finance, education, scientific discovery.
+  The application domain — not the AI method — is the main result."""
+
 _GROUPING_SYSTEM = (
     "You are a research taxonomy expert. You will be given a list of AI research "
     "paper titles and abstracts. Your task is to group them into thematically "
-    "coherent clusters based on shared research methodology, problem formulation, "
-    "or application domain.\n\n"
-    "Rules:\n"
+    "coherent clusters.\n\n"
+
+    f"{_STABLE_BUCKETS}\n\n"
+
+    f"DYNAMIC CATEGORIES (invent up to {GROUP_DYNAMIC_MAX} additional groups):\n"
+    "  Use IDs starting at 8. Name each with a concise 3-6 word noun phrase "
+    "capturing the shared intellectual thread (e.g. 'Graph Neural Network Methods', "
+    "'Diffusion Model Theory', 'Speech & Audio Processing'). Create a dynamic "
+    "group only when papers genuinely don't fit any stable category above.\n\n"
+
+    f"TOTAL GROUP CAP: {GROUP_COUNT_MAX} groups maximum (stable + dynamic combined). "
+    "You are NOT required to reach this cap — use only as many groups as the "
+    "papers genuinely warrant.\n\n"
+
+    "ASSIGNMENT RULES:\n"
     "- Assign every paper to exactly one group.\n"
-    f"- Use between {GROUP_COUNT_MIN} and {GROUP_COUNT_MAX} groups total. "
-    "Do not create more or fewer.\n"
-    "- Group papers by what makes them intellectually related, not just surface "
-    "topic keywords. Papers that share a methodology or theoretical framework "
-    "should be grouped together even if their application domains differ.\n"
-    "- Give each group a concise 3-6 word name capturing the shared intellectual "
-    "thread (methodology or framing, not just topic keywords). "
-    "Prefer noun phrases: 'Sparse Reward Policy Learning' not 'Papers About RL'.\n"
-    "- Respond ONLY with a JSON array. No preamble, no explanation, no markdown "
-    "fences. The array must have exactly one entry per paper in the same order "
-    "as the input, with this structure:\n"
-    '[{"index": 0, "group_id": 0, "group_name": "Sparse Reward Policy Learning"}, '
-    '{"index": 1, "group_id": 3, "group_name": "Multimodal Instruction Tuning"}, ...]\n'
-    "- group_id must be an integer from 0 to (number_of_groups - 1).\n"
-    "- group_name must be identical for every entry that shares the same group_id."
+    "- When a paper could fit multiple stable categories, assign it to the one "
+    "where its PRIMARY CONTRIBUTION lies — the thing the authors would consider "
+    "their main result. Example: a vision-language model whose core contribution "
+    "is a new training objective → Language Models & Reasoning; one whose core "
+    "contribution is cross-modal alignment → Multimodal Learning.\n"
+    "- Prefer stable categories over dynamic ones when the fit is reasonable.\n"
+    "- Group papers by what makes them intellectually related — shared methodology "
+    "or theoretical framework — not just surface topic keywords.\n\n"
+
+    "OUTPUT FORMAT:\n"
+    "Respond ONLY with a JSON array. No preamble, no explanation, no markdown "
+    "fences. One entry per paper in the same order as the input:\n"
+    '[{"index": 0, "group_id": 0, "group_name": "Language Models & Reasoning"}, '
+    '{"index": 1, "group_id": 8, "group_name": "Graph Neural Network Methods"}, ...]\n'
+    "- group_id must be an integer (0-7 for stable, 8+ for dynamic).\n"
+    "- group_name must be identical for every entry sharing the same group_id.\n"
+    "- For stable categories, group_name must exactly match the stable category "
+    "name (e.g. 'Language Models & Reasoning', not 'LLMs & Reasoning')."
 )
 
 
@@ -225,21 +289,41 @@ def _build_grouping_user_message(df: pd.DataFrame) -> str:
     return "\n\n".join(lines)
 
 
+# Canonical names for stable buckets — used to normalise Haiku's output
+# so minor variations ("LLMs & Reasoning") are corrected to the exact name.
+_STABLE_BUCKET_NAMES: dict[int, str] = {
+    0: "Language Models & Reasoning",
+    1: "Computer Vision",
+    2: "Multimodal Learning",
+    3: "Reinforcement Learning",
+    4: "Robotics & Embodied AI",
+    5: "Safety, Alignment & Ethics",
+    6: "Theory, Optimization & Efficient ML",
+    7: "Domain Applications",
+}
+
+
 def _parse_grouping_response(
     text: str, n_papers: int
 ) -> tuple[dict[int, int], dict[int, str]] | None:
     """Parse and validate Haiku's JSON grouping response.
 
+    Stable buckets (IDs 0-7): names are normalised to canonical values.
+    Dynamic buckets (IDs 8+): names are taken as-is from Haiku; capped at
+    GROUP_DYNAMIC_MAX unique dynamic group IDs.
+
     Hard failures → return None → trigger retry:
       - Non-JSON or non-list
       - Wrong entry count
       - Missing / non-integer fields
-      - Fewer than GROUP_COUNT_MIN groups
+      - group_id < 0
+      - More than GROUP_COUNT_MAX total groups (triggers merge, not retry)
 
     Soft acceptance → log warning, return result:
-      - More than GROUP_COUNT_MAX groups (caller merges excess groups down)
+      - More than GROUP_COUNT_MAX groups (caller merges excess down)
 
     group_name drift: majority vote across all entries for each group_id.
+    For stable buckets the canonical name always wins over Haiku's variant.
     """
     text = re.sub(r"^```(?:json)?\s*", "", text.strip())
     text = re.sub(r"\s*```$", "", text)
@@ -258,7 +342,7 @@ def _parse_grouping_response(
         print(f"    Expected {n_papers} entries, got {len(data)}.")
         return None
 
-    mapping: dict[int, int] = {}
+    mapping: dict[int, int]          = {}
     name_votes: dict[int, dict[str, int]] = {}
 
     for entry in data:
@@ -271,7 +355,7 @@ def _parse_grouping_response(
             print(f"    Non-integer or negative values: index={idx}, group_id={gid}")
             return None
         mapping[idx] = gid
-        name = str(entry.get("group_name", "")).strip().title()
+        name = str(entry.get("group_name", "")).strip()
         if name:
             name_votes.setdefault(gid, {})
             name_votes[gid][name] = name_votes[gid].get(name, 0) + 1
@@ -281,26 +365,48 @@ def _parse_grouping_response(
         print(f"    Missing paper indices: {sorted(missing)[:10]}...")
         return None
 
-    n_groups = len(set(mapping.values()))
-    if n_groups < GROUP_COUNT_MIN:
-        print(f"    Got {n_groups} groups — below minimum {GROUP_COUNT_MIN}. Rejecting.")
-        return None
+    all_gids   = set(mapping.values())
+    stable_gids  = {g for g in all_gids if g in _STABLE_BUCKET_NAMES}
+    dynamic_gids = {g for g in all_gids if g not in _STABLE_BUCKET_NAMES}
+    n_groups     = len(all_gids)
+
+    print(f"    Groups: {len(stable_gids)} stable, {len(dynamic_gids)} dynamic "
+          f"= {n_groups} total.")
+
+    if len(dynamic_gids) > GROUP_DYNAMIC_MAX:
+        print(f"    {len(dynamic_gids)} dynamic groups exceeds cap "
+              f"({GROUP_DYNAMIC_MAX}). Will merge excess after parsing.")
+
     if n_groups > GROUP_COUNT_MAX:
-        print(f"    Got {n_groups} groups — above maximum {GROUP_COUNT_MAX}. "
+        print(f"    {n_groups} total groups exceeds cap ({GROUP_COUNT_MAX}). "
               "Will merge excess groups after parsing.")
 
+    # Build final group_names: stable buckets always use canonical names
     group_names: dict[int, str] = {}
-    for gid in set(mapping.values()):
-        votes = name_votes.get(gid, {})
-        if votes:
-            winner = max(votes, key=votes.__getitem__)
-            if len(votes) > 1:
-                print(f"    Group {gid}: name drift resolved → '{winner}' "
-                      f"(from {dict(votes)})")
-            group_names[gid] = winner
+    for gid in all_gids:
+        if gid in _STABLE_BUCKET_NAMES:
+            # Always use canonical name regardless of what Haiku returned
+            canonical = _STABLE_BUCKET_NAMES[gid]
+            haiku_name = max(name_votes.get(gid, {"": 0}),
+                             key=name_votes.get(gid, {"": 0}).__getitem__,
+                             default="")
+            if haiku_name and haiku_name != canonical:
+                print(f"    Stable group {gid}: normalised "
+                      f"'{haiku_name}' → '{canonical}'")
+            group_names[gid] = canonical
         else:
-            group_names[gid] = f"Group {gid}"
-            print(f"    Group {gid}: no name in response — fallback '{group_names[gid]}'")
+            # Dynamic bucket: majority vote on name, title-case it
+            votes = name_votes.get(gid, {})
+            if votes:
+                winner = max(votes, key=votes.__getitem__)
+                if len(votes) > 1:
+                    print(f"    Dynamic group {gid}: name drift resolved → "
+                          f"'{winner}' (from {dict(votes)})")
+                group_names[gid] = winner.title()
+            else:
+                group_names[gid] = f"Emerging Topic {gid}"
+                print(f"    Dynamic group {gid}: no name — "
+                      f"fallback '{group_names[gid]}'")
 
     return mapping, group_names
 
@@ -484,7 +590,7 @@ def _hdbscan_fallback_grouping(df: pd.DataFrame) -> dict[int, int]:
         print("  Clustering on 768D SPECTER2 (cosine).")
     else:
         print("  No embedding available — random group assignment.")
-        return {i: i % GROUP_COUNT_MIN for i in range(len(df))}
+        return {i: i % 8 for i in range(len(df))}
 
     for mcs in [max(3, len(df) // 30), max(3, len(df) // 40), 3]:
         clusterer  = HDBSCAN(min_cluster_size=mcs, min_samples=3,
@@ -492,7 +598,7 @@ def _hdbscan_fallback_grouping(df: pd.DataFrame) -> dict[int, int]:
         labels     = clusterer.fit_predict(X)
         n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
         print(f"  HDBSCAN min_cluster_size={mcs} → {n_clusters} clusters.")
-        if GROUP_COUNT_MIN <= n_clusters <= GROUP_COUNT_MAX + 5:
+        if 5 <= n_clusters <= GROUP_COUNT_MAX + 5:
             break
 
     unique_clusters = [c for c in sorted(set(labels)) if c != -1]
@@ -739,7 +845,7 @@ if __name__ == "__main__":
     print(f"  AI Research Atlas v2 — {run_date} UTC")
     print(f"  OFFLINE_MODE       : {OFFLINE_MODE}")
     print(f"  BACKFILL_HINDICES  : {BACKFILL_HINDICES}")
-    print(f"  GROUP_COUNT        : {GROUP_COUNT_MIN}–{GROUP_COUNT_MAX}")
+    print(f"  GROUP_COUNT        : up to {GROUP_COUNT_MAX} ({GROUP_STABLE_COUNT} stable + {GROUP_DYNAMIC_MAX} dynamic max)")
     print(f"  LAYOUT_SCALE       : {LAYOUT_SCALE}")
     print(f"  SCATTER_FRACTION   : {SCATTER_FRACTION}")
     print(f"  VARIANCE_AMPLIFIER : {VARIANCE_AMPLIFIER}")
