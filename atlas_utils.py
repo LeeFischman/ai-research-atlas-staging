@@ -1833,11 +1833,11 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
 // Collapse charts panel on load
 (function() {
   function collapseChartsPanel() {
-    const btn = document.querySelector('button[title="Show / hide charts"]');
+    var btn = document.querySelector('button[title="Show / hide charts"]');
     if (!btn) { setTimeout(collapseChartsPanel, 200); return; }
-    if (!btn.classList.contains('text-slate-400')) { btn.click(); }
+    btn.click();
   }
-  window.addEventListener('load', () => setTimeout(collapseChartsPanel, 300));
+  window.addEventListener('load', function() { setTimeout(collapseChartsPanel, 800); });
 })();
 </script>
 
