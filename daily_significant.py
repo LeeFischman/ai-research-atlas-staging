@@ -183,7 +183,7 @@ def run_citation_refresh(sig_df: pd.DataFrame, ss_cache: dict) -> pd.DataFrame:
     if os.path.exists(SIG_CANDIDATES_PATH):
         with open(SIG_CANDIDATES_PATH) as f:
             state = json.load(f)
-        candidate_ids = [p["id"] for p in state.get("candidates", [])]
+        candidate_ids = [p["id"] for p in state.get("pool", [])]
         print(f"  Candidate pool: {len(candidate_ids)} IDs loaded from {SIG_CANDIDATES_PATH}.")
     else:
         print(f"  {SIG_CANDIDATES_PATH} not found — skipping candidate refresh.")
