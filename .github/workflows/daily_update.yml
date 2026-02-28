@@ -91,3 +91,6 @@ jobs:
         with:
           folder: docs
           branch: gh-pages
+          
+      - name: Run nightly assertions
+        run: python nightly_assert.py
