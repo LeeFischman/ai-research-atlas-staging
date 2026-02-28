@@ -8,6 +8,7 @@ umap-learn
 scikit-learn
 keybert
 pyyaml
+peft
 embedding-atlas
 typing_extensions>=4.10.0
 transformers
