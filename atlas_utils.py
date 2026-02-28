@@ -176,6 +176,12 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
     Stale = fetched_at older than AUTHOR_CACHE_TTL_DAYS.
     Sleeps 0.12 s between uncached requests to stay under OpenAlex's 10 req/s.
 
+    On 429 rate-limit responses, backs off exponentially starting at 60s,
+    doubling up to 4 retries (max single wait ~8 min; total patience ~16 min
+    per author before giving up). At the system level this means a large
+    first-run batch of 75 papers with many authors can take several hours
+    to complete — which is acceptable for the weekly significant pipeline.
+
     Parameters
     ----------
     author_names : list of str — raw author names from arXiv
@@ -188,6 +194,14 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
     """
     import urllib.parse
     import urllib.request as _req
+
+    _OA_MAX_RETRIES  = 5
+    _OA_BASE_WAIT    = 60    # seconds — first 429 wait
+    _OA_MAX_WAIT     = 600   # seconds — cap per retry (~10 min)
+    _OA_NORMAL_SLEEP = 0.12  # seconds between requests (~8 req/s)
+    _OA_SLOW_SLEEP   = 1.0   # seconds after first 429 (~1 req/s)
+
+    inter_request_sleep = _OA_NORMAL_SLEEP  # adaptive — slows after first 429
 
     cutoff_ts = (
         datetime.now(timezone.utc) - timedelta(days=AUTHOR_CACHE_TTL_DAYS)
@@ -208,35 +222,61 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
             hindices.append(entry.get("hindex", 0))
             continue
 
-        # Fetch from OpenAlex
-        try:
-            q   = urllib.parse.quote(name)
-            url = f"https://api.openalex.org/authors?search={q}&per_page=5"
-            req = _req.Request(
-                url,
-                headers={"User-Agent":
-                    "ai-research-atlas/2.0 "
-                    "(https://github.com/LeeFischman/ai-research-atlas; "
-                    "mailto:lee.fischman@gmail.com)"},
-            )
-            with _req.urlopen(req, timeout=10) as resp:
-                data = json.loads(resp.read().decode())
+        # Fetch from OpenAlex with 429 backoff
+        q   = urllib.parse.quote(name)
+        url = f"https://api.openalex.org/authors?search={q}&per_page=5"
+        req = _req.Request(
+            url,
+            headers={"User-Agent":
+                "ai-research-atlas/2.0 "
+                "(https://github.com/LeeFischman/ai-research-atlas; "
+                "mailto:lee.fischman@gmail.com)"},
+        )
 
-            results = data.get("results", [])
-            hindex  = 0
-            if results:
-                hindex = results[0].get("summary_stats", {}).get("h_index", 0) or 0
+        hindex   = 0
+        success  = False
 
-            cache[key] = {
-                "hindex":     hindex,
-                "fetched_at": datetime.now(timezone.utc).isoformat(),
-            }
-            hindices.append(hindex)
-            time.sleep(0.12)   # ~8 req/s
+        for attempt in range(1, _OA_MAX_RETRIES + 1):
+            try:
+                with _req.urlopen(req, timeout=10) as resp:
+                    data = json.loads(resp.read().decode())
 
-        except Exception as e:
-            print(f"  OpenAlex lookup failed for '{name}': {e}")
+                results = data.get("results", [])
+                if results:
+                    hindex = results[0].get("summary_stats", {}).get("h_index", 0) or 0
+
+                success = True
+                time.sleep(inter_request_sleep)   # adaptive — 0.12s normal, 1.0s after 429
+                break
+
+            except urllib.error.HTTPError as e:
+                if e.code == 429:
+                    inter_request_sleep = _OA_SLOW_SLEEP   # slow down for all future requests
+                    wait = min(_OA_BASE_WAIT * (2 ** (attempt - 1)), _OA_MAX_WAIT)
+                    print(f"  OpenAlex 429 for '{name}' — "
+                          f"backing off {wait}s, slowing to {inter_request_sleep}s/req "
+                          f"(attempt {attempt}/{_OA_MAX_RETRIES})...")
+                    time.sleep(wait)
+                else:
+                    print(f"  OpenAlex lookup failed for '{name}': {e}")
+                    break
+
+            except Exception as e:
+                print(f"  OpenAlex lookup failed for '{name}': {e}")
+                break
+
+        if not success:
+            print(f"  OpenAlex gave up for '{name}' after {_OA_MAX_RETRIES} attempts.")
+            # Don't cache 429 failures — leave them as cache misses so the
+            # next run retries them rather than treating them as genuine zero.
             hindices.append(0)
+            continue
+
+        cache[key] = {
+            "hindex":     hindex,
+            "fetched_at": datetime.now(timezone.utc).isoformat(),
+        }
+        hindices.append(hindex)
 
     return hindices
 
