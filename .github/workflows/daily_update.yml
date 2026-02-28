@@ -97,6 +97,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           PYTHONUNBUFFERED: "1"
+          OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
 
           # ── STATIC TEST: uncomment to skip all API calls ─────────────────
           # OFFLINE_MODE: "true"
