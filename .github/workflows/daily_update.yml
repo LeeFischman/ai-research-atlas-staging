@@ -108,7 +108,22 @@ jobs:
           # Unnecessary for daily volume — only add if you see S2 rate errors.
           # SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
 
-        run: python update_map_v2.py
+        run: |
+          echo "=== Testing imports ==="
+          python -c "
+          print('Step 1: stdlib...'); import os, json, datetime; print('OK')
+          print('Step 2: numpy...'); import numpy; print('OK')
+          print('Step 3: pandas...'); import pandas; print('OK')
+          print('Step 4: sklearn...'); import sklearn; print('OK')
+          print('Step 5: umap...'); import umap; print('OK')
+          print('Step 6: torch...'); import torch; print('OK')
+          print('Step 7: sentence_transformers...'); import sentence_transformers; print('OK')
+          print('Step 8: anthropic...'); import anthropic; print('OK')
+          print('Step 9: atlas_utils...'); import atlas_utils; print('OK')
+          print('All imports OK')
+          "
+          echo "=== Running main script ==="
+          python update_map_v2.py
 
       - name: Run nightly assertions
         run: python nightly_assert.py
