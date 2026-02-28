@@ -62,6 +62,42 @@ jobs:
       #   Everything else:  leave as configured
       # ════════════════════════════════════════════════════════════════════
 
+      - name: Diagnose environment
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          echo "=== Python version ==="
+          python --version
+
+          echo "=== Checking HuggingFace connectivity ==="
+          curl -s --max-time 10 https://huggingface.co/allenai/specter2_base/resolve/main/config.json \
+            -H "Authorization: Bearer $HF_TOKEN" \
+            -o /dev/null -w "HTTP status: %{http_code}\n" \
+            || echo "FAILED: HuggingFace unreachable or timed out"
+
+          echo "=== Importing core libs ==="
+          python -c "import numpy; print('numpy OK')"
+          python -c "import pandas; print('pandas OK')"
+          python -c "import torch; print('torch OK')"
+          python -c "print('importing sentence_transformers...'); import sentence_transformers; print('sentence_transformers OK')"
+          python -c "print('importing transformers...'); import transformers; print('transformers OK')"
+
+          echo "=== Attempting model load ==="
+          python -c "
+          import os
+          os.environ['TRANSFORMERS_OFFLINE'] = '0'
+          print('Loading SPECTER2 tokenizer...')
+          from transformers import AutoTokenizer
+          tok = AutoTokenizer.from_pretrained('allenai/specter2_base', token=os.environ.get('HF_TOKEN'))
+          print('Tokenizer loaded OK')
+          print('Loading SPECTER2 model...')
+          from transformers import AutoModel
+          model = AutoModel.from_pretrained('allenai/specter2_base', token=os.environ.get('HF_TOKEN'))
+          print('Model loaded OK')
+          "
+
+          echo "=== Diagnostics complete ==="
+
       - name: Run Update Script
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
