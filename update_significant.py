@@ -714,6 +714,9 @@ if __name__ == "__main__":
     print(f"  Lookback              : {SIGNIFICANT_LOOKBACK_DAYS} days")
     print(f"  Min age               : {SIGNIFICANT_LOOKFORWARD_DAYS} days")
     print(f"  Strikes limit         : {SIGNIFICANT_STRIKES_LIMIT}")
+    print(f"")
+    print(f"  Author h-index enrichment and S2 citation refresh are handled")
+    print(f"  by the daily job (daily_significant.py).")
     print("=" * 60)
 
     # ── Date window ──────────────────────────────────────────────────────────
@@ -725,10 +728,8 @@ if __name__ == "__main__":
     if os.path.exists(SIGNIFICANT_PATH):
         existing_sig = pd.read_parquet(SIGNIFICANT_PATH)
         print(f"  Loaded {len(existing_sig)} papers from {SIGNIFICANT_PATH}.")
-        prev_sig_ids = set(existing_sig["id"].tolist())
     else:
         existing_sig = None
-        prev_sig_ids = set()
         print("  No existing significant.parquet -- starting fresh.")
 
     # ── Load database.parquet to get recent-window IDs ───────────────────────
@@ -741,11 +742,10 @@ if __name__ == "__main__":
     else:
         print("  database.parquet not found -- no exclusions applied.")
 
-    # ── Load caches ──────────────────────────────────────────────────────────
-    ss_cache     = load_ss_cache()
-    author_cache = load_author_cache()
+    # ── Load S2 cache (discovery mutates it) ─────────────────────────────────
+    ss_cache = load_ss_cache()
 
-    # ── Stage 1: Discover candidates via arXiv OAI-PMH + S2 batch ──────────────
+    # ── Stage 1: Discover candidates via arXiv OAI-PMH + S2 batch ────────────
     print("\n▶  Stage 1 -- Discovering candidates via arXiv + Semantic Scholar...")
     candidates = discover_candidates(db_ids, date_from, date_to, ss_cache, existing_sig)
 
@@ -755,11 +755,11 @@ if __name__ == "__main__":
             existing_sig.to_parquet(SIGNIFICANT_PATH, index=False)
             print(f"  Wrote {len(existing_sig)} papers -> {SIGNIFICANT_PATH} (unchanged).")
         save_ss_cache(ss_cache)
-        refresh_recent_citations(ss_cache)
         print("\n✓  update_significant.py complete (no new candidates).")
+        print("  Daily job (daily_significant.py) will handle enrichment + refresh.")
         raise SystemExit(0)
 
-    # ── Stage 2: Retirement logic ────────────────────────────────────────────
+    # ── Stage 2: Retirement logic ─────────────────────────────────────────────
     print("\n▶  Stage 2 -- Applying retirement logic...")
     sig_df = apply_retirement(
         new_candidates = candidates,
@@ -772,14 +772,11 @@ if __name__ == "__main__":
         save_ss_cache(ss_cache)
         raise SystemExit(0)
 
-    # ── Stage 3: Author h-index enrichment (new papers only) ─────────────────
-    print("\n▶  Stage 3 -- Author h-index enrichment...")
-    sig_df = enrich_new_papers(sig_df, prev_sig_ids, author_cache)
+    # New papers enter with author_hindices=None and Prominence="Unverified".
+    # The daily job (daily_significant.py) will enrich them within 24 hours.
 
-    save_author_cache(author_cache)
     save_ss_cache(ss_cache)
-    print(f"  Author cache: {len(author_cache)} entries.  "
-          f"SS cache: {len(ss_cache)} entries.")
+    print(f"  SS cache: {len(ss_cache)} entries.")
 
     # ── Write significant.parquet ─────────────────────────────────────────────
     print(f"\n▶  Writing {len(sig_df)} papers -> {SIGNIFICANT_PATH}...")
@@ -791,18 +788,16 @@ if __name__ == "__main__":
 
     sig_df.to_parquet(SIGNIFICANT_PATH, index=False)
 
-    # ── Stage 4: Weekly citation refresh ─────────────────────────────────────
-    refresh_recent_citations(ss_cache)
-
     # ── Final summary ─────────────────────────────────────────────────────────
     print("\n-- Pool summary --")
     if "ss_influential_citations" in sig_df.columns:
         inf_s = sig_df["ss_influential_citations"].fillna(0).astype(int)
         print(f"  Influential citations: max={inf_s.max()}, "
               f"median={inf_s.median():.0f}, min={inf_s.min()}")
-    for tier in ["Elite", "Enhanced", "Emerging", "Unverified"]:
-        print(f"  Prominence {tier}: {(sig_df['Prominence'] == tier).sum()}")
+    unverified = (sig_df.get("Prominence", pd.Series(dtype=str)) == "Unverified").sum()
+    print(f"  Unverified (pending daily enrichment): {unverified}")
     for s in sorted(sig_df["significant_strikes"].unique()):
         print(f"  Strikes={int(s)}: {(sig_df['significant_strikes'] == s).sum()} papers")
 
     print("\n✓  update_significant.py complete.")
+    print("  Run daily_significant.py (or wait for next 3 AM EST) to enrich new papers.")
