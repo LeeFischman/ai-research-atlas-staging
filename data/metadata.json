@@ -9,128 +9,86 @@
         },
         "embeddingViewLabels": [
             {
-                "x": -0.6697514473253458,
-                "y": -0.5769200882602918,
-                "text": "Search And Retrieval Systems",
+                "x": -0.8102244984723372,
+                "y": 1.9856306452203891,
+                "text": "Group 0",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.899686749092685,
-                "y": 0.0024266793932154716,
-                "text": "Debugging Distributed Systems",
+                "x": 0.46065129714436537,
+                "y": 1.6324479788471447,
+                "text": "Group 1",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.084962863355811,
-                "y": -0.189553684148507,
-                "text": "Knowledge Extraction From Llms",
+                "x": 2.373958184678507,
+                "y": 0.127078466257692,
+                "text": "Group 2",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.4948622578653477,
-                "y": 0.18432840257631625,
-                "text": "Quantization And Model Compression",
+                "x": 1.6647417397975435,
+                "y": -0.6840013292464717,
+                "text": "Group 3",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.0188646548808924,
-                "y": 1.0034862749072655,
-                "text": "Stance Detection And Argument Mining",
+                "x": 2.0080739439868096,
+                "y": 1.6793297959408864,
+                "text": "Group 4",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.7063541874098713,
-                "y": 0.535887843023109,
-                "text": "Geometric Deep Learning",
+                "x": -1.3904031169080113,
+                "y": -1.7478040136948823,
+                "text": "Group 5",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.68066521168637,
-                "y": -1.4005246966435654,
-                "text": "Ai Security And Cybercrime",
+                "x": -2.2032503732948356,
+                "y": -0.34016356153645255,
+                "text": "Group 6",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.23637331886223004,
-                "y": 0.7033098100880601,
-                "text": "Reinforcement Learning Dynamics",
+                "x": -0.26891174468117574,
+                "y": -1.5085208442473312,
+                "text": "Group 7",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.4651145751797972,
-                "y": 1.540935308405114,
-                "text": "Domain-Specific Ai Applications",
+                "x": 0.5448530636234227,
+                "y": -2.3742848952929556,
+                "text": "Group 8",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.1891033597545895,
-                "y": -2.7315661681526047,
-                "text": "Infrastructure And Deployment",
+                "x": 0.2017542953729678,
+                "y": 0.3767094600304174,
+                "text": "Group 9",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.1844338966058132,
-                "y": -2.3733127096982516,
-                "text": "Content Verification And Watermarking",
+                "x": -1.0513202088306155,
+                "y": -0.19105950808697197,
+                "text": "Group 10",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.0873809946221755,
-                "y": 1.1327297208505274,
-                "text": "Interpretable Knowledge Systems",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 1.0492839415349893,
-                "y": 2.4135659901869437,
-                "text": "Testing And Verification",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -1.9350770199969058,
-                "y": -1.1798895602916482,
-                "text": "Distributed Communication",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 0.33853241366398557,
-                "y": -1.3662360977803896,
-                "text": "Privacy-Preserving Learning",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -0.6214631939567964,
-                "y": -2.7921447935849684,
-                "text": "Audio Processing",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -2.208511384313204,
-                "y": 2.045313140435791,
-                "text": "Social Choice And Voting",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -0.4811665463703123,
-                "y": 2.8533769263710247,
-                "text": "Human-Robot Interaction",
+                "x": -1.4713451782851492,
+                "y": 1.0175161304177076,
+                "text": "Group 11",
                 "level": 0,
                 "priority": 10
             }
