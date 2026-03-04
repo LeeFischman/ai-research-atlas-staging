@@ -170,133 +170,170 @@ def save_author_cache(cache: dict) -> None:
 
 
 def fetch_author_hindices(author_names: list, cache: dict) -> list:
-    """Return a list of h-indices for ALL authors, using OpenAlex API.
+“”“Return a list of h-indices for ALL authors, using OpenAlex API.
 
-    Checks the cache first; fetches from OpenAlex for missing/stale entries.
-    Stale = fetched_at older than AUTHOR_CACHE_TTL_DAYS.
-    Sleeps 0.12 s between uncached requests to stay under OpenAlex's 10 req/s.
+```
+Checks the cache first; fetches from OpenAlex for missing/stale entries.
+Stale = fetched_at older than AUTHOR_CACHE_TTL_DAYS.
 
-    On 429 rate-limit responses, backs off exponentially starting at 60s,
-    doubling up to 4 retries (max single wait ~8 min; total patience ~16 min
-    per author before giving up). At the system level this means a large
-    first-run batch of 75 papers with many authors can take several hours
-    to complete — which is acceptable for the weekly significant pipeline.
+Batches up to 50 uncached authors per API request using OpenAlex OR filter
+syntax, reducing ~400 individual calls to ~8 batched calls.
 
-    Parameters
-    ----------
-    author_names : list of str — raw author names from arXiv
-    cache        : the shared in-memory cache dict (mutated in-place)
+On 429 rate-limit responses, backs off exponentially starting at 60s,
+doubling up to 4 retries (max single wait ~10 min).
 
-    Returns
-    -------
-    list of int — one h-index per author (0 for failed/unknown lookups),
-                  in the same order as author_names
-    """
-    import urllib.parse
-    import urllib.request as _req
+Parameters
+----------
+author_names : list of str — raw author names from arXiv
+cache        : the shared in-memory cache dict (mutated in-place)
 
-    _OA_MAX_RETRIES  = 5
-    _OA_BASE_WAIT    = 60    # seconds — first 429 wait
-    _OA_MAX_WAIT     = 600   # seconds — cap per retry (~10 min)
-    _OA_NORMAL_SLEEP = 0.12  # seconds between requests (~8 req/s)
-    _OA_SLOW_SLEEP   = 1.0   # seconds after first 429 (~1 req/s)
+Returns
+-------
+list of int — one h-index per author (0 for failed/unknown lookups),
+              in the same order as author_names
+"""
+import difflib
+import urllib.parse
+import urllib.request as _req
 
-    inter_request_sleep = _OA_NORMAL_SLEEP  # adaptive — slows after first 429
+_OA_BATCH_SIZE   = 50    # authors per API request (OpenAlex OR filter max)
+_OA_MAX_RETRIES  = 5
+_OA_BASE_WAIT    = 60    # seconds — first 429 wait
+_OA_MAX_WAIT     = 600   # seconds — cap per retry (~10 min)
+_OA_BATCH_SLEEP  = 0.5   # seconds between batch requests (~2 req/s, well under limit)
+_OA_SLOW_SLEEP   = 2.0   # seconds between batches after first 429
 
-    cutoff_ts = (
-        datetime.now(timezone.utc) - timedelta(days=AUTHOR_CACHE_TTL_DAYS)
-    ).isoformat()
+inter_batch_sleep = _OA_BATCH_SLEEP
 
-    hindices = []
+cutoff_ts = (
+    datetime.now(timezone.utc) - timedelta(days=AUTHOR_CACHE_TTL_DAYS)
+).isoformat()
 
-    # ── OpenAlex API key + rate limit check ──────────────────────────────────
-    _oa_key = os.environ.get("OPENALEX_API_KEY", "")
-    _oa_qs  = f"&api_key={_oa_key}" if _oa_key else ""
-    if _oa_key:
-        try:
-            _rl_url = f"https://api.openalex.org/rate-limit?api_key={_oa_key}"
-            _rl_req = _req.Request(_rl_url, headers={"User-Agent": "ai-research-atlas/2.0"})
-            with _req.urlopen(_rl_req, timeout=10) as _rl_resp:
-                _rl = json.loads(_rl_resp.read().decode()).get("rate_limit", {})
-            print(f"  OpenAlex budget: "
-                  f"${_rl.get('daily_used_usd', '?'):.4f} used / "
-                  f"${_rl.get('daily_budget_usd', '?'):.2f} daily — "
-                  f"${_rl.get('daily_remaining_usd', '?'):.4f} remaining "
-                  f"(resets in {_rl.get('resets_in_seconds', '?')}s)")
-        except Exception as _rl_e:
-            print(f"  OpenAlex rate limit check failed: {_rl_e}")
+# ── OpenAlex API key + rate limit check ──────────────────────────────────
+_oa_key = os.environ.get("OPENALEX_API_KEY", "")
+_oa_qs  = f"&api_key={_oa_key}" if _oa_key else ""
+if _oa_key:
+    try:
+        _rl_url = f"https://api.openalex.org/rate-limit?api_key={_oa_key}"
+        _rl_req = _req.Request(_rl_url, headers={"User-Agent": "ai-research-atlas/2.0"})
+        with _req.urlopen(_rl_req, timeout=10) as _rl_resp:
+            _rl = json.loads(_rl_resp.read().decode()).get("rate_limit", {})
+        print(f"  OpenAlex budget: "
+              f"${_rl.get('daily_used_usd', '?'):.4f} used / "
+              f"${_rl.get('daily_budget_usd', '?'):.2f} daily — "
+              f"${_rl.get('daily_remaining_usd', '?'):.4f} remaining "
+              f"(resets in {_rl.get('resets_in_seconds', '?')}s)")
+    except Exception as _rl_e:
+        print(f"  OpenAlex rate limit check failed: {_rl_e}")
+else:
+    print("  OpenAlex: no API key — using anonymous tier (may be rate limited)")
+# ─────────────────────────────────────────────────────────────────────────
+
+# ── Separate cached from uncached authors ─────────────────────────────────
+# Build index map so we can reconstruct results in original order
+cleaned      = [n.strip() for n in author_names]
+hindices     = [0] * len(cleaned)
+to_fetch_idx = []   # indices into cleaned/hindices that need API lookup
+
+for i, name in enumerate(cleaned):
+    if not name:
+        continue
+    key   = name.lower()
+    entry = cache.get(key)
+    if entry and entry.get("fetched_at", "") > cutoff_ts:
+        hindices[i] = entry.get("hindex", 0)
     else:
-        print("  OpenAlex: no API key — using anonymous tier (may be rate limited)")
-    # ─────────────────────────────────────────────────────────────────────────
+        to_fetch_idx.append(i)
 
-    for name in author_names:
-        name = name.strip()
-        if not name:
-            hindices.append(0)
-            continue
-        key = name.lower()
+if not to_fetch_idx:
+    return hindices
 
-        # Cache hit?
-        entry = cache.get(key)
-        if entry and entry.get("fetched_at", "") > cutoff_ts:
-            hindices.append(entry.get("hindex", 0))
-            continue
+n_fetch = len(to_fetch_idx)
+n_batches = (n_fetch + _OA_BATCH_SIZE - 1) // _OA_BATCH_SIZE
+print(f"  OpenAlex: fetching {n_fetch} authors in {n_batches} batch(es) of up to {_OA_BATCH_SIZE}...")
 
-        # Fetch from OpenAlex with 429 backoff
-        q   = urllib.parse.quote(name)
-        url = f"https://api.openalex.org/authors?search={q}&per_page=5{_oa_qs}"
-        req = _req.Request(
-            url,
-            headers={"User-Agent":
-                "ai-research-atlas/2.0 "
-                "(https://github.com/LeeFischman/ai-research-atlas; "
-                "mailto:lee.fischman@gmail.com)"},
-        )
+_UA = ("ai-research-atlas/2.0 "
+       "(https://github.com/LeeFischman/ai-research-atlas; "
+       "mailto:lee.fischman@gmail.com)")
 
-        hindex  = 0
-        success = False
+# ── Process in batches ────────────────────────────────────────────────────
+for batch_start in range(0, n_fetch, _OA_BATCH_SIZE):
+    batch_indices = to_fetch_idx[batch_start: batch_start + _OA_BATCH_SIZE]
+    batch_names   = [cleaned[i] for i in batch_indices]
 
-        for attempt in range(1, _OA_MAX_RETRIES + 1):
-            try:
-                with _req.urlopen(req, timeout=10) as resp:
-                    data = json.loads(resp.read().decode())
+    # Build OR filter: display_name.search:Name1|Name2|Name3
+    names_filter  = "|".join(urllib.parse.quote(n) for n in batch_names)
+    url = (f"https://api.openalex.org/authors"
+           f"?filter=display_name.search:{names_filter}"
+           f"&per_page={_OA_BATCH_SIZE}"
+           f"&select=display_name,summary_stats"
+           f"{_oa_qs}")
+    req = _req.Request(url, headers={"User-Agent": _UA})
 
-                results = data.get("results", [])
-                if results:
-                    hindex = results[0].get("summary_stats", {}).get("h_index", 0) or 0
+    results   = []
+    succeeded = False
 
-                success = True
-                time.sleep(inter_request_sleep)
+    for attempt in range(1, _OA_MAX_RETRIES + 1):
+        try:
+            with _req.urlopen(req, timeout=20) as resp:
+                data    = json.loads(resp.read().decode())
+            results     = data.get("results", [])
+            succeeded   = True
+            time.sleep(inter_batch_sleep)
+            break
+
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                inter_batch_sleep = _OA_SLOW_SLEEP
+                wait = min(_OA_BASE_WAIT * (2 ** (attempt - 1)), _OA_MAX_WAIT)
+                batch_num = batch_start // _OA_BATCH_SIZE + 1
+                print(f"  OpenAlex 429 on batch {batch_num}/{n_batches} — "
+                      f"backing off {wait}s (attempt {attempt}/{_OA_MAX_RETRIES})...")
+                time.sleep(wait)
+            else:
+                print(f"  OpenAlex batch request failed: {e}")
                 break
+        except Exception as e:
+            print(f"  OpenAlex batch request failed: {e}")
+            break
 
-            except urllib.error.HTTPError as e:
-                if e.code == 429:
-                    inter_request_sleep = _OA_SLOW_SLEEP
-                    wait = min(_OA_BASE_WAIT * (2 ** (attempt - 1)), _OA_MAX_WAIT)
-                    print(f"  OpenAlex 429 for '{name}' — "
-                          f"backing off {wait}s, slowing to {inter_request_sleep}s/req "
-                          f"(attempt {attempt}/{_OA_MAX_RETRIES})...")
-                    time.sleep(wait)
-                else:
-                    print(f"  OpenAlex lookup failed for '{name}': {e}")
-                    break
+    if not succeeded:
+        # Leave hindices[i] = 0 for all in this batch; don't cache failures
+        print(f"  OpenAlex gave up on batch after {_OA_MAX_RETRIES} attempts — skipping.")
+        continue
 
-            except Exception as e:
-                print(f"  OpenAlex lookup failed for '{name}': {e}")
-                break
+    # ── Match returned authors back to input names ────────────────────────
+    # Build lookup: lowercase display_name → h-index from API results
+    api_lookup = {}
+    for r in results:
+        dn = (r.get("display_name") or "").strip()
+        if dn:
+            h = (r.get("summary_stats") or {}).get("h_index", 0) or 0
+            api_lookup[dn.lower()] = h
 
-        if not success:
-            print(f"  OpenAlex gave up for '{name}' after {_OA_MAX_RETRIES} attempts.")
-            hindices.append(0)
-            continue
+    api_names_lower = list(api_lookup.keys())
 
-        cache[key] = {
+    for i, name in zip(batch_indices, batch_names):
+        key        = name.lower()
+        hindex     = 0
+
+        # 1. Exact match
+        if key in api_lookup:
+            hindex = api_lookup[key]
+        # 2. Fuzzy match — closest name above 0.6 similarity
+        elif api_names_lower:
+            matches = difflib.get_close_matches(key, api_names_lower, n=1, cutoff=0.6)
+            if matches:
+                hindex = api_lookup[matches[0]]
+            # else hindex stays 0 — author genuinely not found in results
+
+        hindices[i] = hindex
+        cache[key]  = {
             "hindex":     hindex,
             "fetched_at": datetime.now(timezone.utc).isoformat(),
         }
-        hindices.append(hindex)
 
-    return hindices
+return hindices
 
 def _safe_hindices(row) -> list:
     """Extract author_hindices from a row as a clean list of ints.
