@@ -209,8 +209,9 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
 
     hindices = []
 
-    # ── OpenAlex rate limit check ─────────────────────────────────────────
+    # ── OpenAlex API key + rate limit check ──────────────────────────────────
     _oa_key = os.environ.get("OPENALEX_API_KEY", "")
+    _oa_qs  = f"&api_key={_oa_key}" if _oa_key else ""
     if _oa_key:
         try:
             _rl_url = f"https://api.openalex.org/rate-limit?api_key={_oa_key}"
@@ -226,9 +227,7 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
             print(f"  OpenAlex rate limit check failed: {_rl_e}")
     else:
         print("  OpenAlex: no API key — using anonymous tier (may be rate limited)")
-    # ─────────────────────────────────────────────────────────────────────
-
-
+    # ─────────────────────────────────────────────────────────────────────────
 
     for name in author_names:
         name = name.strip()
@@ -237,20 +236,15 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
             continue
         key = name.lower()
 
-
-
         # Cache hit?
         entry = cache.get(key)
         if entry and entry.get("fetched_at", "") > cutoff_ts:
             hindices.append(entry.get("hindex", 0))
             continue
 
-
         # Fetch from OpenAlex with 429 backoff
-        q       = urllib.parse.quote(name)
-        _oa_key = os.environ.get("OPENALEX_API_KEY", "")
-        _oa_qs  = f"&api_key={_oa_key}" if _oa_key else ""
-        url     = f"https://api.openalex.org/authors?search={q}&per_page=5{_oa_qs}"
+        q   = urllib.parse.quote(name)
+        url = f"https://api.openalex.org/authors?search={q}&per_page=5{_oa_qs}"
         req = _req.Request(
             url,
             headers={"User-Agent":
@@ -259,8 +253,8 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
                 "mailto:lee.fischman@gmail.com)"},
         )
 
-        hindex   = 0
-        success  = False
+        hindex  = 0
+        success = False
 
         for attempt in range(1, _OA_MAX_RETRIES + 1):
             try:
@@ -272,12 +266,12 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
                     hindex = results[0].get("summary_stats", {}).get("h_index", 0) or 0
 
                 success = True
-                time.sleep(inter_request_sleep)   # adaptive — 0.12s normal, 1.0s after 429
+                time.sleep(inter_request_sleep)
                 break
 
             except urllib.error.HTTPError as e:
                 if e.code == 429:
-                    inter_request_sleep = _OA_SLOW_SLEEP   # slow down for all future requests
+                    inter_request_sleep = _OA_SLOW_SLEEP
                     wait = min(_OA_BASE_WAIT * (2 ** (attempt - 1)), _OA_MAX_WAIT)
                     print(f"  OpenAlex 429 for '{name}' — "
                           f"backing off {wait}s, slowing to {inter_request_sleep}s/req "
@@ -293,8 +287,6 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
 
         if not success:
             print(f"  OpenAlex gave up for '{name}' after {_OA_MAX_RETRIES} attempts.")
-            # Don't cache 429 failures — leave them as cache misses so the
-            # next run retries them rather than treating them as genuine zero.
             hindices.append(0)
             continue
 
@@ -305,7 +297,6 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
         hindices.append(hindex)
 
     return hindices
-
 
 def _safe_hindices(row) -> list:
     """Extract author_hindices from a row as a clean list of ints.
