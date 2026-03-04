@@ -209,13 +209,6 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
 
     hindices = []
 
-    for name in author_names:
-        name = name.strip()
-        if not name:
-            hindices.append(0)
-            continue
-        key = name.lower()
-
     # ── OpenAlex rate limit check ─────────────────────────────────────────
     _oa_key = os.environ.get("OPENALEX_API_KEY", "")
     if _oa_key:
@@ -234,6 +227,15 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
     else:
         print("  OpenAlex: no API key — using anonymous tier (may be rate limited)")
     # ─────────────────────────────────────────────────────────────────────
+
+
+
+    for name in author_names:
+        name = name.strip()
+        if not name:
+            hindices.append(0)
+            continue
+        key = name.lower()
 
 
 
