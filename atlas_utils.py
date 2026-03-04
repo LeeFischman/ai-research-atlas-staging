@@ -223,8 +223,10 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
             continue
 
         # Fetch from OpenAlex with 429 backoff
-        q   = urllib.parse.quote(name)
-        url = f"https://api.openalex.org/authors?search={q}&per_page=5"
+        q       = urllib.parse.quote(name)
+        _oa_key = os.environ.get("OPENALEX_API_KEY", "")
+        _oa_qs  = f"&api_key={_oa_key}" if _oa_key else ""
+        url     = f"https://api.openalex.org/authors?search={q}&per_page=5{_oa_qs}"
         req = _req.Request(
             url,
             headers={"User-Agent":
