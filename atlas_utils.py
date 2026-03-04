@@ -222,6 +222,25 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
             hindices.append(entry.get("hindex", 0))
             continue
 
+    # ── OpenAlex rate limit check ─────────────────────────────────────────
+    _oa_key = os.environ.get("OPENALEX_API_KEY", "")
+    if _oa_key:
+        try:
+            _rl_url = f"https://api.openalex.org/rate-limit?api_key={_oa_key}"
+            _rl_req = _req.Request(_rl_url, headers={"User-Agent": "ai-research-atlas/2.0"})
+            with _req.urlopen(_rl_req, timeout=10) as _rl_resp:
+                _rl = json.loads(_rl_resp.read().decode()).get("rate_limit", {})
+            print(f"  OpenAlex budget: "
+                  f"${_rl.get('daily_used_usd', '?'):.4f} used / "
+                  f"${_rl.get('daily_budget_usd', '?'):.2f} daily — "
+                  f"${_rl.get('daily_remaining_usd', '?'):.4f} remaining "
+                  f"(resets in {_rl.get('resets_in_seconds', '?')}s)")
+        except Exception as _rl_e:
+            print(f"  OpenAlex rate limit check failed: {_rl_e}")
+    else:
+        print("  OpenAlex: no API key — using anonymous tier (may be rate limited)")
+    # ─────────────────────────────────────────────────────────────────────
+
         # Fetch from OpenAlex with 429 backoff
         q       = urllib.parse.quote(name)
         _oa_key = os.environ.get("OPENALEX_API_KEY", "")
