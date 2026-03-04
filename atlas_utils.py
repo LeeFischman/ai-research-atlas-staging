@@ -216,12 +216,6 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
             continue
         key = name.lower()
 
-        # Cache hit?
-        entry = cache.get(key)
-        if entry and entry.get("fetched_at", "") > cutoff_ts:
-            hindices.append(entry.get("hindex", 0))
-            continue
-
     # ── OpenAlex rate limit check ─────────────────────────────────────────
     _oa_key = os.environ.get("OPENALEX_API_KEY", "")
     if _oa_key:
@@ -240,6 +234,15 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
     else:
         print("  OpenAlex: no API key — using anonymous tier (may be rate limited)")
     # ─────────────────────────────────────────────────────────────────────
+
+
+
+        # Cache hit?
+        entry = cache.get(key)
+        if entry and entry.get("fetched_at", "") > cutoff_ts:
+            hindices.append(entry.get("hindex", 0))
+            continue
+
 
         # Fetch from OpenAlex with 429 backoff
         q       = urllib.parse.quote(name)
