@@ -1,25 +1,47 @@
 # atlas_utils.py
+
 # ──────────────────────────────────────────────────────────────────────────────
+
 # Shared utilities for the AI Research Atlas pipeline.
-#
+
+# 
+
 # Imported by update_map_v2.py.  update_map.py is deliberately left unchanged
+
 # so it continues to work as a standalone fallback / reference implementation.
-#
+
+# 
+
 # Contents
-# --------
-#   §1  Text helpers          scrub_model_words, _strip_urls
-#   §2  Docs cleanup          clear_docs_contents
-#   §3  Prominence scoring    load_author_cache, save_author_cache,
-#                             fetch_author_hindices, calculate_prominence
-#   §3b Semantic Scholar      load_ss_cache, save_ss_cache,
-#                             fetch_semantic_scholar_data, _arxiv_id_base
-#   §4  Rolling database      load_existing_db, merge_papers
-#   §5  arXiv fetch           fetch_arxiv_oai  (OAI-PMH announcement-date)
-#                             fetch_arxiv      (legacy submission-date, v1 only)
-#   §6  Embedding / UMAP      embed_and_project, _embed_only,
-#                             compute_hybrid_distances, embed_and_project_hybrid
-#   §7  Atlas build + deploy  build_and_deploy_atlas
-#   §8  HTML panels           build_panel_html
+
+# ––––
+
+# §1  Text helpers          scrub_model_words, _strip_urls
+
+# §2  Docs cleanup          clear_docs_contents
+
+# §3  Prominence scoring    load_author_cache, save_author_cache,
+
+# fetch_author_hindices, calculate_prominence
+
+# §3b Semantic Scholar      load_ss_cache, save_ss_cache,
+
+# fetch_semantic_scholar_data, _arxiv_id_base
+
+# §4  Rolling database      load_existing_db, merge_papers
+
+# §5  arXiv fetch           fetch_arxiv_oai  (OAI-PMH announcement-date)
+
+# fetch_arxiv      (legacy submission-date, v1 only)
+
+# §6  Embedding / UMAP      embed_and_project, _embed_only,
+
+# compute_hybrid_distances, embed_and_project_hybrid
+
+# §7  Atlas build + deploy  build_and_deploy_atlas
+
+# §8  HTML panels           build_panel_html
+
 # ──────────────────────────────────────────────────────────────────────────────
 
 import json
@@ -35,139 +57,177 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import pandas as pd
 
-
 # ══════════════════════════════════════════════════════════════════════════════
+
 # SHARED CONSTANTS
+
 # ══════════════════════════════════════════════════════════════════════════════
 
-DB_PATH         = "database.parquet"
-STOP_WORDS_PATH = "stop_words.csv"
+DB_PATH         = “database.parquet”
+STOP_WORDS_PATH = “stop_words.csv”
 RETENTION_DAYS  = 14      # papers older than this are pruned each run
 ARXIV_MAX       = 400    # max papers fetched per arXiv query
 
 # arXiv retry policy
+
 BASE_WAIT   = 15
 MAX_WAIT    = 480
 MAX_RETRIES = 7
 
-
 # ══════════════════════════════════════════════════════════════════════════════
+
 # §1  TEXT HELPERS
+
 # ══════════════════════════════════════════════════════════════════════════════
 
 def scrub_model_words(text: str) -> str:
-    """Remove inflections of 'model' to reduce TF-IDF noise."""
-    pattern = re.compile(r'model(?:s|ing|ed|er|ers)?\b', re.IGNORECASE)
-    return " ".join(pattern.sub("", text).split())
-
+“”“Remove inflections of ‘model’ to reduce TF-IDF noise.”””
+pattern = re.compile(r’model(?:s|ing|ed|er|ers)?\b’, re.IGNORECASE)
+return “ “.join(pattern.sub(””, text).split())
 
 def _strip_urls(text: str) -> str:
-    """Remove URLs and arXiv-style citation keys from abstract text.
+“”“Remove URLs and arXiv-style citation keys from abstract text.
 
-    Targets:
-      - http/https URLs (e.g. https://github.com/user/repo)
-      - Bare github.com / huggingface.co / arxiv.org references
-      - Citation-key tokens containing digits (e.g. cho2026_tokenizer,
-        agentlab_main, youtu_cy06ljee1jq) — identifiers, not natural language
-    """
-    text = re.sub(r'https?://\S+', '', text)
-    text = re.sub(r'\b(?:github|huggingface|arxiv)\.(?:com|org|io)\S*', '',
-                  text, flags=re.IGNORECASE)
-    # Remove citation-key tokens: word containing digits
-    text = re.sub(r'\b\w*\d\w*\b', '', text)
-    return " ".join(text.split())
-
+```
+Targets:
+  - http/https URLs (e.g. https://github.com/user/repo)
+  - Bare github.com / huggingface.co / arxiv.org references
+  - Citation-key tokens containing digits (e.g. cho2026_tokenizer,
+    agentlab_main, youtu_cy06ljee1jq) — identifiers, not natural language
+"""
+text = re.sub(r'https?://\S+', '', text)
+text = re.sub(r'\b(?:github|huggingface|arxiv)\.(?:com|org|io)\S*', '',
+              text, flags=re.IGNORECASE)
+# Remove citation-key tokens: word containing digits
+text = re.sub(r'\b\w*\d\w*\b', '', text)
+return " ".join(text.split())
+```
 
 # ══════════════════════════════════════════════════════════════════════════════
+
 # §2  DOCS CLEANUP
+
 # ══════════════════════════════════════════════════════════════════════════════
 
 def clear_docs_contents(target_dir: str) -> None:
-    """Delete every file/folder inside target_dir (but keep the dir itself)."""
-    if not os.path.exists(target_dir):
-        os.makedirs(target_dir, exist_ok=True)
-        return
-    for filename in os.listdir(target_dir):
-        file_path = os.path.join(target_dir, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print(f"  Skipped {file_path}: {e}")
-
+“”“Delete every file/folder inside target_dir (but keep the dir itself).”””
+if not os.path.exists(target_dir):
+os.makedirs(target_dir, exist_ok=True)
+return
+for filename in os.listdir(target_dir):
+file_path = os.path.join(target_dir, filename)
+try:
+if os.path.isfile(file_path) or os.path.islink(file_path):
+os.unlink(file_path)
+elif os.path.isdir(file_path):
+shutil.rmtree(file_path)
+except Exception as e:
+print(f”  Skipped {file_path}: {e}”)
 
 # ══════════════════════════════════════════════════════════════════════════════
+
 # §3  PROMINENCE SCORING  (h-index based)
-#
+
+# 
+
 # Formula
+
 # ───────
-#   h_score = log1p(max_h)    * W_MAX
-#           + log1p(median_h) * W_MEDIAN
-#
-#   max_h    : highest h-index across all authors
-#   median_h : median h-index across all authors
-#   log1p    : compresses the long right tail of h-index distributions
-#              (log1p(x) = log(1+x), so h=0→0, h=9≈2.3, h=29≈3.4, h=79≈4.4)
-#
+
+# h_score = log1p(max_h)    * W_MAX
+
+# + log1p(median_h) * W_MEDIAN
+
+# 
+
+# max_h    : highest h-index across all authors
+
+# median_h : median h-index across all authors
+
+# log1p    : compresses the long right tail of h-index distributions
+
+# (log1p(x) = log(1+x), so h=0→0, h=9≈2.3, h=29≈3.4, h=79≈4.4)
+
+# 
+
 # Four tiers (h_score thresholds are first-guess constants — tune after seeing
+
 # real distributions in run_state.json):
-#   h_score ≥ TIER_ELITE     → "Elite"
-#   h_score ≥ TIER_ENHANCED  → "Enhanced"
-#   h_score ≥ TIER_EMERGING  → "Emerging"
-#   h_score <  TIER_EMERGING → "Unverified"
-#
+
+# h_score ≥ TIER_ELITE     → “Elite”
+
+# h_score ≥ TIER_ENHANCED  → “Enhanced”
+
+# h_score ≥ TIER_EMERGING  → “Emerging”
+
+# h_score <  TIER_EMERGING → “Unverified”
+
+# 
+
 # Author h-index cache
-#   File  : author_cache.json  (alongside database.parquet)
-#   Key   : normalised author name (stripped, lowercased)
-#   Value : {"hindex": int, "fetched_at": ISO timestamp}
-#   TTL   : AUTHOR_CACHE_TTL_DAYS (30 days — h-index changes slowly)
-#   Scope : ALL authors per paper
+
+# File  : author_cache.json  (alongside database.parquet)
+
+# Key   : normalised author name (stripped, lowercased)
+
+# Value : {“hindex”: int, “fetched_at”: ISO timestamp}
+
+# TTL   : AUTHOR_CACHE_TTL_DAYS (30 days — h-index changes slowly)
+
+# Scope : ALL authors per paper
+
 # ══════════════════════════════════════════════════════════════════════════════
 
-AUTHOR_CACHE_PATH     = "author_cache.json"
+AUTHOR_CACHE_PATH     = “author_cache.json”
 AUTHOR_CACHE_TTL_DAYS = 30
 
 # ── Formula weights ───────────────────────────────────────────────────────────
+
 # Both start at 1.0. max_h naturally exceeds median_h so no artificial
+
 # multiplier is needed. Tune after inspecting real tier distributions.
+
 W_MAX    = 1.0
 W_MEDIAN = 1.0
 
 # ── Tier thresholds ───────────────────────────────────────────────────────────
+
 # Representative h_score values with W_MAX=W_MEDIAN=1.0:
-#   Unknown solo author          max=0,  median=0  → 0.0
-#   Grad students only           max=2,  median=1  → 1.8
-#   One mid-career researcher    max=10, median=3  → 3.8
-#   Solid team                   max=20, median=10 → 5.4
-#   Strong PI + good team        max=40, median=15 → 6.5
-#   Elite collaboration          max=60, median=25 → 7.6
+
+# Unknown solo author          max=0,  median=0  → 0.0
+
+# Grad students only           max=2,  median=1  → 1.8
+
+# One mid-career researcher    max=10, median=3  → 3.8
+
+# Solid team                   max=20, median=10 → 5.4
+
+# Strong PI + good team        max=40, median=15 → 6.5
+
+# Elite collaboration          max=60, median=25 → 7.6
+
 TIER_ELITE    = 7.0
 TIER_ENHANCED = 5.0
 TIER_EMERGING = 3.0
-# below TIER_EMERGING            → "Unverified"
 
+# below TIER_EMERGING            → “Unverified”
 
 def categorize_authors(n: int) -> str:
-    if n <= 3:  return "1-3 Authors"
-    if n <= 7:  return "4-7 Authors"
-    return "8+ Authors"
-
+if n <= 3:  return “1-3 Authors”
+if n <= 7:  return “4-7 Authors”
+return “8+ Authors”
 
 def load_author_cache() -> dict:
-    """Load the author h-index cache from disk; return empty dict if missing."""
-    if os.path.exists(AUTHOR_CACHE_PATH):
-        with open(AUTHOR_CACHE_PATH) as f:
-            return json.load(f)
-    return {}
-
+“”“Load the author h-index cache from disk; return empty dict if missing.”””
+if os.path.exists(AUTHOR_CACHE_PATH):
+with open(AUTHOR_CACHE_PATH) as f:
+return json.load(f)
+return {}
 
 def save_author_cache(cache: dict) -> None:
-    """Persist the author h-index cache to disk."""
-    with open(AUTHOR_CACHE_PATH, "w") as f:
-        json.dump(cache, f, indent=2)
-
+“”“Persist the author h-index cache to disk.”””
+with open(AUTHOR_CACHE_PATH, “w”) as f:
+json.dump(cache, f, indent=2)
 
 def fetch_author_hindices(author_names: list, cache: dict) -> list:
 “”“Return a list of h-indices for ALL authors, using OpenAlex API.
@@ -196,12 +256,12 @@ import difflib
 import urllib.parse
 import urllib.request as _req
 
-_OA_BATCH_SIZE   = 50    # authors per API request (OpenAlex OR filter max)
-_OA_MAX_RETRIES  = 5
-_OA_BASE_WAIT    = 60    # seconds — first 429 wait
-_OA_MAX_WAIT     = 600   # seconds — cap per retry (~10 min)
-_OA_BATCH_SLEEP  = 0.5   # seconds between batch requests (~2 req/s, well under limit)
-_OA_SLOW_SLEEP   = 2.0   # seconds between batches after first 429
+_OA_BATCH_SIZE  = 50    # authors per API request (OpenAlex OR filter max)
+_OA_MAX_RETRIES = 5
+_OA_BASE_WAIT   = 60    # seconds — first 429 wait
+_OA_MAX_WAIT    = 600   # seconds — cap per retry (~10 min)
+_OA_BATCH_SLEEP = 0.5   # seconds between batch requests (~2 req/s, well under limit)
+_OA_SLOW_SLEEP  = 2.0   # seconds between batches after first 429
 
 inter_batch_sleep = _OA_BATCH_SLEEP
 
@@ -248,9 +308,10 @@ for i, name in enumerate(cleaned):
 if not to_fetch_idx:
     return hindices
 
-n_fetch = len(to_fetch_idx)
+n_fetch   = len(to_fetch_idx)
 n_batches = (n_fetch + _OA_BATCH_SIZE - 1) // _OA_BATCH_SIZE
-print(f"  OpenAlex: fetching {n_fetch} authors in {n_batches} batch(es) of up to {_OA_BATCH_SIZE}...")
+print(f"  OpenAlex: fetching {n_fetch} authors in {n_batches} batch(es) "
+      f"of up to {_OA_BATCH_SIZE}...")
 
 _UA = ("ai-research-atlas/2.0 "
        "(https://github.com/LeeFischman/ai-research-atlas; "
@@ -262,7 +323,7 @@ for batch_start in range(0, n_fetch, _OA_BATCH_SIZE):
     batch_names   = [cleaned[i] for i in batch_indices]
 
     # Build OR filter: display_name.search:Name1|Name2|Name3
-    names_filter  = "|".join(urllib.parse.quote(n) for n in batch_names)
+    names_filter = "|".join(urllib.parse.quote(n) for n in batch_names)
     url = (f"https://api.openalex.org/authors"
            f"?filter=display_name.search:{names_filter}"
            f"&per_page={_OA_BATCH_SIZE}"
@@ -277,15 +338,15 @@ for batch_start in range(0, n_fetch, _OA_BATCH_SIZE):
         try:
             with _req.urlopen(req, timeout=20) as resp:
                 data    = json.loads(resp.read().decode())
-            results     = data.get("results", [])
-            succeeded   = True
+            results   = data.get("results", [])
+            succeeded = True
             time.sleep(inter_batch_sleep)
             break
 
         except urllib.error.HTTPError as e:
             if e.code == 429:
                 inter_batch_sleep = _OA_SLOW_SLEEP
-                wait = min(_OA_BASE_WAIT * (2 ** (attempt - 1)), _OA_MAX_WAIT)
+                wait      = min(_OA_BASE_WAIT * (2 ** (attempt - 1)), _OA_MAX_WAIT)
                 batch_num = batch_start // _OA_BATCH_SIZE + 1
                 print(f"  OpenAlex 429 on batch {batch_num}/{n_batches} — "
                       f"backing off {wait}s (attempt {attempt}/{_OA_MAX_RETRIES})...")
@@ -314,8 +375,8 @@ for batch_start in range(0, n_fetch, _OA_BATCH_SIZE):
     api_names_lower = list(api_lookup.keys())
 
     for i, name in zip(batch_indices, batch_names):
-        key        = name.lower()
-        hindex     = 0
+        key    = name.lower()
+        hindex = 0
 
         # 1. Exact match
         if key in api_lookup:
@@ -334,379 +395,457 @@ for batch_start in range(0, n_fetch, _OA_BATCH_SIZE):
         }
 
 return hindices
+```
 
 def _safe_hindices(row) -> list:
-    """Extract author_hindices from a row as a clean list of ints.
+“”“Extract author_hindices from a row as a clean list of ints.
 
-    Handles three cases:
-      - author_hindices column present and is a list  → use it directly
-      - only max_author_hindex present (old DB rows)  → treat as [max_author_hindex]
-      - neither present / NaN                         → return [0]
-    """
-    val = row.get("author_hindices", None)
-    if isinstance(val, (list, np.ndarray)) and len(val) > 0:
-        return [int(h) if (h is not None and not (isinstance(h, float) and np.isnan(h)))
-                else 0 for h in val]
+```
+Handles three cases:
+  - author_hindices column present and is a list  → use it directly
+  - only max_author_hindex present (old DB rows)  → treat as [max_author_hindex]
+  - neither present / NaN                         → return [0]
+"""
+val = row.get("author_hindices", None)
+if isinstance(val, (list, np.ndarray)) and len(val) > 0:
+    return [int(h) if (h is not None and not (isinstance(h, float) and np.isnan(h)))
+            else 0 for h in val]
 
-    # Backward compat: old rows have max_author_hindex (int) but no list
-    old = row.get("max_author_hindex", None)
-    if old is not None and not (isinstance(old, float) and np.isnan(old)):
-        return [int(old)]
+# Backward compat: old rows have max_author_hindex (int) but no list
+old = row.get("max_author_hindex", None)
+if old is not None and not (isinstance(old, float) and np.isnan(old)):
+    return [int(old)]
 
-    return [0]
-
+return [0]
+```
 
 def calculate_prominence(row) -> str:
-    """Compute prominence tier from author h-indices.
+“”“Compute prominence tier from author h-indices.
 
-    Reads row["author_hindices"] (list of ints, one per author).
-    Falls back to row["max_author_hindex"] for rows written by older pipeline.
+```
+Reads row["author_hindices"] (list of ints, one per author).
+Falls back to row["max_author_hindex"] for rows written by older pipeline.
 
-    Formula
-    -------
-    h_score = log1p(max_h) * W_MAX + log1p(median_h) * W_MEDIAN
+Formula
+-------
+h_score = log1p(max_h) * W_MAX + log1p(median_h) * W_MEDIAN
 
-    Returns one of: "Elite" / "Enhanced" / "Emerging" / "Unverified"
-    """
-    import math
-    hindices = _safe_hindices(row)
+Returns one of: "Elite" / "Enhanced" / "Emerging" / "Unverified"
+"""
+import math
+hindices = _safe_hindices(row)
 
-    max_h    = max(hindices) if hindices else 0
-    median_h = float(np.median(hindices)) if hindices else 0.0
+max_h    = max(hindices) if hindices else 0
+median_h = float(np.median(hindices)) if hindices else 0.0
 
-    h_score = math.log1p(max_h) * W_MAX + math.log1p(median_h) * W_MEDIAN
+h_score = math.log1p(max_h) * W_MAX + math.log1p(median_h) * W_MEDIAN
 
-    if h_score >= TIER_ELITE:
-        return "Elite"
-    elif h_score >= TIER_ENHANCED:
-        return "Enhanced"
-    elif h_score >= TIER_EMERGING:
-        return "Emerging"
-    else:
-        return "Unverified"
-
+if h_score >= TIER_ELITE:
+    return "Elite"
+elif h_score >= TIER_ENHANCED:
+    return "Enhanced"
+elif h_score >= TIER_EMERGING:
+    return "Emerging"
+else:
+    return "Unverified"
+```
 
 # Alias so callers using the old name continue to work during transition
+
 calculate_reputation = calculate_prominence
 
-
 # ══════════════════════════════════════════════════════════════════════════════
+
 # §3b  SEMANTIC SCHOLAR ENRICHMENT
-#
+
+# 
+
 # For each arXiv paper, fetches from the Semantic Scholar API:
-#   citation_count             — total citations received
-#   influential_citation_count — citations that "heavily build on" this paper
-#                                (S2's own classifier; per-citation signal)
-#   tldr                       — S2's one-sentence AI-generated summary
-#
+
+# citation_count             — total citations received
+
+# influential_citation_count — citations that “heavily build on” this paper
+
+# (S2’s own classifier; per-citation signal)
+
+# tldr                       — S2’s one-sentence AI-generated summary
+
+# 
+
 # Implementation notes
+
 # ────────────────────
+
 # • Uses the batch endpoint (POST /graph/v1/paper/batch) — up to 500 IDs per
-#   request, so even 400 papers is a single HTTP call.
-# • arXiv IDs from the parquet (e.g. "2501.12345v1") are stripped of their
-#   version suffix before being sent as "arXiv:2501.12345".
-# • Cache key  : base arXiv ID (version-stripped, e.g. "2501.12345")
+
+# request, so even 400 papers is a single HTTP call.
+
+# • arXiv IDs from the parquet (e.g. “2501.12345v1”) are stripped of their
+
+# version suffix before being sent as “arXiv:2501.12345”.
+
+# • Cache key  : base arXiv ID (version-stripped, e.g. “2501.12345”)
+
 # • Cache value: {citation_count, influential_citation_count, tldr, fetched_at}
+
 # • Cache TTL  : SS_CACHE_TTL_DAYS (7 days — citations move faster than h-index)
+
 # • Papers not yet indexed in S2 (brand-new, or outside its corpus) are stored
-#   with all-zero counts and empty TLDR; they are re-fetched after the TTL expires.
+
+# with all-zero counts and empty TLDR; they are re-fetched after the TTL expires.
+
 # • Optional env var SEMANTIC_SCHOLAR_API_KEY unlocks higher rate limits.
-#   Without it the free tier allows ~1 req/s (plenty for a daily batch job).
-# • "Highly influential" in S2 is a per-citation signal, not a per-paper boolean.
-#   The paper-level equivalent is influential_citation_count, stored here.
+
+# Without it the free tier allows ~1 req/s (plenty for a daily batch job).
+
+# • “Highly influential” in S2 is a per-citation signal, not a per-paper boolean.
+
+# The paper-level equivalent is influential_citation_count, stored here.
+
 # ══════════════════════════════════════════════════════════════════════════════
 
-SS_CACHE_PATH     = "ss_cache.json"
+SS_CACHE_PATH     = “ss_cache.json”
 SS_CACHE_TTL_DAYS = 7     # re-fetch after 7 days so citation counts stay fresh
 
 _SS_BATCH_URL = (
-    "https://api.semanticscholar.org/graph/v1/paper/batch"
-    "?fields=citationCount,influentialCitationCount,tldr"
+“https://api.semanticscholar.org/graph/v1/paper/batch”
+“?fields=citationCount,influentialCitationCount,tldr”
 )
 
-
 def load_ss_cache() -> dict:
-    """Load the Semantic Scholar cache from disk; return empty dict if missing."""
-    if os.path.exists(SS_CACHE_PATH):
-        with open(SS_CACHE_PATH) as f:
-            return json.load(f)
-    return {}
-
+“”“Load the Semantic Scholar cache from disk; return empty dict if missing.”””
+if os.path.exists(SS_CACHE_PATH):
+with open(SS_CACHE_PATH) as f:
+return json.load(f)
+return {}
 
 def save_ss_cache(cache: dict) -> None:
-    """Persist the Semantic Scholar cache to disk."""
-    with open(SS_CACHE_PATH, "w") as f:
-        json.dump(cache, f, indent=2)
-
+“”“Persist the Semantic Scholar cache to disk.”””
+with open(SS_CACHE_PATH, “w”) as f:
+json.dump(cache, f, indent=2)
 
 def _arxiv_id_base(arxiv_id: str) -> str:
-    """Strip version suffix from an arXiv entry ID.
+“”“Strip version suffix from an arXiv entry ID.
 
-    '2501.12345v1' → '2501.12345'
-    '2501.12345'   → '2501.12345'
-    """
-    return re.sub(r'v\d+$', '', arxiv_id.strip())
-
+```
+'2501.12345v1' → '2501.12345'
+'2501.12345'   → '2501.12345'
+"""
+return re.sub(r'v\d+$', '', arxiv_id.strip())
+```
 
 def fetch_semantic_scholar_data(arxiv_ids: list, cache: dict) -> dict:
-    """Fetch Semantic Scholar metadata for a list of arXiv IDs.
+“”“Fetch Semantic Scholar metadata for a list of arXiv IDs.
 
-    Fetches all given IDs from S2 unconditionally and updates the cache.
-    The caller (update_map_v2.py) is responsible for deciding which IDs
-    need fetching — this function does not do its own cache filtering,
-    which would silently skip IDs the caller determined are stale or
-    have no signal (e.g. zeros stored from a previously failed request).
+```
+Fetches all given IDs from S2 unconditionally and updates the cache.
+The caller (update_map_v2.py) is responsible for deciding which IDs
+need fetching — this function does not do its own cache filtering,
+which would silently skip IDs the caller determined are stale or
+have no signal (e.g. zeros stored from a previously failed request).
 
-    Parameters
-    ----------
-    arxiv_ids : list of str — raw arXiv entry IDs (may include version suffix)
-    cache     : the shared in-memory cache dict (mutated in-place)
+Parameters
+----------
+arxiv_ids : list of str — raw arXiv entry IDs (may include version suffix)
+cache     : the shared in-memory cache dict (mutated in-place)
 
-    Returns
-    -------
-    dict mapping base_arxiv_id → {
-        "citation_count":             int,
-        "influential_citation_count": int,
-        "tldr":                       str,   # AI-generated one-liner, or ""
-        "fetched_at":                 str,   # ISO timestamp
-    }
-    All values default to 0 / "" for papers not found in S2.
-    """
-    import urllib.request as _req
+Returns
+-------
+dict mapping base_arxiv_id → {
+    "citation_count":             int,
+    "influential_citation_count": int,
+    "tldr":                       str,   # AI-generated one-liner, or ""
+    "fetched_at":                 str,   # ISO timestamp
+}
+All values default to 0 / "" for papers not found in S2.
+"""
+import urllib.request as _req
 
-    now_iso = datetime.now(timezone.utc).isoformat()
+now_iso = datetime.now(timezone.utc).isoformat()
 
-    # De-duplicate while preserving order
-    seen     = set()
-    to_fetch = [_arxiv_id_base(aid) for aid in arxiv_ids
-                if not (_arxiv_id_base(aid) in seen or seen.add(_arxiv_id_base(aid)))]
+# De-duplicate while preserving order
+seen     = set()
+to_fetch = [_arxiv_id_base(aid) for aid in arxiv_ids
+            if not (_arxiv_id_base(aid) in seen or seen.add(_arxiv_id_base(aid)))]
 
-    results = {}
-    print(f"  Fetching {len(to_fetch)} papers from Semantic Scholar...")
+results = {}
+print(f"  Fetching {len(to_fetch)} papers from Semantic Scholar...")
 
-    ss_api_key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY", "").strip()
-    base_headers = {
-        "Content-Type": "application/json",
-        "User-Agent": (
-            "ai-research-atlas/2.0 "
-            "(https://github.com/LeeFischman/ai-research-atlas; "
-            "mailto:lee.fischman@gmail.com)"
-        ),
-    }
-    if ss_api_key:
-        base_headers["x-api-key"] = ss_api_key
-    # Rate limit: ~1 req/s free tier, ~3 req/s with key
-    inter_chunk_sleep = 0.4 if ss_api_key else 1.2
+ss_api_key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY", "").strip()
+base_headers = {
+    "Content-Type": "application/json",
+    "User-Agent": (
+        "ai-research-atlas/2.0 "
+        "(https://github.com/LeeFischman/ai-research-atlas; "
+        "mailto:lee.fischman@gmail.com)"
+    ),
+}
+if ss_api_key:
+    base_headers["x-api-key"] = ss_api_key
+# Rate limit: ~1 req/s free tier, ~3 req/s with key
+inter_chunk_sleep = 0.4 if ss_api_key else 1.2
 
-    BATCH_SIZE = 500
-    for chunk_i, chunk_start in enumerate(range(0, len(to_fetch), BATCH_SIZE)):
-        chunk  = to_fetch[chunk_start:chunk_start + BATCH_SIZE]
-        ss_ids = [f"arXiv:{b}" for b in chunk]
+BATCH_SIZE = 500
+for chunk_i, chunk_start in enumerate(range(0, len(to_fetch), BATCH_SIZE)):
+    chunk  = to_fetch[chunk_start:chunk_start + BATCH_SIZE]
+    ss_ids = [f"arXiv:{b}" for b in chunk]
 
-        payload = json.dumps({"ids": ss_ids}).encode("utf-8")
-        req     = _req.Request(
-            _SS_BATCH_URL, data=payload, headers=base_headers, method="POST"
-        )
+    payload = json.dumps({"ids": ss_ids}).encode("utf-8")
+    req     = _req.Request(
+        _SS_BATCH_URL, data=payload, headers=base_headers, method="POST"
+    )
 
-        try:
-            with _req.urlopen(req, timeout=30) as resp:
-                data = json.loads(resp.read().decode())
+    try:
+        with _req.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode())
 
-            found_n = null_n = 0
-            for base, paper in zip(chunk, data):
-                if paper is None:
-                    # Not yet indexed in S2 (brand-new paper, or outside corpus)
-                    entry = {
-                        "citation_count":             0,
-                        "influential_citation_count": 0,
-                        "tldr":                       "",
-                        "fetched_at":                 now_iso,
-                    }
-                    null_n += 1
-                else:
-                    tldr_text = ""
-                    if isinstance(paper.get("tldr"), dict):
-                        tldr_text = paper["tldr"].get("text", "") or ""
-                    entry = {
-                        "citation_count":             int(paper.get("citationCount")            or 0),
-                        "influential_citation_count": int(paper.get("influentialCitationCount") or 0),
-                        "tldr":                       tldr_text,
-                        "fetched_at":                 now_iso,
-                    }
-                    found_n += 1
+        found_n = null_n = 0
+        for base, paper in zip(chunk, data):
+            if paper is None:
+                # Not yet indexed in S2 (brand-new paper, or outside corpus)
+                entry = {
+                    "citation_count":             0,
+                    "influential_citation_count": 0,
+                    "tldr":                       "",
+                    "fetched_at":                 now_iso,
+                }
+                null_n += 1
+            else:
+                tldr_text = ""
+                if isinstance(paper.get("tldr"), dict):
+                    tldr_text = paper["tldr"].get("text", "") or ""
+                entry = {
+                    "citation_count":             int(paper.get("citationCount")            or 0),
+                    "influential_citation_count": int(paper.get("influentialCitationCount") or 0),
+                    "tldr":                       tldr_text,
+                    "fetched_at":                 now_iso,
+                }
+                found_n += 1
+            cache[base]   = entry
+            results[base] = entry
+
+        print(f"  S2 chunk {chunk_i + 1}: "
+              f"{found_n} found, {null_n} not indexed.")
+
+    except Exception as e:
+        print(f"  S2 batch fetch failed (chunk {chunk_i + 1}): {e}")
+        # Store default zeros for the failed chunk so pipeline continues
+        for base in chunk:
+            if base not in results:
+                entry = {
+                    "citation_count":             0,
+                    "influential_citation_count": 0,
+                    "tldr":                       "",
+                    "fetched_at":                 now_iso,
+                }
                 cache[base]   = entry
                 results[base] = entry
 
-            print(f"  S2 chunk {chunk_i + 1}: "
-                  f"{found_n} found, {null_n} not indexed.")
+    if chunk_start + BATCH_SIZE < len(to_fetch):
+        time.sleep(inter_chunk_sleep)
 
-        except Exception as e:
-            print(f"  S2 batch fetch failed (chunk {chunk_i + 1}): {e}")
-            # Store default zeros for the failed chunk so pipeline continues
-            for base in chunk:
-                if base not in results:
-                    entry = {
-                        "citation_count":             0,
-                        "influential_citation_count": 0,
-                        "tldr":                       "",
-                        "fetched_at":                 now_iso,
-                    }
-                    cache[base]   = entry
-                    results[base] = entry
-
-        if chunk_start + BATCH_SIZE < len(to_fetch):
-            time.sleep(inter_chunk_sleep)
-
-    return results
-
+return results
+```
 
 # ══════════════════════════════════════════════════════════════════════════════
+
 # §3c  CITATION TIER
-#
+
+# 
+
 # CitationTier spans both Recent and Significant papers:
-#
-#   "Very Highly Cited" — top CITATION_TIER_TOP_PCT of the significant pool
-#                         by ss_influential_citations (dynamic percentile)
-#   "Highly Cited"      — remaining papers in the significant pool
-#   "Cited"             — Recent papers with ss_citation_count > 0
-#   ""                  — Recent papers with zero citations (not displayed)
-#
+
+# 
+
+# “Very Highly Cited” — top CITATION_TIER_TOP_PCT of the significant pool
+
+# by ss_influential_citations (dynamic percentile)
+
+# “Highly Cited”      — remaining papers in the significant pool
+
+# “Cited”             — Recent papers with ss_citation_count > 0
+
+# “”                  — Recent papers with zero citations (not displayed)
+
+# 
+
 # Percentile thresholds are computed fresh each run against the current pool,
-# so "Very Highly Cited" always means top-of-field for the current period
+
+# so “Very Highly Cited” always means top-of-field for the current period
+
 # regardless of absolute citation counts.
-#
+
+# 
+
 # Computed in update_map_v2.py after Stage 1d (S2 enrichment) so that the
+
 # thresholds reflect the full merged pool (Recent + Significant).
+
 # ══════════════════════════════════════════════════════════════════════════════
 
 CITATION_TIER_TOP_PCT = 0.20   # top 20% of significant pool -> Very Highly Cited
 
-
 def calculate_citation_tier(df: pd.DataFrame) -> pd.Series:
-    """Assign CitationTier to all papers in the merged DataFrame.
+“”“Assign CitationTier to all papers in the merged DataFrame.
 
-    Parameters
-    ----------
-    df : DataFrame with columns paper_source, ss_influential_citations,
-         ss_citation_count (all present after Stage 1d).
+```
+Parameters
+----------
+df : DataFrame with columns paper_source, ss_influential_citations,
+     ss_citation_count (all present after Stage 1d).
 
-    Returns
-    -------
-    pd.Series of str, aligned to df.index.
-    """
-    result = pd.Series("", index=df.index, dtype=str)
+Returns
+-------
+pd.Series of str, aligned to df.index.
+"""
+result = pd.Series("", index=df.index, dtype=str)
 
-    required = {"paper_source", "ss_influential_citations", "ss_citation_count"}
-    missing  = required - set(df.columns)
-    if missing:
-        print(f"  CitationTier: skipped -- missing columns: {missing}")
-        return result
-
-    sig_mask    = df["paper_source"] == "Significant"
-    recent_mask = ~sig_mask
-
-    # Recent papers: "Cited" if any citations, else ""
-    cited_mask = recent_mask & (df["ss_citation_count"].fillna(0).astype(int) > 0)
-    result[cited_mask] = "Cited"
-
-    # Significant papers: percentile split within the pool
-    sig_indices = df.index[sig_mask].tolist()
-    if not sig_indices:
-        n_cited = int(cited_mask.sum())
-        print(f"  CitationTier: {n_cited} Cited, 0 Very Highly / Highly Cited "
-              f"(no significant pool yet).")
-        return result
-
-    sig_inf   = df.loc[sig_mask, "ss_influential_citations"].fillna(0).astype(int)
-    threshold = float(sig_inf.quantile(1.0 - CITATION_TIER_TOP_PCT))
-
-    for idx in sig_indices:
-        inf = int(df.at[idx, "ss_influential_citations"] or 0)
-        if threshold > 0 and inf >= threshold:
-            result[idx] = "Very Highly Cited"
-        else:
-            result[idx] = "Highly Cited"
-
-    n_very  = int((result == "Very Highly Cited").sum())
-    n_high  = int((result == "Highly Cited").sum())
-    n_cited = int((result == "Cited").sum())
-    n_none  = int((result == "").sum())
-    print(f"  CitationTier: {n_very} Very Highly Cited, {n_high} Highly Cited, "
-          f"{n_cited} Cited, {n_none} uncited Recent.")
-
+required = {"paper_source", "ss_influential_citations", "ss_citation_count"}
+missing  = required - set(df.columns)
+if missing:
+    print(f"  CitationTier: skipped -- missing columns: {missing}")
     return result
 
+sig_mask    = df["paper_source"] == "Significant"
+recent_mask = ~sig_mask
+
+# Recent papers: "Cited" if any citations, else ""
+cited_mask = recent_mask & (df["ss_citation_count"].fillna(0).astype(int) > 0)
+result[cited_mask] = "Cited"
+
+# Significant papers: percentile split within the pool
+sig_indices = df.index[sig_mask].tolist()
+if not sig_indices:
+    n_cited = int(cited_mask.sum())
+    print(f"  CitationTier: {n_cited} Cited, 0 Very Highly / Highly Cited "
+          f"(no significant pool yet).")
+    return result
+
+sig_inf   = df.loc[sig_mask, "ss_influential_citations"].fillna(0).astype(int)
+threshold = float(sig_inf.quantile(1.0 - CITATION_TIER_TOP_PCT))
+
+for idx in sig_indices:
+    inf = int(df.at[idx, "ss_influential_citations"] or 0)
+    if threshold > 0 and inf >= threshold:
+        result[idx] = "Very Highly Cited"
+    else:
+        result[idx] = "Highly Cited"
+
+n_very  = int((result == "Very Highly Cited").sum())
+n_high  = int((result == "Highly Cited").sum())
+n_cited = int((result == "Cited").sum())
+n_none  = int((result == "").sum())
+print(f"  CitationTier: {n_very} Very Highly Cited, {n_high} Highly Cited, "
+      f"{n_cited} Cited, {n_none} uncited Recent.")
+
+return result
+```
 
 # ══════════════════════════════════════════════════════════════════════════════
+
 # §4  ROLLING DATABASE
+
 # ══════════════════════════════════════════════════════════════════════════════
 
 def load_existing_db(db_path: str = DB_PATH, bypass_pruning: bool = False) -> pd.DataFrame:
-    if not os.path.exists(db_path):
-        return pd.DataFrame()
-    df = pd.read_parquet(db_path)
-    if bypass_pruning:
-        print(f"  Loaded {len(df)} papers (retention pruning skipped — offline mode).")
-        return df
-    if "date_added" not in df.columns:
-        print("  Existing DB has no date_added column — starting fresh.")
-        return pd.DataFrame()
-    cutoff = datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)
-    df["date_added"] = pd.to_datetime(df["date_added"], utc=True)
-    before = len(df)
-    df = df[df["date_added"] >= cutoff].reset_index(drop=True)
-    pruned = before - len(df)
-    if pruned:
-        print(f"  Pruned {pruned} papers older than {RETENTION_DAYS} days.")
-    return df
-
+if not os.path.exists(db_path):
+return pd.DataFrame()
+df = pd.read_parquet(db_path)
+if bypass_pruning:
+print(f”  Loaded {len(df)} papers (retention pruning skipped — offline mode).”)
+return df
+if “date_added” not in df.columns:
+print(”  Existing DB has no date_added column — starting fresh.”)
+return pd.DataFrame()
+cutoff = datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)
+df[“date_added”] = pd.to_datetime(df[“date_added”], utc=True)
+before = len(df)
+df = df[df[“date_added”] >= cutoff].reset_index(drop=True)
+pruned = before - len(df)
+if pruned:
+print(f”  Pruned {pruned} papers older than {RETENTION_DAYS} days.”)
+return df
 
 def merge_papers(existing: pd.DataFrame, new: pd.DataFrame) -> pd.DataFrame:
-    """Merge new papers into existing; duplicate arXiv IDs: new overwrites old."""
-    if existing.empty:
-        return new
-    kept = existing[~existing["id"].isin(new["id"])]
-    overwritten = len(existing) - len(kept)
-    if overwritten:
-        print(f"  Overwrote {overwritten} updated paper(s).")
-    return pd.concat([kept, new], ignore_index=True)
-
+“”“Merge new papers into existing; duplicate arXiv IDs: new overwrites old.”””
+if existing.empty:
+return new
+kept = existing[~existing[“id”].isin(new[“id”])]
+overwritten = len(existing) - len(kept)
+if overwritten:
+print(f”  Overwrote {overwritten} updated paper(s).”)
+return pd.concat([kept, new], ignore_index=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
+
 # §5  arXiv FETCH — OAI-PMH ANNOUNCEMENT-DATE APPROACH
-#
+
+# 
+
 # Background
+
 # ──────────
+
 # The standard arXiv API filters by *submission date* — when the author
-# clicked "Upload".  But the daily website listings show papers by
+
+# clicked “Upload”.  But the daily website listings show papers by
+
 # *announcement date* — when arXiv moderators released them to the public.
+
 # Papers can sit in moderation for days, so submission-date queries silently
-# miss or misplace a significant fraction of each day's announced papers.
-#
+
+# miss or misplace a significant fraction of each day’s announced papers.
+
+# 
+
 # The fix is a two-step pipeline:
-#   1. OAI-PMH (Open Archives Initiative Protocol for Metadata Harvesting):
-#      query by `datestamp` (announcement date) to get arXiv IDs.
-#   2. arXiv Search API: batch-fetch full metadata for those IDs.
-#
+
+# 1. OAI-PMH (Open Archives Initiative Protocol for Metadata Harvesting):
+
+# query by `datestamp` (announcement date) to get arXiv IDs.
+
+# 2. arXiv Search API: batch-fetch full metadata for those IDs.
+
+# 
+
 # Date arithmetic
+
 # ───────────────
+
 # The pipeline runs at 03:00 UTC.  arXiv announces at ~01:00 UTC, so we
-# query TODAY's UTC date.  On weekends (Sat/Sun UTC) arXiv doesn't release;
+
+# query TODAY’s UTC date.  On weekends (Sat/Sun UTC) arXiv doesn’t release;
+
 # the function returns [] and the caller handles that gracefully.
-#
+
+# 
+
 # For first-run backfill (days_back > 1) we query multiple past dates.
-#
+
+# 
+
 # Monday quirk
+
 # ────────────
-# arXiv's Monday list includes Friday + Sunday submissions and is the
-# largest batch of the week.  The OAI datestamp for Monday's announcement
+
+# arXiv’s Monday list includes Friday + Sunday submissions and is the
+
+# largest batch of the week.  The OAI datestamp for Monday’s announcement
+
 # is typically Monday UTC (occasionally Tuesday UTC if the server is slow).
+
 # By querying today + yesterday we reliably catch it without special-casing.
-#
+
+# 
+
 # Rate limits
+
 # ───────────
+
 # OAI-PMH: 20s sleep between resumption-token requests (strictly enforced).
+
 # Search API: 3s sleep between 50-ID batches (polite use).
+
 # ══════════════════════════════════════════════════════════════════════════════
 
 import urllib.parse
@@ -715,802 +854,820 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 
 # XML namespace map for OAI-PMH + arXiv metadata prefix
+
 _OAI_NS = {
-    "oai":    "http://www.openarchives.org/OAI/2.0/",
-    "arxiv":  "http://arxiv.org/OAI/2.0/",
-    "atom":   "http://www.w3.org/2005/Atom",
+“oai”:    “http://www.openarchives.org/OAI/2.0/”,
+“arxiv”:  “http://arxiv.org/OAI/2.0/”,
+“atom”:   “http://www.w3.org/2005/Atom”,
 }
 
-_OAI_BASE_URL    = "https://export.arxiv.org/oai2"
-_SEARCH_BASE_URL = "https://export.arxiv.org/api/query"
+_OAI_BASE_URL    = “https://export.arxiv.org/oai2”
+_SEARCH_BASE_URL = “https://export.arxiv.org/api/query”
 _OAI_RESUMPTION_SLEEP  = 20   # seconds — strictly required by arXiv
 _SEARCH_BATCH_SIZE     = 50   # IDs per Search API request
 _SEARCH_BATCH_SLEEP    = 3    # seconds between Search API batches
 _OAI_UA = (
-    "ai-research-atlas/2.0 "
-    "(https://github.com/LeeFischman/ai-research-atlas; "
-    "mailto:lee.fischman@gmail.com)"
+“ai-research-atlas/2.0 “
+“(https://github.com/LeeFischman/ai-research-atlas; “
+“mailto:lee.fischman@gmail.com)”
 )
-
 
 @dataclass
 class _Author:
-    """Minimal author object — matches the .name interface of arxiv.Result."""
-    name: str
-
+“”“Minimal author object — matches the .name interface of arxiv.Result.”””
+name: str
 
 @dataclass
 class _ArxivPaper:
-    """Lightweight paper object matching the arxiv.Result interface used in
-    update_map_v2.py Stage 1b:
-        r.title, r.summary, r.pdf_url, r.entry_id, r.authors (list of _Author)
-    """
-    title:            str
-    summary:          str
-    pdf_url:          str
-    entry_id:         str
-    authors:          list = field(default_factory=list)
-    publication_date: str  = ""    # YYYY-MM-DD, parsed from atom:published
+“”“Lightweight paper object matching the arxiv.Result interface used in
+update_map_v2.py Stage 1b:
+r.title, r.summary, r.pdf_url, r.entry_id, r.authors (list of _Author)
+“””
+title:            str
+summary:          str
+pdf_url:          str
+entry_id:         str
+authors:          list = field(default_factory=list)
+publication_date: str  = “”    # YYYY-MM-DD, parsed from atom:published
 
+def _oai_fetch_ids_for_date(date_str: str, category: str = “cs.AI”) -> list[str]:
+“”“Fetch arXiv IDs announced on `date_str` (YYYY-MM-DD) via OAI-PMH.
 
-def _oai_fetch_ids_for_date(date_str: str, category: str = "cs.AI") -> list[str]:
-    """Fetch arXiv IDs announced on `date_str` (YYYY-MM-DD) via OAI-PMH.
+```
+Uses the broad 'cs' set and filters by category in code, because arXiv
+OAI does not expose fine-grained set names like 'cs.AI' directly.
 
-    Uses the broad 'cs' set and filters by category in code, because arXiv
-    OAI does not expose fine-grained set names like 'cs.AI' directly.
+Returns a deduplicated list of base arXiv IDs (e.g. '2501.12345').
+"""
+params: dict = {
+    "verb":           "ListRecords",
+    "metadataPrefix": "arXiv",
+    "from":           date_str,
+    "until":          date_str,
+    "set":            "cs",
+}
 
-    Returns a deduplicated list of base arXiv IDs (e.g. '2501.12345').
-    """
-    params: dict = {
-        "verb":           "ListRecords",
-        "metadataPrefix": "arXiv",
-        "from":           date_str,
-        "until":          date_str,
-        "set":            "cs",
-    }
+found: list[str] = []
+seen:  set[str]  = set()
+page  = 0
 
-    found: list[str] = []
-    seen:  set[str]  = set()
-    page  = 0
+while True:
+    page += 1
+    url = f"{_OAI_BASE_URL}?{urllib.parse.urlencode(params)}"
+    req = _ureq.Request(url, headers={"User-Agent": _OAI_UA})
 
-    while True:
-        page += 1
-        url = f"{_OAI_BASE_URL}?{urllib.parse.urlencode(params)}"
-        req = _ureq.Request(url, headers={"User-Agent": _OAI_UA})
-
-        for attempt in range(1, MAX_RETRIES + 1):
-            try:
-                with _ureq.urlopen(req, timeout=30) as resp:
-                    raw = resp.read()
-                break
-            except urllib.error.HTTPError as e:
-                if e.code == 503:
-                    retry_after = int(e.headers.get("Retry-After", 30))
-                    print(f"    OAI 503 — waiting {retry_after}s (attempt {attempt})...")
-                    time.sleep(retry_after)
-                elif e.code == 429:
-                    wait = BASE_WAIT * (2 ** (attempt - 1))
-                    print(f"    OAI 429 — waiting {wait}s (attempt {attempt})...")
-                    time.sleep(wait)
-                else:
-                    raise
-            except Exception as e:
-                if attempt < MAX_RETRIES:
-                    wait = BASE_WAIT * (2 ** (attempt - 1))
-                    print(f"    OAI error: {e} — waiting {wait}s (attempt {attempt})...")
-                    time.sleep(wait)
-                else:
-                    raise
-        else:
-            print(f"    OAI fetch failed after {MAX_RETRIES} attempts on page {page}.")
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            with _ureq.urlopen(req, timeout=30) as resp:
+                raw = resp.read()
             break
-
-        root = ET.fromstring(raw)
-
-        # Check for OAI error (e.g. noRecordsMatch)
-        error_el = root.find(".//oai:error", _OAI_NS)
-        if error_el is not None:
-            code = error_el.get("code", "")
-            if code == "noRecordsMatch":
-                print(f"    OAI: no records for {date_str} (weekend or holiday).")
+        except urllib.error.HTTPError as e:
+            if e.code == 503:
+                retry_after = int(e.headers.get("Retry-After", 30))
+                print(f"    OAI 503 — waiting {retry_after}s (attempt {attempt})...")
+                time.sleep(retry_after)
+            elif e.code == 429:
+                wait = BASE_WAIT * (2 ** (attempt - 1))
+                print(f"    OAI 429 — waiting {wait}s (attempt {attempt})...")
+                time.sleep(wait)
             else:
-                print(f"    OAI error code='{code}': {error_el.text}")
-            break
-
-        for record in root.findall(".//oai:record", _OAI_NS):
-            # Skip deleted records
-            header = record.find("oai:header", _OAI_NS)
-            if header is not None and header.get("status") == "deleted":
-                continue
-
-            # Namespace-agnostic category search — arXiv uses different namespace
-            # URIs depending on record type, so match by local tag name only.
-            cats_el = next(
-                (el for el in record.iter()
-                 if el.tag.split("}")[-1] == "categories"),
-                None
-            )
-            if cats_el is None or not cats_el.text:
-                continue
-            if category not in cats_el.text.split():
-                continue
-
-            id_el = record.find(".//oai:identifier", _OAI_NS)
-            if id_el is None or not id_el.text:
-                continue
-
-            # "oai:arXiv.org:2501.12345" -> "2501.12345"
-            raw_id  = id_el.text.split(":")[-1].strip()
-            base_id = _arxiv_id_base(raw_id)
-            if base_id not in seen:
-                seen.add(base_id)
-                found.append(base_id)
-
-        # Resumption token for next page
-        token_el = root.find(".//oai:resumptionToken", _OAI_NS)
-        if token_el is not None and token_el.text and token_el.text.strip():
-            print(f"    OAI page {page}: {len(found)} IDs so far — "
-                  f"resuming in {_OAI_RESUMPTION_SLEEP}s...")
-            time.sleep(_OAI_RESUMPTION_SLEEP)
-            params = {"verb": "ListRecords",
-                      "resumptionToken": token_el.text.strip()}
-        else:
-            break
-
-    return found
-
-
-def oai_fetch_ids_for_range(
-    date_from_str: str,
-    date_to_str:   str,
-    category:      str = "cs.AI",
-) -> list[str]:
-    """Fetch arXiv IDs announced between date_from_str and date_to_str via OAI-PMH.
-
-    Unlike _oai_fetch_ids_for_date (which queries a single day), this function
-    queries a full date range in one OAI-PMH request, using resumption tokens
-    to page through all results. Suitable for the initial 150-day backfill in
-    update_significant.py, and for weekly delta fetches.
-
-    Parameters
-    ----------
-    date_from_str : start date inclusive, YYYY-MM-DD
-    date_to_str   : end date inclusive, YYYY-MM-DD
-    category      : arXiv category filter (default: cs.AI)
-
-    Returns
-    -------
-    Deduplicated list of base arXiv IDs (e.g. '2501.12345'), no version suffix.
-    """
-    params: dict = {
-        "verb":           "ListRecords",
-        "metadataPrefix": "arXiv",
-        "from":           date_from_str,
-        "until":          date_to_str,
-        "set":            "cs",      # cs.AI is not a valid OAI set; filter by category in code
-    }
-
-    found: list[str] = []
-    seen:  set[str]  = set()
-    page  = 0
-
-    print(f"  OAI-PMH range fetch: {date_from_str} to {date_to_str} "
-          f"(category={category})...")
-
-    while True:
-        page += 1
-        url = f"{_OAI_BASE_URL}?{urllib.parse.urlencode(params)}"
-        req = _ureq.Request(url, headers={"User-Agent": _OAI_UA})
-
-        for attempt in range(1, MAX_RETRIES + 1):
-            try:
-                with _ureq.urlopen(req, timeout=60) as resp:
-                    raw = resp.read()
-                break
-            except urllib.error.HTTPError as e:
-                if e.code == 503:
-                    retry_after = int(e.headers.get("Retry-After", 30))
-                    print(f"    OAI 503 — waiting {retry_after}s (attempt {attempt})...")
-                    time.sleep(retry_after)
-                elif e.code == 429:
-                    wait = BASE_WAIT * (2 ** (attempt - 1))
-                    print(f"    OAI 429 — waiting {wait}s (attempt {attempt})...")
-                    time.sleep(wait)
-                else:
-                    raise
-            except Exception as e:
-                if attempt < MAX_RETRIES:
-                    wait = BASE_WAIT * (2 ** (attempt - 1))
-                    print(f"    OAI error: {e} — waiting {wait}s (attempt {attempt})...")
-                    time.sleep(wait)
-                else:
-                    raise
-        else:
-            print(f"    OAI range fetch failed after {MAX_RETRIES} attempts on page {page}.")
-            break
-
-        root = ET.fromstring(raw)
-
-        error_el = root.find(".//oai:error", _OAI_NS)
-        if error_el is not None:
-            code = error_el.get("code", "")
-            if code == "noRecordsMatch":
-                print(f"    OAI: no records for range {date_from_str}:{date_to_str}.")
+                raise
+        except Exception as e:
+            if attempt < MAX_RETRIES:
+                wait = BASE_WAIT * (2 ** (attempt - 1))
+                print(f"    OAI error: {e} — waiting {wait}s (attempt {attempt})...")
+                time.sleep(wait)
             else:
-                print(f"    OAI error code='{code}': {error_el.text}")
-            break
+                raise
+    else:
+        print(f"    OAI fetch failed after {MAX_RETRIES} attempts on page {page}.")
+        break
 
-        page_new = 0
-        records = root.findall(".//oai:record", _OAI_NS)
+    root = ET.fromstring(raw)
 
-        for record in records:
-            header = record.find("oai:header", _OAI_NS)
-            if header is not None and header.get("status") == "deleted":
-                continue
-
-            # Use namespace-agnostic search for categories — arXiv uses different
-            # namespace URIs depending on record type (new vs revised):
-            #   new papers:  http://arxiv.org/OAI/2.0/
-            #   revised:     http://arxiv.org/OAI/arXiv/
-            # Searching by local name avoids brittle namespace URI matching.
-            cats_el = next(
-                (el for el in record.iter()
-                 if el.tag.split("}")[-1] == "categories"),
-                None
-            )
-            if cats_el is None or not cats_el.text:
-                continue
-            if category not in cats_el.text.split():
-                continue
-
-            # OAI-PMH date range matches on last-updated datestamp, not submission
-            # date. Filter by <created> date to get only newly submitted papers,
-            # not revisions of old papers.
-            created_el = next(
-                (el for el in record.iter()
-                 if el.tag.split("}")[-1] == "created"),
-                None
-            )
-            if created_el is None or not created_el.text:
-                continue
-            created_date = created_el.text.strip()[:10]  # YYYY-MM-DD
-            if created_date < date_from_str or created_date > date_to_str:
-                continue
-
-            id_el = record.find(".//oai:identifier", _OAI_NS)
-            if id_el is None or not id_el.text:
-                continue
-
-            raw_id  = id_el.text.split(":")[-1].strip()
-            base_id = _arxiv_id_base(raw_id)
-            if base_id not in seen:
-                seen.add(base_id)
-                found.append(base_id)
-                page_new += 1
-
-        token_el = root.find(".//oai:resumptionToken", _OAI_NS)
-        if token_el is not None and token_el.text and token_el.text.strip():
-            print(f"    OAI page {page}: {page_new} new IDs "
-                  f"(running total: {len(found)}) — resuming in {_OAI_RESUMPTION_SLEEP}s...")
-            time.sleep(_OAI_RESUMPTION_SLEEP)
-            params = {"verb": "ListRecords",
-                      "resumptionToken": token_el.text.strip()}
+    # Check for OAI error (e.g. noRecordsMatch)
+    error_el = root.find(".//oai:error", _OAI_NS)
+    if error_el is not None:
+        code = error_el.get("code", "")
+        if code == "noRecordsMatch":
+            print(f"    OAI: no records for {date_str} (weekend or holiday).")
         else:
-            print(f"    OAI page {page}: {page_new} new IDs "
-                  f"(total: {len(found)}) — complete.")
-            break
+            print(f"    OAI error code='{code}': {error_el.text}")
+        break
 
-    return found
-
-
-# Public alias so update_significant.py can import without the leading underscore
-def _search_fetch_metadata(arxiv_ids: list[str]) -> list[_ArxivPaper]:
-    """Fetch full metadata for a list of arXiv IDs via the Search API.
-
-    Batches IDs in groups of _SEARCH_BATCH_SIZE to avoid URL length errors.
-    Returns a list of _ArxivPaper objects in no guaranteed order.
-    """
-    papers: list[_ArxivPaper] = []
-
-    for batch_start in range(0, len(arxiv_ids), _SEARCH_BATCH_SIZE):
-        batch   = arxiv_ids[batch_start:batch_start + _SEARCH_BATCH_SIZE]
-        id_list = ",".join(batch)
-        url     = f"{_SEARCH_BASE_URL}?id_list={id_list}&max_results={len(batch)}"
-        req     = _ureq.Request(url, headers={"User-Agent": _OAI_UA})
-
-        for attempt in range(1, MAX_RETRIES + 1):
-            try:
-                with _ureq.urlopen(req, timeout=30) as resp:
-                    raw = resp.read()
-                break
-            except Exception as e:
-                if attempt < MAX_RETRIES:
-                    wait = min(BASE_WAIT * (2 ** (attempt - 1)), MAX_WAIT)
-                    print(f"    Search API error: {e} — "
-                          f"waiting {wait}s (attempt {attempt})...")
-                    time.sleep(wait)
-                else:
-                    print(f"    Search API batch failed: {e}")
-                    raw = None
-                    break
-
-        if raw is None:
+    for record in root.findall(".//oai:record", _OAI_NS):
+        # Skip deleted records
+        header = record.find("oai:header", _OAI_NS)
+        if header is not None and header.get("status") == "deleted":
             continue
 
-        root = ET.fromstring(raw)
-        for entry in root.findall("atom:entry", _OAI_NS):
-            title_el    = entry.find("atom:title",   _OAI_NS)
-            summary_el  = entry.find("atom:summary", _OAI_NS)
-            id_el       = entry.find("atom:id",      _OAI_NS)
+        # Namespace-agnostic category search — arXiv uses different namespace
+        # URIs depending on record type, so match by local tag name only.
+        cats_el = next(
+            (el for el in record.iter()
+             if el.tag.split("}")[-1] == "categories"),
+            None
+        )
+        if cats_el is None or not cats_el.text:
+            continue
+        if category not in cats_el.text.split():
+            continue
 
-            if title_el is None or id_el is None:
-                continue
+        id_el = record.find(".//oai:identifier", _OAI_NS)
+        if id_el is None or not id_el.text:
+            continue
 
-            title   = (title_el.text   or "").strip().replace("\n", " ")
-            summary = (summary_el.text or "").strip().replace("\n", " ") \
-                      if summary_el is not None else ""
-            abs_url = (id_el.text or "").strip()   # e.g. http://arxiv.org/abs/2501.12345v1
+        # "oai:arXiv.org:2501.12345" -> "2501.12345"
+        raw_id  = id_el.text.split(":")[-1].strip()
+        base_id = _arxiv_id_base(raw_id)
+        if base_id not in seen:
+            seen.add(base_id)
+            found.append(base_id)
 
-            # Derive PDF URL from abstract URL
-            pdf_url = abs_url.replace("/abs/", "/pdf/") if "/abs/" in abs_url else abs_url
+    # Resumption token for next page
+    token_el = root.find(".//oai:resumptionToken", _OAI_NS)
+    if token_el is not None and token_el.text and token_el.text.strip():
+        print(f"    OAI page {page}: {len(found)} IDs so far — "
+              f"resuming in {_OAI_RESUMPTION_SLEEP}s...")
+        time.sleep(_OAI_RESUMPTION_SLEEP)
+        params = {"verb": "ListRecords",
+                  "resumptionToken": token_el.text.strip()}
+    else:
+        break
 
-            # Publication date — arXiv Atom feed <published> is the original
-            # submission date, e.g. "2025-01-22T00:00:00Z" → "2025-01-22"
-            published_el = entry.find("atom:published", _OAI_NS)
-            pub_date = ""
-            if published_el is not None and published_el.text:
-                pub_date = published_el.text.strip()[:10]
+return found
+```
 
-            authors = [
-                _Author(name=(a.find("atom:name", _OAI_NS).text or "").strip())
-                for a in entry.findall("atom:author", _OAI_NS)
-                if a.find("atom:name", _OAI_NS) is not None
-            ]
+def oai_fetch_ids_for_range(
+date_from_str: str,
+date_to_str:   str,
+category:      str = “cs.AI”,
+) -> list[str]:
+“”“Fetch arXiv IDs announced between date_from_str and date_to_str via OAI-PMH.
 
-            papers.append(_ArxivPaper(
-                title            = title,
-                summary          = summary,
-                pdf_url          = pdf_url,
-                entry_id         = abs_url,
-                authors          = authors,
-                publication_date = pub_date,
-            ))
+```
+Unlike _oai_fetch_ids_for_date (which queries a single day), this function
+queries a full date range in one OAI-PMH request, using resumption tokens
+to page through all results. Suitable for the initial 150-day backfill in
+update_significant.py, and for weekly delta fetches.
 
-        if batch_start + _SEARCH_BATCH_SIZE < len(arxiv_ids):
-            time.sleep(_SEARCH_BATCH_SLEEP)
+Parameters
+----------
+date_from_str : start date inclusive, YYYY-MM-DD
+date_to_str   : end date inclusive, YYYY-MM-DD
+category      : arXiv category filter (default: cs.AI)
 
-    return papers
+Returns
+-------
+Deduplicated list of base arXiv IDs (e.g. '2501.12345'), no version suffix.
+"""
+params: dict = {
+    "verb":           "ListRecords",
+    "metadataPrefix": "arXiv",
+    "from":           date_from_str,
+    "until":          date_to_str,
+    "set":            "cs",      # cs.AI is not a valid OAI set; filter by category in code
+}
 
+found: list[str] = []
+seen:  set[str]  = set()
+page  = 0
+
+print(f"  OAI-PMH range fetch: {date_from_str} to {date_to_str} "
+      f"(category={category})...")
+
+while True:
+    page += 1
+    url = f"{_OAI_BASE_URL}?{urllib.parse.urlencode(params)}"
+    req = _ureq.Request(url, headers={"User-Agent": _OAI_UA})
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            with _ureq.urlopen(req, timeout=60) as resp:
+                raw = resp.read()
+            break
+        except urllib.error.HTTPError as e:
+            if e.code == 503:
+                retry_after = int(e.headers.get("Retry-After", 30))
+                print(f"    OAI 503 — waiting {retry_after}s (attempt {attempt})...")
+                time.sleep(retry_after)
+            elif e.code == 429:
+                wait = BASE_WAIT * (2 ** (attempt - 1))
+                print(f"    OAI 429 — waiting {wait}s (attempt {attempt})...")
+                time.sleep(wait)
+            else:
+                raise
+        except Exception as e:
+            if attempt < MAX_RETRIES:
+                wait = BASE_WAIT * (2 ** (attempt - 1))
+                print(f"    OAI error: {e} — waiting {wait}s (attempt {attempt})...")
+                time.sleep(wait)
+            else:
+                raise
+    else:
+        print(f"    OAI range fetch failed after {MAX_RETRIES} attempts on page {page}.")
+        break
+
+    root = ET.fromstring(raw)
+
+    error_el = root.find(".//oai:error", _OAI_NS)
+    if error_el is not None:
+        code = error_el.get("code", "")
+        if code == "noRecordsMatch":
+            print(f"    OAI: no records for range {date_from_str}:{date_to_str}.")
+        else:
+            print(f"    OAI error code='{code}': {error_el.text}")
+        break
+
+    page_new = 0
+    records = root.findall(".//oai:record", _OAI_NS)
+
+    for record in records:
+        header = record.find("oai:header", _OAI_NS)
+        if header is not None and header.get("status") == "deleted":
+            continue
+
+        # Use namespace-agnostic search for categories — arXiv uses different
+        # namespace URIs depending on record type (new vs revised):
+        #   new papers:  http://arxiv.org/OAI/2.0/
+        #   revised:     http://arxiv.org/OAI/arXiv/
+        # Searching by local name avoids brittle namespace URI matching.
+        cats_el = next(
+            (el for el in record.iter()
+             if el.tag.split("}")[-1] == "categories"),
+            None
+        )
+        if cats_el is None or not cats_el.text:
+            continue
+        if category not in cats_el.text.split():
+            continue
+
+        # OAI-PMH date range matches on last-updated datestamp, not submission
+        # date. Filter by <created> date to get only newly submitted papers,
+        # not revisions of old papers.
+        created_el = next(
+            (el for el in record.iter()
+             if el.tag.split("}")[-1] == "created"),
+            None
+        )
+        if created_el is None or not created_el.text:
+            continue
+        created_date = created_el.text.strip()[:10]  # YYYY-MM-DD
+        if created_date < date_from_str or created_date > date_to_str:
+            continue
+
+        id_el = record.find(".//oai:identifier", _OAI_NS)
+        if id_el is None or not id_el.text:
+            continue
+
+        raw_id  = id_el.text.split(":")[-1].strip()
+        base_id = _arxiv_id_base(raw_id)
+        if base_id not in seen:
+            seen.add(base_id)
+            found.append(base_id)
+            page_new += 1
+
+    token_el = root.find(".//oai:resumptionToken", _OAI_NS)
+    if token_el is not None and token_el.text and token_el.text.strip():
+        print(f"    OAI page {page}: {page_new} new IDs "
+              f"(running total: {len(found)}) — resuming in {_OAI_RESUMPTION_SLEEP}s...")
+        time.sleep(_OAI_RESUMPTION_SLEEP)
+        params = {"verb": "ListRecords",
+                  "resumptionToken": token_el.text.strip()}
+    else:
+        print(f"    OAI page {page}: {page_new} new IDs "
+              f"(total: {len(found)}) — complete.")
+        break
+
+return found
+```
+
+# Public alias so update_significant.py can import without the leading underscore
+
+def _search_fetch_metadata(arxiv_ids: list[str]) -> list[_ArxivPaper]:
+“”“Fetch full metadata for a list of arXiv IDs via the Search API.
+
+```
+Batches IDs in groups of _SEARCH_BATCH_SIZE to avoid URL length errors.
+Returns a list of _ArxivPaper objects in no guaranteed order.
+"""
+papers: list[_ArxivPaper] = []
+
+for batch_start in range(0, len(arxiv_ids), _SEARCH_BATCH_SIZE):
+    batch   = arxiv_ids[batch_start:batch_start + _SEARCH_BATCH_SIZE]
+    id_list = ",".join(batch)
+    url     = f"{_SEARCH_BASE_URL}?id_list={id_list}&max_results={len(batch)}"
+    req     = _ureq.Request(url, headers={"User-Agent": _OAI_UA})
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            with _ureq.urlopen(req, timeout=30) as resp:
+                raw = resp.read()
+            break
+        except Exception as e:
+            if attempt < MAX_RETRIES:
+                wait = min(BASE_WAIT * (2 ** (attempt - 1)), MAX_WAIT)
+                print(f"    Search API error: {e} — "
+                      f"waiting {wait}s (attempt {attempt})...")
+                time.sleep(wait)
+            else:
+                print(f"    Search API batch failed: {e}")
+                raw = None
+                break
+
+    if raw is None:
+        continue
+
+    root = ET.fromstring(raw)
+    for entry in root.findall("atom:entry", _OAI_NS):
+        title_el    = entry.find("atom:title",   _OAI_NS)
+        summary_el  = entry.find("atom:summary", _OAI_NS)
+        id_el       = entry.find("atom:id",      _OAI_NS)
+
+        if title_el is None or id_el is None:
+            continue
+
+        title   = (title_el.text   or "").strip().replace("\n", " ")
+        summary = (summary_el.text or "").strip().replace("\n", " ") \
+                  if summary_el is not None else ""
+        abs_url = (id_el.text or "").strip()   # e.g. http://arxiv.org/abs/2501.12345v1
+
+        # Derive PDF URL from abstract URL
+        pdf_url = abs_url.replace("/abs/", "/pdf/") if "/abs/" in abs_url else abs_url
+
+        # Publication date — arXiv Atom feed <published> is the original
+        # submission date, e.g. "2025-01-22T00:00:00Z" → "2025-01-22"
+        published_el = entry.find("atom:published", _OAI_NS)
+        pub_date = ""
+        if published_el is not None and published_el.text:
+            pub_date = published_el.text.strip()[:10]
+
+        authors = [
+            _Author(name=(a.find("atom:name", _OAI_NS).text or "").strip())
+            for a in entry.findall("atom:author", _OAI_NS)
+            if a.find("atom:name", _OAI_NS) is not None
+        ]
+
+        papers.append(_ArxivPaper(
+            title            = title,
+            summary          = summary,
+            pdf_url          = pdf_url,
+            entry_id         = abs_url,
+            authors          = authors,
+            publication_date = pub_date,
+        ))
+
+    if batch_start + _SEARCH_BATCH_SIZE < len(arxiv_ids):
+        time.sleep(_SEARCH_BATCH_SLEEP)
+
+return papers
+```
 
 fetch_arxiv_metadata = _search_fetch_metadata
 
-
 def fetch_arxiv_oai(
-    days_back: int = 1,
-    category:  str = "cs.AI",
-    max_results: int = ARXIV_MAX,
+days_back: int = 1,
+category:  str = “cs.AI”,
+max_results: int = ARXIV_MAX,
 ) -> list[_ArxivPaper]:
-    """Fetch papers announced on arXiv by announcement date via OAI-PMH.
+“”“Fetch papers announced on arXiv by announcement date via OAI-PMH.
 
-    Parameters
-    ----------
-    days_back   : number of past calendar days to query (1 = today only;
-                  >1 used for first-run backfill)
-    category    : arXiv category filter (default: cs.AI)
-    max_results : hard cap on total papers returned
+```
+Parameters
+----------
+days_back   : number of past calendar days to query (1 = today only;
+              >1 used for first-run backfill)
+category    : arXiv category filter (default: cs.AI)
+max_results : hard cap on total papers returned
 
-    Returns a deduplicated list of _ArxivPaper objects, capped at max_results.
+Returns a deduplicated list of _ArxivPaper objects, capped at max_results.
 
-    Date strategy
-    ─────────────
-    Run at 03:00 UTC, announcement at ~01:00 UTC.  We query today's UTC date
-    as the primary target, then yesterday as a fallback (catches the Monday
-    announcement which occasionally carries a Tuesday UTC datestamp on slow
-    servers).  For backfill runs (days_back > 1) we extend further back.
-    """
-    now_utc  = datetime.now(timezone.utc)
-    # Build list of candidate dates: today first, then going back
-    dates = [
-        (now_utc - timedelta(days=d)).strftime("%Y-%m-%d")
-        for d in range(days_back + 1)   # +1 so today+yesterday always included
-    ]
-    # Deduplicate while preserving order
-    seen_dates: set[str] = set()
-    dates = [d for d in dates if not (d in seen_dates or seen_dates.add(d))]
+Date strategy
+─────────────
+Run at 03:00 UTC, announcement at ~01:00 UTC.  We query today's UTC date
+as the primary target, then yesterday as a fallback (catches the Monday
+announcement which occasionally carries a Tuesday UTC datestamp on slow
+servers).  For backfill runs (days_back > 1) we extend further back.
+"""
+now_utc  = datetime.now(timezone.utc)
+# Build list of candidate dates: today first, then going back
+dates = [
+    (now_utc - timedelta(days=d)).strftime("%Y-%m-%d")
+    for d in range(days_back + 1)   # +1 so today+yesterday always included
+]
+# Deduplicate while preserving order
+seen_dates: set[str] = set()
+dates = [d for d in dates if not (d in seen_dates or seen_dates.add(d))]
 
-    all_ids: list[str] = []
-    seen_ids: set[str] = set()
+all_ids: list[str] = []
+seen_ids: set[str] = set()
 
-    for date_str in dates:
-        print(f"  OAI-PMH: fetching {category} IDs for {date_str}...")
-        ids = _oai_fetch_ids_for_date(date_str, category)
-        new_ids = [i for i in ids if i not in seen_ids]
-        seen_ids.update(new_ids)
-        all_ids.extend(new_ids)
-        if new_ids:
-            print(f"    {date_str}: {len(new_ids)} IDs "
-                  f"(running total: {len(all_ids)})")
-        else:
-            print(f"    {date_str}: 0 IDs — no announcement or weekend.")
-
-        if len(all_ids) >= max_results:
-            print(f"  Reached max_results cap ({max_results}) — stopping.")
-            break
-
-    if not all_ids:
-        return []
-
-    # Apply cap before fetching metadata (saves Search API calls)
-    all_ids = all_ids[:max_results]
-
-    # ── Diagnostic: sample IDs so logs can be spot-checked against arXiv ──
-    sample_ids = all_ids[:5]
-    print(f"  Sample IDs (verify at https://arxiv.org/abs/<id>): "
-          f"{', '.join(sample_ids)}")
-
-    print(f"  Fetching metadata for {len(all_ids)} IDs via Search API...")
-    papers = _search_fetch_metadata(all_ids)
-
-    if not papers and all_ids:
-        print(f"  WARNING: OAI returned {len(all_ids)} IDs but metadata fetch "
-              f"returned 0 papers. Possible date shift — check OAI datestamp "
-              f"vs arXiv announcement schedule.")
+for date_str in dates:
+    print(f"  OAI-PMH: fetching {category} IDs for {date_str}...")
+    ids = _oai_fetch_ids_for_date(date_str, category)
+    new_ids = [i for i in ids if i not in seen_ids]
+    seen_ids.update(new_ids)
+    all_ids.extend(new_ids)
+    if new_ids:
+        print(f"    {date_str}: {len(new_ids)} IDs "
+              f"(running total: {len(all_ids)})")
     else:
-        print(f"  Retrieved metadata for {len(papers)}/{len(all_ids)} papers.")
-        # ── Diagnostic: sample titles for visual confirmation ──────────────
-        print("  Sample titles (confirm these are real cs.AI papers):")
-        for p in papers[:3]:
-            print(f"    - {p.title[:80]}")
+        print(f"    {date_str}: 0 IDs — no announcement or weekend.")
 
-    return papers
+    if len(all_ids) >= max_results:
+        print(f"  Reached max_results cap ({max_results}) — stopping.")
+        break
 
+if not all_ids:
+    return []
+
+# Apply cap before fetching metadata (saves Search API calls)
+all_ids = all_ids[:max_results]
+
+# ── Diagnostic: sample IDs so logs can be spot-checked against arXiv ──
+sample_ids = all_ids[:5]
+print(f"  Sample IDs (verify at https://arxiv.org/abs/<id>): "
+      f"{', '.join(sample_ids)}")
+
+print(f"  Fetching metadata for {len(all_ids)} IDs via Search API...")
+papers = _search_fetch_metadata(all_ids)
+
+if not papers and all_ids:
+    print(f"  WARNING: OAI returned {len(all_ids)} IDs but metadata fetch "
+          f"returned 0 papers. Possible date shift — check OAI datestamp "
+          f"vs arXiv announcement schedule.")
+else:
+    print(f"  Retrieved metadata for {len(papers)}/{len(all_ids)} papers.")
+    # ── Diagnostic: sample titles for visual confirmation ──────────────
+    print("  Sample titles (confirm these are real cs.AI papers):")
+    for p in papers[:3]:
+        print(f"    - {p.title[:80]}")
+
+return papers
+```
 
 # Legacy alias — kept so update_map.py (v1) continues to work unchanged
+
 def fetch_arxiv(client, search) -> list:
-    """Legacy submission-date fetch via the arxiv Python library.
+“”“Legacy submission-date fetch via the arxiv Python library.
 
-    Retained for backward compatibility with update_map.py (v1 pipeline).
-    update_map_v2.py uses fetch_arxiv_oai() instead.
-    """
-    last_exc = None
-    for attempt in range(MAX_RETRIES):
-        try:
-            return list(client.results(search))
-        except Exception as e:
-            last_exc = e
-            err_str  = str(e).lower()
-            is_429   = (
-                "429" in err_str
-                or "too many requests" in err_str
-                or (isinstance(e, urllib.error.HTTPError) and e.code == 429)
-            )
-            wait       = min(BASE_WAIT * (2 ** attempt), MAX_WAIT)
-            total_wait = wait + random.uniform(0, wait * 0.25)
-            label      = "Rate limited (429)" if is_429 else f"Error: {e}"
-            print(f"  {label} — attempt {attempt + 1}/{MAX_RETRIES}. "
-                  f"Retrying in {total_wait:.0f}s...")
-            time.sleep(total_wait)
-    raise RuntimeError(
-        f"arXiv fetch failed after {MAX_RETRIES} attempts. Last: {last_exc}"
-    )
-
+```
+Retained for backward compatibility with update_map.py (v1 pipeline).
+update_map_v2.py uses fetch_arxiv_oai() instead.
+"""
+last_exc = None
+for attempt in range(MAX_RETRIES):
+    try:
+        return list(client.results(search))
+    except Exception as e:
+        last_exc = e
+        err_str  = str(e).lower()
+        is_429   = (
+            "429" in err_str
+            or "too many requests" in err_str
+            or (isinstance(e, urllib.error.HTTPError) and e.code == 429)
+        )
+        wait       = min(BASE_WAIT * (2 ** attempt), MAX_WAIT)
+        total_wait = wait + random.uniform(0, wait * 0.25)
+        label      = "Rate limited (429)" if is_429 else f"Error: {e}"
+        print(f"  {label} — attempt {attempt + 1}/{MAX_RETRIES}. "
+              f"Retrying in {total_wait:.0f}s...")
+        time.sleep(total_wait)
+raise RuntimeError(
+    f"arXiv fetch failed after {MAX_RETRIES} attempts. Last: {last_exc}"
+)
+```
 
 # ══════════════════════════════════════════════════════════════════════════════
+
 # §6  EMBEDDING / UMAP
+
 # ══════════════════════════════════════════════════════════════════════════════
 
-def embed_and_project(df: pd.DataFrame, model_name: str = "specter2") -> pd.DataFrame:
-    """Embed new papers and (re-)project ALL papers to 50D + 2D with UMAP.
+def embed_and_project(df: pd.DataFrame, model_name: str = “specter2”) -> pd.DataFrame:
+“”“Embed new papers and (re-)project ALL papers to 50D + 2D with UMAP.
 
-    Model name controls which column set is written:
-      "specter2" → embedding, embedding_50d, projection_x, projection_y
-      "sbert"    → embedding_sbert, embedding_sbert_50d,
-                   projection_sbert_x, projection_sbert_y
+```
+Model name controls which column set is written:
+  "specter2" → embedding, embedding_50d, projection_x, projection_y
+  "sbert"    → embedding_sbert, embedding_sbert_50d,
+               projection_sbert_x, projection_sbert_y
 
-    All column sets coexist in the parquet — switching is a one-line env change.
-    """
-    from sentence_transformers import SentenceTransformer
-    import umap as umap_lib
+All column sets coexist in the parquet — switching is a one-line env change.
+"""
+from sentence_transformers import SentenceTransformer
+import umap as umap_lib
 
-    if model_name == "specter2":
-        hf_model_id  = "allenai/specter2_base"
-        col_embed    = "embedding"
-        col_embed_50d = "embedding_50d"
-        col_proj_x   = "projection_x"
-        col_proj_y   = "projection_y"
-        text_col     = "text"
-    elif model_name == "sbert":
-        hf_model_id  = "sentence-transformers/all-mpnet-base-v2"
-        col_embed    = "embedding_sbert"
-        col_embed_50d = "embedding_sbert_50d"
-        col_proj_x   = "projection_sbert_x"
-        col_proj_y   = "projection_sbert_y"
-        text_col     = "abstract"
-    else:
-        raise ValueError(f"Unknown model_name: '{model_name}'")
+if model_name == "specter2":
+    hf_model_id  = "allenai/specter2_base"
+    col_embed    = "embedding"
+    col_embed_50d = "embedding_50d"
+    col_proj_x   = "projection_x"
+    col_proj_y   = "projection_y"
+    text_col     = "text"
+elif model_name == "sbert":
+    hf_model_id  = "sentence-transformers/all-mpnet-base-v2"
+    col_embed    = "embedding_sbert"
+    col_embed_50d = "embedding_sbert_50d"
+    col_proj_x   = "projection_sbert_x"
+    col_proj_y   = "projection_sbert_y"
+    text_col     = "abstract"
+else:
+    raise ValueError(f"Unknown model_name: '{model_name}'")
 
-    print(f"  Loading embedding model: {hf_model_id}")
-    model = SentenceTransformer(hf_model_id)
+print(f"  Loading embedding model: {hf_model_id}")
+model = SentenceTransformer(hf_model_id)
 
-    # Incremental embedding — only new papers get encoded
-    if col_embed in df.columns:
-        needs_embed = df[col_embed].isna()
-    else:
-        df[col_embed] = None
-        needs_embed = pd.Series([True] * len(df))
+# Incremental embedding — only new papers get encoded
+if col_embed in df.columns:
+    needs_embed = df[col_embed].isna()
+else:
+    df[col_embed] = None
+    needs_embed = pd.Series([True] * len(df))
 
-    n_new = needs_embed.sum()
-    if n_new:
-        print(f"  Embedding {n_new} new paper(s) with {model_name.upper()}...")
-        idx    = df.index[needs_embed].tolist()
-        texts  = df.loc[idx, text_col].tolist()
-        vecs   = model.encode(texts, show_progress_bar=True, batch_size=16,
-                              convert_to_numpy=True)
-        for i, pos in enumerate(idx):
-            df.at[pos, col_embed] = vecs[i].tolist()
-    else:
-        print(f"  All papers already embedded with {model_name.upper()} — skipping.")
+n_new = needs_embed.sum()
+if n_new:
+    print(f"  Embedding {n_new} new paper(s) with {model_name.upper()}...")
+    idx    = df.index[needs_embed].tolist()
+    texts  = df.loc[idx, text_col].tolist()
+    vecs   = model.encode(texts, show_progress_bar=True, batch_size=16,
+                          convert_to_numpy=True)
+    for i, pos in enumerate(idx):
+        df.at[pos, col_embed] = vecs[i].tolist()
+else:
+    print(f"  All papers already embedded with {model_name.upper()} — skipping.")
 
-    all_vectors = np.array(df[col_embed].tolist(), dtype=np.float32)
-    n = len(all_vectors)
-    print(f"  Projecting {n} papers with UMAP (two-stage, {model_name.upper()})...")
+all_vectors = np.array(df[col_embed].tolist(), dtype=np.float32)
+n = len(all_vectors)
+print(f"  Projecting {n} papers with UMAP (two-stage, {model_name.upper()})...")
 
-    # Stage 1: 768D → 50D (for clustering)
-    reducer_50d = umap_lib.UMAP(n_components=50, metric="cosine",
-                                random_state=42, n_neighbors=15)
-    coords_50d = reducer_50d.fit_transform(all_vectors)
-    df[col_embed_50d] = [row.tolist() for row in coords_50d]
+# Stage 1: 768D → 50D (for clustering)
+reducer_50d = umap_lib.UMAP(n_components=50, metric="cosine",
+                            random_state=42, n_neighbors=15)
+coords_50d = reducer_50d.fit_transform(all_vectors)
+df[col_embed_50d] = [row.tolist() for row in coords_50d]
 
-    # Stage 2: 768D → 2D (for display / direction vectors)
-    reducer_2d = umap_lib.UMAP(n_components=2, metric="cosine",
-                               random_state=42, n_neighbors=15, min_dist=0.1)
-    coords_2d = reducer_2d.fit_transform(all_vectors)
-    df[col_proj_x] = coords_2d[:, 0].astype(float)
-    df[col_proj_y] = coords_2d[:, 1].astype(float)
-    return df
-
+# Stage 2: 768D → 2D (for display / direction vectors)
+reducer_2d = umap_lib.UMAP(n_components=2, metric="cosine",
+                           random_state=42, n_neighbors=15, min_dist=0.1)
+coords_2d = reducer_2d.fit_transform(all_vectors)
+df[col_proj_x] = coords_2d[:, 0].astype(float)
+df[col_proj_y] = coords_2d[:, 1].astype(float)
+return df
+```
 
 def _embed_only(df: pd.DataFrame, model_name: str) -> pd.DataFrame:
-    """Embed papers missing vectors without running UMAP.
+“”“Embed papers missing vectors without running UMAP.
 
-    Used by hybrid mode to populate raw vector columns before distance blending.
-    """
-    from sentence_transformers import SentenceTransformer
+```
+Used by hybrid mode to populate raw vector columns before distance blending.
+"""
+from sentence_transformers import SentenceTransformer
 
-    if model_name == "specter2":
-        hf_model_id = "allenai/specter2_base"
-        col_embed   = "embedding"
-        text_col    = "text"
-    elif model_name == "sbert":
-        hf_model_id = "sentence-transformers/all-mpnet-base-v2"
-        col_embed   = "embedding_sbert"
-        text_col    = "abstract"
-    else:
-        raise ValueError(f"Unknown model_name: '{model_name}'")
+if model_name == "specter2":
+    hf_model_id = "allenai/specter2_base"
+    col_embed   = "embedding"
+    text_col    = "text"
+elif model_name == "sbert":
+    hf_model_id = "sentence-transformers/all-mpnet-base-v2"
+    col_embed   = "embedding_sbert"
+    text_col    = "abstract"
+else:
+    raise ValueError(f"Unknown model_name: '{model_name}'")
 
-    if col_embed in df.columns:
-        needs_embed = df[col_embed].isna()
-    else:
-        df[col_embed] = None
-        needs_embed = pd.Series([True] * len(df))
+if col_embed in df.columns:
+    needs_embed = df[col_embed].isna()
+else:
+    df[col_embed] = None
+    needs_embed = pd.Series([True] * len(df))
 
-    n_new = needs_embed.sum()
-    if n_new:
-        print(f"  Embedding {n_new} new paper(s) with {model_name.upper()}...")
-        model  = SentenceTransformer(hf_model_id)
-        idx    = df.index[needs_embed].tolist()
-        texts  = df.loc[idx, text_col].tolist()
-        vecs   = model.encode(texts, show_progress_bar=True, batch_size=16,
-                              convert_to_numpy=True)
-        for i, pos in enumerate(idx):
-            df.at[pos, col_embed] = vecs[i].tolist()
-    else:
-        print(f"  All papers already embedded with {model_name.upper()} — skipping.")
-    return df
-
+n_new = needs_embed.sum()
+if n_new:
+    print(f"  Embedding {n_new} new paper(s) with {model_name.upper()}...")
+    model  = SentenceTransformer(hf_model_id)
+    idx    = df.index[needs_embed].tolist()
+    texts  = df.loc[idx, text_col].tolist()
+    vecs   = model.encode(texts, show_progress_bar=True, batch_size=16,
+                          convert_to_numpy=True)
+    for i, pos in enumerate(idx):
+        df.at[pos, col_embed] = vecs[i].tolist()
+else:
+    print(f"  All papers already embedded with {model_name.upper()} — skipping.")
+return df
+```
 
 def compute_hybrid_distances(
-    df: pd.DataFrame,
-    w_specter2: float = 0.75,
-    w_sbert:    float = 0.0,
-    w_tfidf:    float = 0.25,
+df: pd.DataFrame,
+w_specter2: float = 0.75,
+w_sbert:    float = 0.0,
+w_tfidf:    float = 0.25,
 ) -> np.ndarray:
-    """Build a normalised hybrid distance matrix from up to three sources.
+“”“Build a normalised hybrid distance matrix from up to three sources.
 
-    Each source is independently normalised to [0, 1] before blending.
-    Weights are also normalised so the output is always in [0, 1].
+```
+Each source is independently normalised to [0, 1] before blending.
+Weights are also normalised so the output is always in [0, 1].
 
-    Returns: symmetric (n × n) float32 distance matrix.
-    """
-    from sklearn.metrics.pairwise import cosine_distances
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.preprocessing import normalize as sk_normalize
+Returns: symmetric (n × n) float32 distance matrix.
+"""
+from sklearn.metrics.pairwise import cosine_distances
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import normalize as sk_normalize
 
-    n = len(df)
-    total_w = w_specter2 + w_sbert + w_tfidf
-    if total_w == 0:
-        raise ValueError("At least one hybrid weight must be > 0.")
-    w_specter2 /= total_w
-    w_sbert    /= total_w
-    w_tfidf    /= total_w
+n = len(df)
+total_w = w_specter2 + w_sbert + w_tfidf
+if total_w == 0:
+    raise ValueError("At least one hybrid weight must be > 0.")
+w_specter2 /= total_w
+w_sbert    /= total_w
+w_tfidf    /= total_w
 
-    dist = np.zeros((n, n), dtype=np.float32)
+dist = np.zeros((n, n), dtype=np.float32)
 
-    def _norm(d: np.ndarray) -> np.ndarray:
-        mx = d.max()
-        return (d / mx).astype(np.float32) if mx > 0 else d.astype(np.float32)
+def _norm(d: np.ndarray) -> np.ndarray:
+    mx = d.max()
+    return (d / mx).astype(np.float32) if mx > 0 else d.astype(np.float32)
 
-    if w_specter2 > 0:
-        if "embedding" not in df.columns or df["embedding"].isna().any():
-            raise RuntimeError("SPECTER2 vectors missing.")
-        vecs = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
-        dist += w_specter2 * _norm(cosine_distances(vecs).astype(np.float32))
-        print(f"  Hybrid: added SPECTER2 (w={w_specter2:.2f}).")
+if w_specter2 > 0:
+    if "embedding" not in df.columns or df["embedding"].isna().any():
+        raise RuntimeError("SPECTER2 vectors missing.")
+    vecs = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
+    dist += w_specter2 * _norm(cosine_distances(vecs).astype(np.float32))
+    print(f"  Hybrid: added SPECTER2 (w={w_specter2:.2f}).")
 
-    if w_sbert > 0:
-        if "embedding_sbert" not in df.columns or df["embedding_sbert"].isna().any():
-            raise RuntimeError("SBERT vectors missing.")
-        vecs = sk_normalize(np.array(df["embedding_sbert"].tolist(), dtype=np.float32))
-        dist += w_sbert * _norm(cosine_distances(vecs).astype(np.float32))
-        print(f"  Hybrid: added SBERT (w={w_sbert:.2f}).")
+if w_sbert > 0:
+    if "embedding_sbert" not in df.columns or df["embedding_sbert"].isna().any():
+        raise RuntimeError("SBERT vectors missing.")
+    vecs = sk_normalize(np.array(df["embedding_sbert"].tolist(), dtype=np.float32))
+    dist += w_sbert * _norm(cosine_distances(vecs).astype(np.float32))
+    print(f"  Hybrid: added SBERT (w={w_sbert:.2f}).")
 
-    if w_tfidf > 0:
-        texts  = df["abstract"].apply(_strip_urls).tolist()
-        tfidf  = TfidfVectorizer(max_features=20_000, sublinear_tf=True,
-                                  min_df=2, ngram_range=(1, 2))
-        tfidf_m = tfidf.fit_transform(texts)
-        dist += w_tfidf * _norm(cosine_distances(tfidf_m).astype(np.float32))
-        print(f"  Hybrid: added TF-IDF (w={w_tfidf:.2f}).")
+if w_tfidf > 0:
+    texts  = df["abstract"].apply(_strip_urls).tolist()
+    tfidf  = TfidfVectorizer(max_features=20_000, sublinear_tf=True,
+                              min_df=2, ngram_range=(1, 2))
+    tfidf_m = tfidf.fit_transform(texts)
+    dist += w_tfidf * _norm(cosine_distances(tfidf_m).astype(np.float32))
+    print(f"  Hybrid: added TF-IDF (w={w_tfidf:.2f}).")
 
-    dist = (dist + dist.T) / 2
-    np.fill_diagonal(dist, 0.0)
-    print(f"  Hybrid dist: shape={dist.shape}, "
-          f"min={dist.min():.4f}, max={dist.max():.4f}, mean={dist.mean():.4f}.")
-    return dist
-
+dist = (dist + dist.T) / 2
+np.fill_diagonal(dist, 0.0)
+print(f"  Hybrid dist: shape={dist.shape}, "
+      f"min={dist.min():.4f}, max={dist.max():.4f}, mean={dist.mean():.4f}.")
+return dist
+```
 
 def embed_and_project_hybrid(
-    df: pd.DataFrame,
-    w_specter2: float = 0.75,
-    w_sbert:    float = 0.0,
-    w_tfidf:    float = 0.25,
+df: pd.DataFrame,
+w_specter2: float = 0.75,
+w_sbert:    float = 0.0,
+w_tfidf:    float = 0.25,
 ) -> tuple[pd.DataFrame, np.ndarray]:
-    """Ensure both model vectors exist, build hybrid distance matrix, project to 2D.
+“”“Ensure both model vectors exist, build hybrid distance matrix, project to 2D.
 
-    Writes projection_hybrid_x/y to df.
-    Returns (df, dist_matrix) so callers can reuse the distance matrix.
-    """
-    import umap as umap_lib
+```
+Writes projection_hybrid_x/y to df.
+Returns (df, dist_matrix) so callers can reuse the distance matrix.
+"""
+import umap as umap_lib
 
-    if w_specter2 > 0:
-        df = _embed_only(df, "specter2")
-    if w_sbert > 0:
-        df = _embed_only(df, "sbert")
+if w_specter2 > 0:
+    df = _embed_only(df, "specter2")
+if w_sbert > 0:
+    df = _embed_only(df, "sbert")
 
-    dist = compute_hybrid_distances(df, w_specter2, w_sbert, w_tfidf)
-    n    = len(df)
-    print(f"  Projecting {n} papers with UMAP on hybrid distance matrix...")
-    reducer = umap_lib.UMAP(
-        n_components=2, metric="precomputed", random_state=42,
-        n_neighbors=min(15, n - 1), min_dist=0.1,
-    )
-    coords_2d = reducer.fit_transform(dist)
-    df["projection_hybrid_x"] = coords_2d[:, 0].astype(float)
-    df["projection_hybrid_y"] = coords_2d[:, 1].astype(float)
-    print("  Hybrid projection → projection_hybrid_x / projection_hybrid_y.")
-    return df, dist
-
+dist = compute_hybrid_distances(df, w_specter2, w_sbert, w_tfidf)
+n    = len(df)
+print(f"  Projecting {n} papers with UMAP on hybrid distance matrix...")
+reducer = umap_lib.UMAP(
+    n_components=2, metric="precomputed", random_state=42,
+    n_neighbors=min(15, n - 1), min_dist=0.1,
+)
+coords_2d = reducer.fit_transform(dist)
+df["projection_hybrid_x"] = coords_2d[:, 0].astype(float)
+df["projection_hybrid_y"] = coords_2d[:, 1].astype(float)
+print("  Hybrid projection → projection_hybrid_x / projection_hybrid_y.")
+return df, dist
+```
 
 # ══════════════════════════════════════════════════════════════════════════════
+
 # §7  ATLAS BUILD + DEPLOY
+
 # ══════════════════════════════════════════════════════════════════════════════
 
 def build_and_deploy_atlas(
-    db_path:     str,
-    proj_x_col:  str,
-    proj_y_col:  str,
-    labels_path: str,
-    run_date:    str,
-    docs_dir:    str = "docs",
+db_path:     str,
+proj_x_col:  str,
+proj_y_col:  str,
+labels_path: str,
+run_date:    str,
+docs_dir:    str = “docs”,
 ) -> None:
-    """Run the embedding-atlas CLI, unzip, patch config, inject panel HTML.
+“”“Run the embedding-atlas CLI, unzip, patch config, inject panel HTML.
 
-    Parameters
-    ----------
-    db_path     : path to the paper parquet (must contain proj_x_col / proj_y_col)
-    proj_x_col  : name of the x-coordinate column in db_path
-    proj_y_col  : name of the y-coordinate column in db_path
-    labels_path : path to the labels parquet (columns: x, y, text)
-    run_date    : human-readable date string injected into the panel footer
-    docs_dir    : output directory for the built site (default "docs")
-    """
-    clear_docs_contents(docs_dir)
-    print(f"  Building atlas (x={proj_x_col}, y={proj_y_col})...")
+```
+Parameters
+----------
+db_path     : path to the paper parquet (must contain proj_x_col / proj_y_col)
+proj_x_col  : name of the x-coordinate column in db_path
+proj_y_col  : name of the y-coordinate column in db_path
+labels_path : path to the labels parquet (columns: x, y, text)
+run_date    : human-readable date string injected into the panel footer
+docs_dir    : output directory for the built site (default "docs")
+"""
+clear_docs_contents(docs_dir)
+print(f"  Building atlas (x={proj_x_col}, y={proj_y_col})...")
 
-    atlas_cmd = [
-        "embedding-atlas", db_path,
-        "--x",      proj_x_col,
-        "--y",      proj_y_col,
-        "--labels", labels_path,
-        "--export-application", "site.zip",
-    ]
-    subprocess.run(atlas_cmd, check=True)
-    os.system(f"unzip -o site.zip -d {docs_dir}/ && touch {docs_dir}/.nojekyll")
+atlas_cmd = [
+    "embedding-atlas", db_path,
+    "--x",      proj_x_col,
+    "--y",      proj_y_col,
+    "--labels", labels_path,
+    "--export-application", "site.zip",
+]
+subprocess.run(atlas_cmd, check=True)
+os.system(f"unzip -o site.zip -d {docs_dir}/ && touch {docs_dir}/.nojekyll")
 
-    # ── Config override ────────────────────────────────────────────────────
-    config_path = os.path.join(docs_dir, "data", "metadata.json")
-    if os.path.exists(config_path):
-        with open(config_path, "r") as f:
-            conf = json.load(f)
+# ── Config override ────────────────────────────────────────────────────
+config_path = os.path.join(docs_dir, "data", "metadata.json")
+if os.path.exists(config_path):
+    with open(config_path, "r") as f:
+        conf = json.load(f)
 
-        conf["name_column"]  = "title"
-        conf["label_column"] = "title"
-        conf["color_by"]     = "Prominence"
-        conf.setdefault("column_mappings", {}).update({
-            "title":                   "title",
-            "abstract":                "abstract",
-            "Prominence":              "Prominence",
-            "author_count":            "author_count",
-            "author_tier":             "author_tier",
-            "url":                     "url",
-            "ss_citation_count":       "ss_citation_count",
-            "ss_influential_citations":"ss_influential_citations",
-            "ss_tldr":                 "ss_tldr",
-            "CitationTier":            "CitationTier",
-            "paper_source":            "paper_source",
-        })
+    conf["name_column"]  = "title"
+    conf["label_column"] = "title"
+    conf["color_by"]     = "Prominence"
+    conf.setdefault("column_mappings", {}).update({
+        "title":                   "title",
+        "abstract":                "abstract",
+        "Prominence":              "Prominence",
+        "author_count":            "author_count",
+        "author_tier":             "author_tier",
+        "url":                     "url",
+        "ss_citation_count":       "ss_citation_count",
+        "ss_influential_citations":"ss_influential_citations",
+        "ss_tldr":                 "ss_tldr",
+        "CitationTier":            "CitationTier",
+        "paper_source":            "paper_source",
+    })
 
-        with open(config_path, "w") as f:
-            json.dump(conf, f, indent=4)
-        print("  Config updated.")
+    with open(config_path, "w") as f:
+        json.dump(conf, f, indent=4)
+    print("  Config updated.")
+else:
+    print(f"  {config_path} not found — skipping config override.")
+
+# ── Panel HTML injection ───────────────────────────────────────────────
+# font_html (GA + fonts) → <head>; panel_html (CSS/JS/DOM) → before </body>
+index_file = os.path.join(docs_dir, "index.html")
+if os.path.exists(index_file):
+    font_html, panel_html = build_panel_html(run_date)
+    with open(index_file, "r", encoding="utf-8", errors="replace") as f:
+        content = f.read()
+    if "</head>" in content:
+        content = content.replace("</head>", font_html + "\n</head>")
     else:
-        print(f"  {config_path} not found — skipping config override.")
-
-    # ── Panel HTML injection ───────────────────────────────────────────────
-    # font_html (GA + fonts) → <head>; panel_html (CSS/JS/DOM) → before </body>
-    index_file = os.path.join(docs_dir, "index.html")
-    if os.path.exists(index_file):
-        font_html, panel_html = build_panel_html(run_date)
-        with open(index_file, "r", encoding="utf-8", errors="replace") as f:
-            content = f.read()
-        if "</head>" in content:
-            content = content.replace("</head>", font_html + "\n</head>")
-        else:
-            content = font_html + "\n" + content
-        if "</body>" in content:
-            content = content.replace("</body>", panel_html + "\n</body>")
-        else:
-            content += panel_html
-        with open(index_file, "w", encoding="utf-8", errors="replace") as f:
-            f.write(content)
-        print("  Info panel injected into index.html.")
+        content = font_html + "\n" + content
+    if "</body>" in content:
+        content = content.replace("</body>", panel_html + "\n</body>")
     else:
-        print(f"  {index_file} not found — skipping panel injection.")
+        content += panel_html
+    with open(index_file, "w", encoding="utf-8", errors="replace") as f:
+        f.write(content)
+    print("  Info panel injected into index.html.")
+else:
+    print(f"  {index_file} not found — skipping panel injection.")
 
-    print("  Atlas build complete.")
-
+print("  Atlas build complete.")
+```
 
 # ══════════════════════════════════════════════════════════════════════════════
+
 # §8  HTML PANELS
+
 # ══════════════════════════════════════════════════════════════════════════════
 
 def build_panel_html(run_date: str) -> tuple[str, str]:
-    """Return (font_html, panel_html).
+“”“Return (font_html, panel_html).
 
-    font_html  — GA4 snippet + font <link> tags, injected into <head>.
-    panel_html — CSS, JS, and panel DOM, injected before </body>.
+```
+font_html  — GA4 snippet + font <link> tags, injected into <head>.
+panel_html — CSS, JS, and panel DOM, injected before </body>.
+"""
+font_html = (
+    '<!-- Google tag (gtag.js) -->' +
+    '<script async src="https://www.googletagmanager.com/gtag/js?id=G-6LKWKT8838"></script>' +
+    '<script>window.dataLayer=window.dataLayer||[];' +
+    'function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-6LKWKT8838");</script>' +
+    '<link rel="preconnect" href="https://fonts.googleapis.com">' +
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">'
+)
+panel_html = (
     """
-    font_html = (
-        '<!-- Google tag (gtag.js) -->' +
-        '<script async src="https://www.googletagmanager.com/gtag/js?id=G-6LKWKT8838"></script>' +
-        '<script>window.dataLayer=window.dataLayer||[];' +
-        'function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-6LKWKT8838");</script>' +
-        '<link rel="preconnect" href="https://fonts.googleapis.com">' +
-        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
-        '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">'
-    )
-    panel_html = (
-        """
+```
+
 <style>
   :root {
     --arm-font: 'Inter', system-ui, -apple-system, sans-serif;
@@ -1698,6 +1855,7 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
 </script>
 
 <!-- ── Custom point popup ──────────────────────────────────────────── -->
+
 <div id="arm-cp">
   <div class="arm-cp-body">
     <a class="arm-cp-title" id="arm-cp-title" href="#" target="_blank" rel="noopener"></a>
@@ -1887,18 +2045,20 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
 // Collapse charts panel on load
 (function() {
   function collapseChartsPanel() {
-    var btn = document.querySelector('button[title="Show / hide charts"]');
+    const btn = document.querySelector('button[title="Show / hide charts"]');
     if (!btn) { setTimeout(collapseChartsPanel, 200); return; }
-    btn.click();
+    if (!btn.classList.contains('text-slate-400')) { btn.click(); }
   }
-  window.addEventListener('load', function() { setTimeout(collapseChartsPanel, 800); });
+  window.addEventListener('load', () => setTimeout(collapseChartsPanel, 300));
 })();
 </script>
 
 <!-- ── Top title bar ──────────────────────────────────────────────── -->
+
 <div id="arm-title-bar">The <span>AI Research</span> Atlas</div>
 
 <!-- ── Tab strip ──────────────────────────────────────────────────── -->
+
 <div id="arm-tab-strip">
   <button id="arm-shortcuts-tab" class="arm-tab"
     onclick="armToggle('arm-shortcuts-panel','arm-shortcuts-tab','arm-about-tab')"
@@ -1911,6 +2071,7 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
 <!-- ═══════════════════════════════════════════════════════════
      SHORTCUTS PANEL
 ═══════════════════════════════════════════════════════════ -->
+
 <div id="arm-shortcuts-panel" class="arm-panel" role="complementary" aria-label="Shortcuts">
   <div class="arm-body">
     <div class="arm-header">
@@ -1919,25 +2080,27 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     </div>
     <p class="arm-sc-intro">Click a tile to see points colored by</p>
 
-    <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('Prominence', this)">
-      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="9,2 11.1,6.6 16.2,7.3 12.6,10.7 13.5,15.8 9,13.4 4.5,15.8 5.4,10.7 1.8,7.3 6.9,6.6"/></svg></span>
-      <span class="arm-tile-text"><span class="arm-tile-label">Author prominence</span><span class="arm-tile-sub">Elite · Enhanced · Emerging · Unverified</span></span>
-    </a>
+```
+<a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('Prominence', this)">
+  <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="9,2 11.1,6.6 16.2,7.3 12.6,10.7 13.5,15.8 9,13.4 4.5,15.8 5.4,10.7 1.8,7.3 6.9,6.6"/></svg></span>
+  <span class="arm-tile-text"><span class="arm-tile-label">Author prominence</span><span class="arm-tile-sub">Elite · Enhanced · Emerging · Unverified</span></span>
+</a>
 
-    <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('author_count', this)">
-      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="6" r="2.5"/><path d="M1 16c0-3.3 2.5-5 5.5-5"/><circle cx="13" cy="6" r="2.5"/><path d="M17 16c0-3.3-2.5-5-5.5-5"/><path d="M10 16c0-2.8-1.8-4.5-4-4.5"/></svg></span>
-      <span class="arm-tile-text"><span class="arm-tile-label">Author count</span><span class="arm-tile-sub">More authors tends to be better</span></span>
-    </a>
+<a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('author_count', this)">
+  <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="6" r="2.5"/><path d="M1 16c0-3.3 2.5-5 5.5-5"/><circle cx="13" cy="6" r="2.5"/><path d="M17 16c0-3.3-2.5-5-5.5-5"/><path d="M10 16c0-2.8-1.8-4.5-4-4.5"/></svg></span>
+  <span class="arm-tile-text"><span class="arm-tile-label">Author count</span><span class="arm-tile-sub">More authors tends to be better</span></span>
+</a>
 
-    <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('author_tier', this)">
-      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5L9 4l5 4.5"/><path d="M5.5 8v5.5h7V8"/><path d="M7 13.5v-3h4v3"/><path d="M3 8.5h12"/></svg></span>
-      <span class="arm-tile-text"><span class="arm-tile-label">Author seniority</span><span class="arm-tile-sub">Highlights established researchers</span></span>
-    </a>
+<a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('author_tier', this)">
+  <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5L9 4l5 4.5"/><path d="M5.5 8v5.5h7V8"/><path d="M7 13.5v-3h4v3"/><path d="M3 8.5h12"/></svg></span>
+  <span class="arm-tile-text"><span class="arm-tile-label">Author seniority</span><span class="arm-tile-sub">Highlights established researchers</span></span>
+</a>
 
-    <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('CitationTier', this)">
-      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,13 6,8 10,10 16,4"/><polyline points="12,4 16,4 16,8"/></svg></span>
-      <span class="arm-tile-text"><span class="arm-tile-label">Citation impact</span><span class="arm-tile-sub">Very Highly Cited · Highly Cited · Cited</span></span>
-    </a>
+<a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('CitationTier', this)">
+  <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,13 6,8 10,10 16,4"/><polyline points="12,4 16,4 16,8"/></svg></span>
+  <span class="arm-tile-text"><span class="arm-tile-label">Citation impact</span><span class="arm-tile-sub">Very Highly Cited · Highly Cited · Cited</span></span>
+</a>
+```
 
   </div>
   <div class="arm-footer">
@@ -1949,6 +2112,7 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
 <!-- ═══════════════════════════════════════════════════════════
      ABOUT PANEL
 ═══════════════════════════════════════════════════════════ -->
+
 <div id="arm-about-panel" class="arm-panel" role="complementary" aria-label="About this atlas">
   <div class="arm-body">
     <div class="arm-header">
@@ -1957,27 +2121,30 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     </div>
     <div class="arm-byline">By <a href="https://www.linkedin.com/in/lee-fischman/" target="_blank" rel="noopener">Lee Fischman</a></div>
 
-    <p class="arm-p">A live semantic map of recent AI research from arXiv (cs.AI), rebuilt every day across a rolling """ + str(RETENTION_DAYS) + """-day window. Each point is a paper. Groups are determined by Claude Haiku based on shared research methodology and problem formulation.</p>
-    <p class="arm-p"><a href="https://github.com/LeeFischman/AI-research-atlas" target="_blank" rel="noopener">More...</a></p>
+```
+<p class="arm-p">A live semantic map of recent AI research from arXiv (cs.AI), rebuilt every day across a rolling """ + str(RETENTION_DAYS) + """-day window. Each point is a paper. Groups are determined by Claude Haiku based on shared research methodology and problem formulation.</p>
+<p class="arm-p"><a href="https://github.com/LeeFischman/AI-research-atlas" target="_blank" rel="noopener">More...</a></p>
 
-    <hr class="arm-divider">
+<hr class="arm-divider">
 
-    <p class="arm-section">How to use</p>
-    <p class="arm-p">Click any point to read its abstract and open the PDF on arXiv. Use the search bar to find papers by keyword or phrase. Drag to pan; scroll or pinch to zoom.</p>
+<p class="arm-section">How to use</p>
+<p class="arm-p">Click any point to read its abstract and open the PDF on arXiv. Use the search bar to find papers by keyword or phrase. Drag to pan; scroll or pinch to zoom.</p>
 
-    <hr class="arm-divider">
+<hr class="arm-divider">
 
-    <p class="arm-section">Books by the author</p>
-    <a class="arm-book" href="https://www.amazon.com/dp/B0GMVH6P2W" target="_blank" rel="noopener">
-      <span class="arm-book-icon">&#x1F4D8;</span>
-      <span class="arm-book-text"><span class="arm-book-title">Building Deep Learning Products</span><span class="arm-book-sub">Available on Amazon &#x2192;</span></span>
-    </a>
-    <p class="arm-p" style="margin-top:4px;"><a href="https://donate.stripe.com/6oU5kD9sE17y87J3gI1ck00" target="_blank" rel="noopener">Buy me a bagel &#x1F96F;</a></p>
+<p class="arm-section">Books by the author</p>
+<a class="arm-book" href="https://www.amazon.com/dp/B0GMVH6P2W" target="_blank" rel="noopener">
+  <span class="arm-book-icon">&#x1F4D8;</span>
+  <span class="arm-book-text"><span class="arm-book-title">Building Deep Learning Products</span><span class="arm-book-sub">Available on Amazon &#x2192;</span></span>
+</a>
+<p class="arm-p" style="margin-top:4px;"><a href="https://donate.stripe.com/6oU5kD9sE17y87J3gI1ck00" target="_blank" rel="noopener">Buy me a bagel &#x1F96F;</a></p>
 
-    <hr class="arm-divider">
+<hr class="arm-divider">
 
-    <p class="arm-section">Powered by</p>
-    <p class="arm-p"><a href="https://apple.github.io/embedding-atlas/" target="_blank" rel="noopener">Apple Embedding Atlas</a>, <a href="https://openalex.org" target="_blank" rel="noopener">OpenAlex</a>, and <a href="https://allenai.org/blog/specter2-adapting-scientific-document-embeddings-to-multiple-fields-and-task-formats-c95686c06567" target="_blank" rel="noopener">SPECTER2</a></p>
+<p class="arm-section">Powered by</p>
+<p class="arm-p"><a href="https://apple.github.io/embedding-atlas/" target="_blank" rel="noopener">Apple Embedding Atlas</a>, <a href="https://openalex.org" target="_blank" rel="noopener">OpenAlex</a>, and <a href="https://allenai.org/blog/specter2-adapting-scientific-document-embeddings-to-multiple-fields-and-task-formats-c95686c06567" target="_blank" rel="noopener">SPECTER2</a></p>
+```
+
   </div>
   <div class="arm-footer">
     <div class="arm-status-dot"></div>
