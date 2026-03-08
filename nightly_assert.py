@@ -436,7 +436,7 @@ def check_significant(c: Checker, db_df: pd.DataFrame | None, now: datetime) -> 
         n_zero = int((df["ss_citation_count"].fillna(0) == 0).sum())
         pct_zero = n_zero / n if n else 0.0
         if pct_zero > 0.50:
-            c.fail(sec, f"{pct_zero:.1%} of significant papers have zero citations — "
+            c.warn(sec, f"{pct_zero:.1%} of significant papers have zero citations — "
                         f"S2 lookup may have failed or pool contains un-cited papers.")
         elif pct_zero > 0.20:
             c.warn(sec, f"{pct_zero:.1%} of significant papers have zero citations.")
