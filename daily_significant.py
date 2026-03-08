@@ -209,16 +209,20 @@ def run_citation_refresh(sig_df: pd.DataFrame, ss_cache: dict) -> pd.DataFrame:
         with open(SIG_CANDIDATES_PATH) as f:
             state = json.load(f)
         updated_candidates = []
-        for p in state.get("candidates", []):
+        for p in state.get("pool", []):
             bid = _arxiv_id_base(p["id"])
             entry = ss_cache.get(bid)
             if entry:
-                p["ss_citation_count"]        = entry.get("citation_count", 0)
-                p["ss_influential_citations"] = entry.get("influential_citation_count", 0)
+                new_cite = entry.get("citation_count", 0)
+                new_inf  = entry.get("influential_citation_count", 0)
+                if new_cite > 0:
+                    p["ss_citation_count"]        = new_cite
+                if new_inf > 0:
+                    p["ss_influential_citations"] = new_inf
             updated_candidates.append(p)
         # Re-rank by citation count so weekly job works from fresh numbers
         updated_candidates.sort(key=lambda x: x.get("ss_citation_count", 0), reverse=True)
-        state["candidates"] = updated_candidates
+        state["pool"] = updated_candidates
         with open(SIG_CANDIDATES_PATH, "w") as f:
             json.dump(state, f, indent=2)
         cites = [p.get("ss_citation_count", 0) for p in updated_candidates]
@@ -238,8 +242,14 @@ def run_citation_refresh(sig_df: pd.DataFrame, ss_cache: dict) -> pd.DataFrame:
         entry = ss_cache.get(bid)
         if entry:
             row = row.copy()
-            row["ss_citation_count"]        = entry.get("citation_count", 0)
-            row["ss_influential_citations"] = entry.get("influential_citation_count", 0)
+            # Only overwrite if S2 returned positive values —
+            # zeros mean S2 didn't find the paper; preserve existing counts.
+            new_cite = entry.get("citation_count", 0)
+            new_inf  = entry.get("influential_citation_count", 0)
+            if new_cite > 0:
+                row["ss_citation_count"] = new_cite
+            if new_inf > 0:
+                row["ss_influential_citations"] = new_inf
             if entry.get("tldr"):
                 row["ss_tldr"] = entry["tldr"]
         return row
