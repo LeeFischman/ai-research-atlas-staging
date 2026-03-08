@@ -10,8 +10,8 @@
         overscroll-behavior-x: none;
       }
     </style>
-    <script type="module" crossorigin src="./assets/index-BtGntx4N.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-Df_vtN7h.css">
+    <script type="module" crossorigin src="./assets/index-Njkwg3bS.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DfUakx2Y.css">
   <!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-6LKWKT8838"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-6LKWKT8838");</script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
   <body>
@@ -393,11 +393,11 @@
 // Collapse charts panel on load
 (function() {
   function collapseChartsPanel() {
-    var btn = document.querySelector('button[title="Show / hide charts"]');
+    const btn = document.querySelector('button[title="Show / hide charts"]');
     if (!btn) { setTimeout(collapseChartsPanel, 200); return; }
-    btn.click();
+    if (!btn.classList.contains('text-slate-400')) { btn.click(); }
   }
-  window.addEventListener('load', function() { setTimeout(collapseChartsPanel, 800); });
+  window.addEventListener('load', () => setTimeout(collapseChartsPanel, 300));
 })();
 </script>
 
@@ -448,7 +448,7 @@
   </div>
   <div class="arm-footer">
     <div class="arm-status-dot"></div>
-    <span class="arm-status-text">Last updated <strong>March 01, 2026 UTC</strong></span>
+    <span class="arm-status-text">Last updated <strong>March 08, 2026 UTC</strong></span>
   </div>
 </div>
 
@@ -487,7 +487,7 @@
   </div>
   <div class="arm-footer">
     <div class="arm-status-dot"></div>
-    <span class="arm-status-text">Last updated <strong>March 01, 2026 UTC</strong></span>
+    <span class="arm-status-text">Last updated <strong>March 08, 2026 UTC</strong></span>
   </div>
 </div>
 

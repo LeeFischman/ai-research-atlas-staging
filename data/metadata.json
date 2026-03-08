@@ -9,93 +9,83 @@
         },
         "embeddingViewLabels": [
             {
-                "x": -0.8102244984723372,
-                "y": 1.9856306452203891,
-                "text": "Group 0",
+                "x": 0.22339946245779224,
+                "y": 0.8944352253141139,
+                "text": "Language Models & Reasoning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.46065129714436537,
-                "y": 1.6324479788471447,
-                "text": "Group 1",
+                "x": 0.7697699445190042,
+                "y": -1.8389905542938252,
+                "text": "Computer Vision",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.373958184678507,
-                "y": 0.127078466257692,
-                "text": "Group 2",
+                "x": 0.19853671345577917,
+                "y": -0.8806124327062534,
+                "text": "Multimodal Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.6647417397975435,
-                "y": -0.6840013292464717,
-                "text": "Group 3",
+                "x": 1.5522622605420375,
+                "y": 1.4363886726526724,
+                "text": "Reinforcement Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.0080739439868096,
-                "y": 1.6793297959408864,
-                "text": "Group 4",
+                "x": 1.6291093844402176,
+                "y": 0.3897978826003665,
+                "text": "Robotics & Embodied AI",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.3904031169080113,
-                "y": -1.7478040136948823,
-                "text": "Group 5",
+                "x": -0.31236575468689587,
+                "y": 2.3839248775993664,
+                "text": "Safety, Alignment & Ethics",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.2032503732948356,
-                "y": -0.34016356153645255,
-                "text": "Group 6",
+                "x": -0.69913438879765,
+                "y": 0.011940355237476509,
+                "text": "Theory, Optimization & Efficient ML",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.26891174468117574,
-                "y": -1.5085208442473312,
-                "text": "Group 7",
+                "x": -1.9051419696691345,
+                "y": -0.6393783578083064,
+                "text": "Domain Applications",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.5448530636234227,
-                "y": -2.3742848952929556,
-                "text": "Group 8",
+                "x": -0.8187937580959134,
+                "y": -2.1327760731182774,
+                "text": "Speech & Audio Processing",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.2017542953729678,
-                "y": 0.3767094600304174,
-                "text": "Group 9",
+                "x": 1.7904395928932537,
+                "y": -0.8475664653070049,
+                "text": "Neural Operators & Pde Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.0513202088306155,
-                "y": -0.19105950808697197,
-                "text": "Group 10",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -1.4713451782851492,
-                "y": 1.0175161304177076,
-                "text": "Group 11",
+                "x": -2.5458517939782013,
+                "y": 1.3963222538986289,
+                "text": "Time Series & Anomaly Detection",
                 "level": 0,
                 "priority": 10
             }
-        ],
-        "initialState": {
-            "version": "0.0.0"
-        }
+        ]
     },
     "isStatic": true,
     "database": {
