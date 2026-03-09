@@ -498,7 +498,7 @@ def haiku_group_papers(
         try:
             response = client.messages.create(
                 model=HAIKU_MODEL,
-                max_tokens=8192,   # 250 entries × ~55 chars ≈ 3.4K tokens; Haiku max for headroom
+                max_tokens=16000,  # ~315 papers × ~70 chars/entry ≈ 5.5K tokens; increased for larger pools
                 system=_GROUPING_SYSTEM,
                 messages=[{"role": "user", "content": user_msg}],
             )
