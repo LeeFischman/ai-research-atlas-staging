@@ -9,79 +9,72 @@
         },
         "embeddingViewLabels": [
             {
-                "x": 0.9285402366884515,
-                "y": 0.24490529733084185,
-                "text": "Language Models & Reasoning",
+                "x": -2.21509633470601,
+                "y": -0.7140024806937524,
+                "text": "Group 0",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.2920990326696058,
-                "y": -0.5062047153408824,
-                "text": "Computer Vision",
+                "x": 1.9385393886024056,
+                "y": 1.3770184182535,
+                "text": "Group 1",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.713420736378887,
-                "y": -0.3474184826299933,
-                "text": "Multimodal Learning",
+                "x": -1.397400646741232,
+                "y": 0.7535114202748682,
+                "text": "Group 2",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.1594047255340713,
-                "y": -2.00254462981737,
-                "text": "Reinforcement Learning",
+                "x": 0.44938505460157147,
+                "y": 1.7936975381030174,
+                "text": "Group 3",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.1899763328686792,
-                "y": -1.211557695532624,
-                "text": "Robotics & Embodied AI",
+                "x": -1.1124881388696333,
+                "y": 1.9516474017776775,
+                "text": "Group 4",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.29078237927467726,
-                "y": 2.3070108825901885,
-                "text": "Safety, Alignment & Ethics",
+                "x": 0.20084249839121338,
+                "y": 0.16068981988796097,
+                "text": "Group 5",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.3418176200757556,
-                "y": 0.9543909097637157,
-                "text": "Theory, Optimization & Efficient ML",
+                "x": -0.2334023737499329,
+                "y": -0.9366758393175,
+                "text": "Group 6",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.4841799062766747,
-                "y": -1.3329363424003122,
-                "text": "Domain Applications",
+                "x": 2.008950733456297,
+                "y": -0.6108791352286281,
+                "text": "Group 7",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.9357131628270794,
-                "y": 1.0279713122772507,
-                "text": "Speech & Audio Processing",
+                "x": 0.9989679251034554,
+                "y": -1.6037629893408503,
+                "text": "Group 8",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.5835333581655386,
-                "y": 0.1778271489959664,
-                "text": "Neural Operators And Pdes",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -1.7515255536585836,
-                "y": 1.3393625723039018,
-                "text": "Diffusion Models For Temporal Data",
+                "x": -0.6066324710522979,
+                "y": -2.293589639108376,
+                "text": "Group 9",
                 "level": 0,
                 "priority": 10
             }
