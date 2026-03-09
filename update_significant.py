@@ -252,15 +252,11 @@ def discover_candidates(
           f"candidates (single batch call)...")
     fetch_semantic_scholar_data(top_pool_ids, ss_cache)
 
-    # Update pool with refreshed counts.
-    # Only overwrite if ss_cache has a real entry — a missing entry means the
-    # S2 fetch failed (e.g. 429) and we should keep the existing pool values
-    # rather than silently zeroing them out.
+    # Update pool with refreshed counts
     for p in top_pool:
-        entry = ss_cache.get(p["id"])
-        if entry is not None:
-            p["ss_citation_count"]        = int(entry.get("citation_count",             0))
-            p["ss_influential_citations"] = int(entry.get("influential_citation_count", 0))
+        entry = ss_cache.get(p["id"], {})
+        p["ss_citation_count"]        = int(entry.get("citation_count",             0))
+        p["ss_influential_citations"] = int(entry.get("influential_citation_count", 0))
 
     # ── Persist updated candidate pool ───────────────────────────────────────
     save_sig_candidates({
