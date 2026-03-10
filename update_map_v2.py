@@ -267,12 +267,15 @@ _GROUPING_SYSTEM = (
     "or theoretical framework — not just surface topic keywords.\n\n"
 
     "OUTPUT FORMAT:\n"
-    "Respond ONLY with a JSON array. No preamble, no explanation, no markdown "
-    "fences. One entry per paper in the same order as the input:\n"
-    '[{"index": 0, "group_id": 0, "group_name": "Language Models & Reasoning"}, '
-    '{"index": 1, "group_id": 8, "group_name": "Graph Neural Network Methods"}, ...]\n'
+    "Respond ONLY with a JSON object with exactly two keys. No preamble, no "
+    "explanation, no markdown fences:\n"
+    '{"groups": {"0": "Language Models & Reasoning", "8": "Graph Neural Network Methods"}, '
+    '"assignments": [0, 0, 8, 1, ...]}\n'
+    "- 'groups': maps each group_id (as a string) to its name. Include only "
+    "groups that are actually used.\n"
+    "- 'assignments': a flat array of group_id integers, one per paper, in the "
+    "same order as the input. Length must equal the number of input papers.\n"
     "- group_id must be an integer (0-7 for stable, 8+ for dynamic).\n"
-    "- group_name must be identical for every entry sharing the same group_id.\n"
     "- For stable categories, group_name must exactly match the stable category "
     "name (e.g. 'Language Models & Reasoning', not 'LLMs & Reasoning')."
 )
@@ -306,24 +309,27 @@ _STABLE_BUCKET_NAMES: dict[int, str] = {
 def _parse_grouping_response(
     text: str, n_papers: int
 ) -> tuple[dict[int, int], dict[int, str]] | None:
-    """Parse and validate Haiku's JSON grouping response.
+    """Parse and validate Haiku's compact JSON grouping response.
+
+    Expected format:
+      {"groups": {"0": "Language Models & Reasoning", "8": "Graph Neural Network Methods"},
+       "assignments": [0, 0, 8, ...]}
+
+    This compact format avoids repeating group names on every entry, keeping
+    output well within Haiku's token ceiling even for 800+ papers.
 
     Stable buckets (IDs 0-7): names are normalised to canonical values.
     Dynamic buckets (IDs 8+): names are taken as-is from Haiku; capped at
     GROUP_DYNAMIC_MAX unique dynamic group IDs.
 
     Hard failures → return None → trigger retry:
-      - Non-JSON or non-list
-      - Wrong entry count
-      - Missing / non-integer fields
-      - group_id < 0
-      - More than GROUP_COUNT_MAX total groups (triggers merge, not retry)
+      - Non-JSON or wrong top-level structure
+      - assignments length != n_papers
+      - Non-integer or negative group_ids
+      - group_id referenced in assignments but missing from groups dict
 
     Soft acceptance → log warning, return result:
       - More than GROUP_COUNT_MAX groups (caller merges excess down)
-
-    group_name drift: majority vote across all entries for each group_id.
-    For stable buckets the canonical name always wins over Haiku's variant.
     """
     text = re.sub(r"^```(?:json)?\s*", "", text.strip())
     text = re.sub(r"\s*```$", "", text)
@@ -334,38 +340,56 @@ def _parse_grouping_response(
         print(f"    JSON parse error: {e}")
         return None
 
-    if not isinstance(data, list):
-        print(f"    Expected JSON list, got {type(data).__name__}.")
+    if not isinstance(data, dict) or "groups" not in data or "assignments" not in data:
+        print(f"    Expected JSON object with 'groups' and 'assignments' keys, "
+              f"got: {type(data).__name__}.")
         return None
 
-    if len(data) != n_papers:
-        print(f"    Expected {n_papers} entries, got {len(data)}.")
+    assignments = data["assignments"]
+    groups_raw  = data["groups"]
+
+    if not isinstance(assignments, list):
+        print(f"    'assignments' must be a list, got {type(assignments).__name__}.")
         return None
 
-    mapping: dict[int, int]          = {}
-    name_votes: dict[int, dict[str, int]] = {}
+    if len(assignments) != n_papers:
+        print(f"    Expected {n_papers} assignments, got {len(assignments)}.")
+        return None
 
-    for entry in data:
-        if not isinstance(entry, dict) or "index" not in entry or "group_id" not in entry:
-            print(f"    Malformed entry: {entry}")
+    if not isinstance(groups_raw, dict):
+        print(f"    'groups' must be a dict, got {type(groups_raw).__name__}.")
+        return None
+
+    # Parse group names dict: keys are string group_ids
+    group_names_raw: dict[int, str] = {}
+    for k, v in groups_raw.items():
+        try:
+            gid = int(k)
+        except (ValueError, TypeError):
+            print(f"    Non-integer group_id key in 'groups': {k!r}")
             return None
-        idx = entry["index"]
-        gid = entry["group_id"]
-        if not isinstance(idx, int) or not isinstance(gid, int) or gid < 0:
-            print(f"    Non-integer or negative values: index={idx}, group_id={gid}")
+        group_names_raw[gid] = str(v).strip()
+
+    # Parse assignments array → mapping from paper index to group_id
+    mapping: dict[int, int] = {}
+    for i, gid_raw in enumerate(assignments):
+        if not isinstance(gid_raw, int):
+            print(f"    Non-integer group_id at assignment index {i}: {gid_raw!r}")
             return None
-        mapping[idx] = gid
-        name = str(entry.get("group_name", "")).strip()
-        if name:
-            name_votes.setdefault(gid, {})
-            name_votes[gid][name] = name_votes[gid].get(name, 0) + 1
+        if gid_raw < 0:
+            print(f"    Negative group_id at assignment index {i}: {gid_raw}")
+            return None
+        if gid_raw not in group_names_raw:
+            print(f"    group_id {gid_raw} used in assignments but missing from 'groups'.")
+            return None
+        mapping[i] = gid_raw
 
     missing = set(range(n_papers)) - set(mapping.keys())
     if missing:
         print(f"    Missing paper indices: {sorted(missing)[:10]}...")
         return None
 
-    all_gids   = set(mapping.values())
+    all_gids     = set(mapping.values())
     stable_gids  = {g for g in all_gids if g in _STABLE_BUCKET_NAMES}
     dynamic_gids = {g for g in all_gids if g not in _STABLE_BUCKET_NAMES}
     n_groups     = len(all_gids)
@@ -385,28 +409,17 @@ def _parse_grouping_response(
     group_names: dict[int, str] = {}
     for gid in all_gids:
         if gid in _STABLE_BUCKET_NAMES:
-            # Always use canonical name regardless of what Haiku returned
-            canonical = _STABLE_BUCKET_NAMES[gid]
-            haiku_name = max(name_votes.get(gid, {"": 0}),
-                             key=name_votes.get(gid, {"": 0}).__getitem__,
-                             default="")
+            canonical  = _STABLE_BUCKET_NAMES[gid]
+            haiku_name = group_names_raw.get(gid, "")
             if haiku_name and haiku_name != canonical:
                 print(f"    Stable group {gid}: normalised "
                       f"'{haiku_name}' → '{canonical}'")
             group_names[gid] = canonical
         else:
-            # Dynamic bucket: majority vote on name, title-case it
-            votes = name_votes.get(gid, {})
-            if votes:
-                winner = max(votes, key=votes.__getitem__)
-                if len(votes) > 1:
-                    print(f"    Dynamic group {gid}: name drift resolved → "
-                          f"'{winner}' (from {dict(votes)})")
-                group_names[gid] = winner.title()
-            else:
-                group_names[gid] = f"Emerging Topic {gid}"
-                print(f"    Dynamic group {gid}: no name — "
-                      f"fallback '{group_names[gid]}'")
+            name = group_names_raw.get(gid, "").title() or f"Emerging Topic {gid}"
+            if not group_names_raw.get(gid):
+                print(f"    Dynamic group {gid}: no name — fallback '{name}'")
+            group_names[gid] = name
 
     return mapping, group_names
 
