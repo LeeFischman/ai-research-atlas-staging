@@ -108,7 +108,7 @@ jobs:
 
           # ── Optional: higher Semantic Scholar API rate limits ────────────
           # Unnecessary for daily volume — only add if you see S2 rate errors.
-          # SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
+          SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
 
         run: |
           echo "=== Testing imports ==="
