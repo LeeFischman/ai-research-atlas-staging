@@ -1,39 +1,75 @@
 #!/usr/bin/env python3
+
 # update_map_v2.py
+
 # ──────────────────────────────────────────────────────────────────────────────
+
 # AI Research Atlas — v2 pipeline.
-#
+
+# 
+
 # Key difference from update_map.py (v1):
-#   v1: HDBSCAN groups papers by SPECTER2 geometry, Haiku labels each cluster.
-#   v2: Haiku groups papers by research meaning, geometry follows from those groups.
-#
+
+# v1: HDBSCAN groups papers by SPECTER2 geometry, Haiku labels each cluster.
+
+# v2: Haiku groups papers by research meaning, geometry follows from those groups.
+
+# 
+
 # Pipeline (4 stages + build)
+
 # ──────────────────────────────────────────────
+
 # 1. FETCH       arXiv → new papers
+
 # 2. EMBED       SPECTER2 incremental embed + UMAP → projection_x/y for direction vectors
+
 # 3. GROUP       Single Haiku call → group_id_v2 + group_name per paper (12-18 groups)
-#                Haiku names the groups as it forms them; no second labeling call needed.
-#                If Haiku returns > GROUP_COUNT_MAX groups, excess groups are merged
-#                by repeatedly absorbing the closest pair (SPECTER2 distance).
+
+# Haiku names the groups as it forms them; no second labeling call needed.
+
+# If Haiku returns > GROUP_COUNT_MAX groups, excess groups are merged
+
+# by repeatedly absorbing the closest pair (SPECTER2 distance).
+
 # 4. LAYOUT      MDS on group-to-group SPECTER2 distances → 2D group centroids,
-#                multiplied by LAYOUT_SCALE for human-readable coordinate range.
-#                Within each group: scatter papers using SPECTER2 direction vectors
-#                + variance-proportional scatter scale, also × LAYOUT_SCALE.
-#                Writes projection_v2_x / projection_v2_y.
+
+# multiplied by LAYOUT_SCALE for human-readable coordinate range.
+
+# Within each group: scatter papers using SPECTER2 direction vectors
+
+# + variance-proportional scatter scale, also × LAYOUT_SCALE.
+
+# Writes projection_v2_x / projection_v2_y.
+
 # 5. BUILD       embedding-atlas CLI + deploy
-#
+
+# 
+
 # Projection columns written (coexist with v1 columns in database.parquet):
-#   group_id_v2     — Haiku group assignment (int, post-merge)
-#   projection_v2_x — v2 layout x
-#   projection_v2_y — v2 layout y
-#
+
+# group_id_v2     — Haiku group assignment (int, post-merge)
+
+# projection_v2_x — v2 layout x
+
+# projection_v2_y — v2 layout y
+
+# 
+
 # Offline mode (re-runs layout + build only, skipping all API/embed work):
-#   OFFLINE_MODE=true python update_map_v2.py
-#   Requires: database.parquet with group_id_v2 + embedding columns, and
-#             group_names_v2.json saved from a previous normal run.
-#
+
+# OFFLINE_MODE=true python update_map_v2.py
+
+# Requires: database.parquet with group_id_v2 + embedding columns, and
+
+# group_names_v2.json saved from a previous normal run.
+
+# 
+
 # Normal run:
-#   ANTHROPIC_API_KEY=sk-... python update_map_v2.py
+
+# ANTHROPIC_API_KEY=sk-… python update_map_v2.py
+
 # ──────────────────────────────────────────────────────────────────────────────
 
 import json
@@ -48,1191 +84,1292 @@ import numpy as np
 import pandas as pd
 
 # Shared utilities — does NOT modify update_map.py
+
 from atlas_utils import (
-    DB_PATH,
-    ARXIV_MAX,
-    RETENTION_DAYS,
-    _strip_urls,
-    scrub_model_words,
-    calculate_prominence,
-    calculate_citation_tier,
-    categorize_authors,
-    load_author_cache,
-    save_author_cache,
-    fetch_author_hindices,
-    load_existing_db,
-    merge_papers,
-    fetch_arxiv_oai,
-    embed_and_project,
-    build_and_deploy_atlas,
-    # Semantic Scholar
-    SS_CACHE_TTL_DAYS,
-    load_ss_cache,
-    save_ss_cache,
-    fetch_semantic_scholar_data,
-    _arxiv_id_base,
+DB_PATH,
+ARXIV_MAX,
+RETENTION_DAYS,
+_strip_urls,
+scrub_model_words,
+calculate_prominence,
+calculate_citation_tier,
+categorize_authors,
+load_author_cache,
+save_author_cache,
+fetch_author_hindices,
+load_existing_db,
+merge_papers,
+fetch_arxiv_oai,
+embed_and_project,
+build_and_deploy_atlas,
+# Semantic Scholar
+SS_CACHE_TTL_DAYS,
+load_ss_cache,
+save_ss_cache,
+fetch_semantic_scholar_data,
+_arxiv_id_base,
 )
 
-
 # ══════════════════════════════════════════════════════════════════════════════
+
 # CONFIGURATION — all tuning knobs in one place
+
 # ══════════════════════════════════════════════════════════════════════════════
 
 # ── Offline mode ─────────────────────────────────────────────────────────────
+
 # When True: skip arXiv fetch, SPECTER2 embedding, and Haiku API calls entirely.
+
 # Re-runs MDS layout, scatter, and Atlas build using data already in the parquet.
+
 # Set via env var:  OFFLINE_MODE=true python update_map_v2.py
-OFFLINE_MODE = os.environ.get("OFFLINE_MODE", "false").strip().lower() == "true"
+
+OFFLINE_MODE = os.environ.get(“OFFLINE_MODE”, “false”).strip().lower() == “true”
 
 # When True: re-fetch OpenAlex h-indices for ALL papers, including those that
+
 # already have an author_hindices list (e.g. empty lists from a first run).
+
 # Set via env var:  BACKFILL_HINDICES=true
+
 # Remove after one successful backfill run.
-BACKFILL_HINDICES = os.environ.get("BACKFILL_HINDICES", "false").strip().lower() == "true"
+
+BACKFILL_HINDICES = os.environ.get(“BACKFILL_HINDICES”, “false”).strip().lower() == “true”
 
 # Cache file written after every successful Haiku grouping call.
+
 # Loaded automatically in offline mode.
-GROUP_NAMES_CACHE = "group_names_v2.json"
+
+GROUP_NAMES_CACHE = “group_names_v2.json”
 
 # ── Haiku grouping ───────────────────────────────────────────────────────────
 
 # ── Haiku grouping ───────────────────────────────────────────────────────────
 
 # Stable bucket count (always offered to Haiku; only used if papers fit).
+
 GROUP_STABLE_COUNT = 8
 
 # Maximum dynamic groups Haiku may invent beyond the stable buckets.
+
 GROUP_DYNAMIC_MAX  = 6
 
 # Hard cap on total groups (stable + dynamic).
-# Haiku is not required to reach this — it's a ceiling, not a target.
+
+# Haiku is not required to reach this — it’s a ceiling, not a target.
+
 GROUP_COUNT_MAX    = 20
 
-# No hard minimum — if 10 groups make sense today, that's fine.
+# No hard minimum — if 10 groups make sense today, that’s fine.
+
 # Validation rejects responses with 0 groups only.
+
 GROUP_COUNT_MIN    = 1
 
 # Characters of each abstract sent to Haiku.
+
 # Recommended range: 150-400.  Shorter = cheaper; longer = better grouping.
+
 ABSTRACT_GROUPING_CHARS = 300
 
 # Retry policy for the Haiku grouping call.
+
 # Covers both 529 overload errors and hard parse failures.
+
 # Wait schedule: GROUPING_RETRY_BASE_WAIT * 2^(attempt-1) seconds.
+
 # With base=60 and 5 retries: 60, 120, 240, 480 s between attempts.
+
 GROUPING_MAX_RETRIES     = 5
 GROUPING_RETRY_BASE_WAIT = 60   # seconds; recommended range: 30-120
 
 # ── Layout scaling ────────────────────────────────────────────────────────────
+
 # MDS raw output is in a small range (typically ±0.15 for ~15 groups on
+
 # SPECTER2 cosine distances, which cluster between 0.05 and 0.25).
+
 # LAYOUT_SCALE multiplies ALL v2 coordinates — centroid positions AND
+
 # within-group scatter distances — so the final layout is visible in Atlas.
-#
+
+# 
+
 # With the run that produced the attached log:
-#   Raw centroid range: ±0.17   →  ×20  →  ±3.4
-#   Scatter radius:     ~0.06   →  ×20  →  ~1.2
-#   Total canvas:       ~0.34   →  ×20  →  ~6.8  (comfortably label-able)
-#
+
+# Raw centroid range: ±0.17   →  ×20  →  ±3.4
+
+# Scatter radius:     ~0.06   →  ×20  →  ~1.2
+
+# Total canvas:       ~0.34   →  ×20  →  ~6.8  (comfortably label-able)
+
+# 
+
 # Recommended range: 15-30.  Increase if clusters still look cramped in Atlas.
+
 LAYOUT_SCALE = 20.0
 
 # ── Within-group scatter ─────────────────────────────────────────────────────
+
 # Scatter radius is expressed as a fraction of the median nearest-neighbour
+
 # centroid distance, so it auto-scales to however spread the MDS layout is.
-#
+
+# 
+
 # radius = SCATTER_FRACTION
-#         * median_nearest_centroid_dist
-#         * (1 + group_variance * VARIANCE_AMPLIFIER)
-#
+
+# * median_nearest_centroid_dist
+
+# * (1 + group_variance * VARIANCE_AMPLIFIER)
+
+# 
+
 # SCATTER_FRACTION = 0.35 means each paper is placed at most ~35% of the way
+
 # to its nearest neighbouring cluster centroid.  Papers at the edge of a group
+
 # (high intra-group cosine distance) get a larger fraction; papers at the core
+
 # get a smaller fraction.  This prevents clouds from overlapping at any scale.
+
 # Recommended range: 0.25-0.50.
-#
+
+# 
+
 # VARIANCE_AMPLIFIER loosely-coupled groups spread a bit wider than tight ones.
+
 # Recommended range: 1.0-3.0.
+
 SCATTER_FRACTION   = 0.35
 VARIANCE_AMPLIFIER = 2.0
 
 # ── Layout tuning guide ──────────────────────────────────────────────────────
+
 # Quick reference for adjusting the visual appearance of the atlas:
-#
+
+# 
+
 # Clusters overlap / labels still central:
-#   → Lower SCATTER_FRACTION (0.35 → 0.25)
-#     Clouds tighten; more breathing room between groups.
-#
+
+# → Lower SCATTER_FRACTION (0.35 → 0.25)
+
+# Clouds tighten; more breathing room between groups.
+
+# 
+
 # Clusters too sparse / papers far from their label:
-#   → Raise SCATTER_FRACTION (0.35 → 0.45)
-#
+
+# → Raise SCATTER_FRACTION (0.35 → 0.45)
+
+# 
+
 # Too many dynamic groups (noise-like topics appearing):
-#   → Lower GROUP_DYNAMIC_MAX (6 → 4)
-#
+
+# → Lower GROUP_DYNAMIC_MAX (6 → 4)
+
+# 
+
 # Dynamic groups too coarse (interesting edges being merged into stable):
-#   → Raise GROUP_DYNAMIC_MAX (6 → 8)
-#
+
+# → Raise GROUP_DYNAMIC_MAX (6 → 8)
+
+# 
+
 # Merge step absorbing groups that feel semantically distinct:
-#   → Raise GROUP_COUNT_MAX (20 → 24)
-#
+
+# → Raise GROUP_COUNT_MAX (20 → 24)
+
+# 
+
 # Ready for production (fresh papers + re-grouping):
-#   → Remove OFFLINE_MODE from the workflow YAML.
-#     First normal run re-embeds, calls Haiku, and commits updated
-#     group_names_v2.json to the repo for future offline runs.
+
+# → Remove OFFLINE_MODE from the workflow YAML.
+
+# First normal run re-embeds, calls Haiku, and commits updated
+
+# group_names_v2.json to the repo for future offline runs.
 
 # ── Atlas CLI ────────────────────────────────────────────────────────────────
+
 # Projection column names written to database.parquet.
-# Must match --x / --y args passed to the Atlas CLI.
-PROJ_X_COL = "projection_v2_x"
-PROJ_Y_COL = "projection_v2_y"
+
+# Must match –x / –y args passed to the Atlas CLI.
+
+PROJ_X_COL = “projection_v2_x”
+PROJ_Y_COL = “projection_v2_y”
 
 # ── Significant papers ───────────────────────────────────────────────────────
+
 # Written by the weekly update_significant.py script.
+
 # Loaded at Stage 1 and merged with the recent-window papers.
-SIGNIFICANT_PATH = "significant.parquet"
+
+SIGNIFICANT_PATH = “significant.parquet”
 
 # ── Haiku model ──────────────────────────────────────────────────────────────
-HAIKU_MODEL = "claude-haiku-4-5-20251001"
 
+HAIKU_MODEL = “claude-haiku-4-5-20251001”
 
 # ══════════════════════════════════════════════════════════════════════════════
+
 # STAGE 3 — HAIKU GROUPING
+
 # ══════════════════════════════════════════════════════════════════════════════
 
-_STABLE_BUCKETS = """STABLE CATEGORIES (use only those that have papers today — skip empty ones):
+_STABLE_BUCKETS = “”“STABLE CATEGORIES (use only those that have papers today — skip empty ones):
 
 ID 0 — Language Models & Reasoning
-  Core LLM research: pretraining, fine-tuning, RLHF, instruction following,
-  chain-of-thought, inference-time scaling, agents, prompt engineering,
-  retrieval-augmented generation, context length, and LLM efficiency.
+Core LLM research: pretraining, fine-tuning, RLHF, instruction following,
+chain-of-thought, inference-time scaling, agents, prompt engineering,
+retrieval-augmented generation, context length, and LLM efficiency.
 
 ID 1 — Computer Vision
-  Image and video understanding, generation, and editing. Object detection,
-  segmentation, recognition, diffusion models for images, 3D reconstruction,
-  video generation and understanding. Primary contribution is visual.
+Image and video understanding, generation, and editing. Object detection,
+segmentation, recognition, diffusion models for images, 3D reconstruction,
+video generation and understanding. Primary contribution is visual.
 
 ID 2 — Multimodal Learning
-  Systems jointly processing two or more modalities (vision+language,
-  audio+language, etc.). VLMs, vision-language alignment, captioning,
-  visual QA, audio-language models. Primary contribution is cross-modal fusion.
+Systems jointly processing two or more modalities (vision+language,
+audio+language, etc.). VLMs, vision-language alignment, captioning,
+visual QA, audio-language models. Primary contribution is cross-modal fusion.
 
 ID 3 — Reinforcement Learning
-  RL algorithms, policy optimization, reward modeling, multi-agent RL,
-  offline RL, model-based RL, exploration strategies, game-playing agents.
+RL algorithms, policy optimization, reward modeling, multi-agent RL,
+offline RL, model-based RL, exploration strategies, game-playing agents.
 
 ID 4 — Robotics & Embodied AI
-  Physical robots, manipulation, locomotion, sim-to-real transfer,
-  embodied agents in 3D environments, navigation, dexterous control.
+Physical robots, manipulation, locomotion, sim-to-real transfer,
+embodied agents in 3D environments, navigation, dexterous control.
 
 ID 5 — Safety, Alignment & Ethics
-  AI safety, alignment research, red-teaming, jailbreaks, fairness, bias,
-  interpretability for safety, societal impact, governance, privacy.
+AI safety, alignment research, red-teaming, jailbreaks, fairness, bias,
+interpretability for safety, societal impact, governance, privacy.
 
 ID 6 — Theory, Optimization & Efficient ML
-  Mathematical foundations: convergence proofs, generalization bounds,
-  learning theory. Model compression, quantization, pruning, efficient
-  architectures, hardware-aware ML, federated learning.
+Mathematical foundations: convergence proofs, generalization bounds,
+learning theory. Model compression, quantization, pruning, efficient
+architectures, hardware-aware ML, federated learning.
 
 ID 7 — Domain Applications
-  AI applied to a specific external field as the primary contribution:
-  medicine, biology, climate, law, finance, education, scientific discovery.
-  The application domain — not the AI method — is the main result."""
+AI applied to a specific external field as the primary contribution:
+medicine, biology, climate, law, finance, education, scientific discovery.
+The application domain — not the AI method — is the main result.”””
 
 _GROUPING_SYSTEM = (
-    "You are a research taxonomy expert. You will be given a list of AI research "
-    "paper titles and abstracts. Your task is to group them into thematically "
-    "coherent clusters.\n\n"
+“You are a research taxonomy expert. You will be given a list of AI research “
+“paper titles and abstracts. Your task is to group them into thematically “
+“coherent clusters.\n\n”
 
-    f"{_STABLE_BUCKETS}\n\n"
+```
+f"{_STABLE_BUCKETS}\n\n"
 
-    f"DYNAMIC CATEGORIES (invent up to {GROUP_DYNAMIC_MAX} additional groups):\n"
-    "  Use IDs starting at 8. Name each with a concise 3-6 word noun phrase "
-    "capturing the shared intellectual thread (e.g. 'Graph Neural Network Methods', "
-    "'Diffusion Model Theory', 'Speech & Audio Processing'). Create a dynamic "
-    "group only when papers genuinely don't fit any stable category above.\n\n"
+f"DYNAMIC CATEGORIES (invent up to {GROUP_DYNAMIC_MAX} additional groups):\n"
+"  Use IDs starting at 8. Name each with a concise 3-6 word noun phrase "
+"capturing the shared intellectual thread (e.g. 'Graph Neural Network Methods', "
+"'Diffusion Model Theory', 'Speech & Audio Processing'). Create a dynamic "
+"group only when papers genuinely don't fit any stable category above.\n\n"
 
-    f"TOTAL GROUP CAP: {GROUP_COUNT_MAX} groups maximum (stable + dynamic combined). "
-    "You are NOT required to reach this cap — use only as many groups as the "
-    "papers genuinely warrant.\n\n"
+f"TOTAL GROUP CAP: {GROUP_COUNT_MAX} groups maximum (stable + dynamic combined). "
+"You are NOT required to reach this cap — use only as many groups as the "
+"papers genuinely warrant.\n\n"
 
-    "ASSIGNMENT RULES:\n"
-    "- Assign every paper to exactly one group.\n"
-    "- When a paper could fit multiple stable categories, assign it to the one "
-    "where its PRIMARY CONTRIBUTION lies — the thing the authors would consider "
-    "their main result. Example: a vision-language model whose core contribution "
-    "is a new training objective → Language Models & Reasoning; one whose core "
-    "contribution is cross-modal alignment → Multimodal Learning.\n"
-    "- Prefer stable categories over dynamic ones when the fit is reasonable.\n"
-    "- Group papers by what makes them intellectually related — shared methodology "
-    "or theoretical framework — not just surface topic keywords.\n\n"
+"ASSIGNMENT RULES:\n"
+"- Assign every paper to exactly one group.\n"
+"- When a paper could fit multiple stable categories, assign it to the one "
+"where its PRIMARY CONTRIBUTION lies — the thing the authors would consider "
+"their main result. Example: a vision-language model whose core contribution "
+"is a new training objective → Language Models & Reasoning; one whose core "
+"contribution is cross-modal alignment → Multimodal Learning.\n"
+"- Prefer stable categories over dynamic ones when the fit is reasonable.\n"
+"- Group papers by what makes them intellectually related — shared methodology "
+"or theoretical framework — not just surface topic keywords.\n\n"
 
-    "OUTPUT FORMAT:\n"
-    "Respond ONLY with a JSON object with exactly two keys. No preamble, no "
-    "explanation, no markdown fences:\n"
-    '{"groups": {"0": "Language Models & Reasoning", "8": "Graph Neural Network Methods"}, '
-    '"assignments": [0, 0, 8, 1, ...]}\n'
-    "- 'groups': maps each group_id (as a string) to its name. Include only "
-    "groups that are actually used.\n"
-    "- 'assignments': a flat array of group_id integers, one per paper, in the "
-    "same order as the input. Length must equal the number of input papers.\n"
-    "- group_id must be an integer (0-7 for stable, 8+ for dynamic).\n"
-    "- For stable categories, group_name must exactly match the stable category "
-    "name (e.g. 'Language Models & Reasoning', not 'LLMs & Reasoning')."
+"OUTPUT FORMAT:\n"
+"Respond ONLY with a JSON object with exactly two keys. No preamble, no "
+"explanation, no markdown fences:\n"
+'{"groups": {"0": "Language Models & Reasoning", "8": "Graph Neural Network Methods"}, '
+'"assignments": {"0": 0, "1": 0, "2": 8, "3": 1, ...}}\n'
+"- 'groups': maps each group_id (as a string) to its name. Include only "
+"groups that are actually used.\n"
+"- 'assignments': maps each paper index (as a string) to its group_id integer. "
+"Every paper index from 0 to N-1 must appear exactly once.\n"
+"- group_id must be an integer (0-7 for stable, 8+ for dynamic).\n"
+"- For stable categories, group_name must exactly match the stable category "
+"name (e.g. 'Language Models & Reasoning', not 'LLMs & Reasoning')."
+```
+
 )
 
-
 def _build_grouping_user_message(df: pd.DataFrame) -> str:
-    lines = [f"Assign each of the following {len(df)} papers to a group. "
-             "Return JSON only.\n"]
-    for i, row in df.iterrows():
-        title            = str(row["title"]).strip()
-        abstract         = _strip_urls(str(row.get("abstract", ""))).strip()
-        abstract_snippet = abstract[:ABSTRACT_GROUPING_CHARS]
-        lines.append(f"[{i}] Title: {title}\nAbstract: {abstract_snippet}")
-    return "\n\n".join(lines)
+lines = [f”Assign each of the following {len(df)} papers to a group. “
+“Return JSON only.\n”]
+for i, row in df.iterrows():
+title            = str(row[“title”]).strip()
+abstract         = _strip_urls(str(row.get(“abstract”, “”))).strip()
+abstract_snippet = abstract[:ABSTRACT_GROUPING_CHARS]
+lines.append(f”[{i}] Title: {title}\nAbstract: {abstract_snippet}”)
+return “\n\n”.join(lines)
 
+# Canonical names for stable buckets — used to normalise Haiku’s output
 
-# Canonical names for stable buckets — used to normalise Haiku's output
-# so minor variations ("LLMs & Reasoning") are corrected to the exact name.
+# so minor variations (“LLMs & Reasoning”) are corrected to the exact name.
+
 _STABLE_BUCKET_NAMES: dict[int, str] = {
-    0: "Language Models & Reasoning",
-    1: "Computer Vision",
-    2: "Multimodal Learning",
-    3: "Reinforcement Learning",
-    4: "Robotics & Embodied AI",
-    5: "Safety, Alignment & Ethics",
-    6: "Theory, Optimization & Efficient ML",
-    7: "Domain Applications",
+0: “Language Models & Reasoning”,
+1: “Computer Vision”,
+2: “Multimodal Learning”,
+3: “Reinforcement Learning”,
+4: “Robotics & Embodied AI”,
+5: “Safety, Alignment & Ethics”,
+6: “Theory, Optimization & Efficient ML”,
+7: “Domain Applications”,
 }
 
-
 def _parse_grouping_response(
-    text: str, n_papers: int
+text: str, n_papers: int
 ) -> tuple[dict[int, int], dict[int, str]] | None:
-    """Parse and validate Haiku's compact JSON grouping response.
+“”“Parse and validate Haiku’s compact JSON grouping response.
 
-    Expected format:
-      {"groups": {"0": "Language Models & Reasoning", "8": "Graph Neural Network Methods"},
-       "assignments": [0, 0, 8, ...]}
+```
+Expected format:
+  {"groups": {"0": "Language Models & Reasoning", "8": "Graph Neural Network Methods"},
+   "assignments": {"0": 0, "1": 0, "2": 8, ...}}
 
-    This compact format avoids repeating group names on every entry, keeping
-    output well within Haiku's token ceiling even for 800+ papers.
+This compact format avoids repeating group names on every entry, keeping
+output well within Haiku's token ceiling even for 800+ papers.
 
-    Stable buckets (IDs 0-7): names are normalised to canonical values.
-    Dynamic buckets (IDs 8+): names are taken as-is from Haiku; capped at
-    GROUP_DYNAMIC_MAX unique dynamic group IDs.
+Stable buckets (IDs 0-7): names are normalised to canonical values.
+Dynamic buckets (IDs 8+): names are taken as-is from Haiku; capped at
+GROUP_DYNAMIC_MAX unique dynamic group IDs.
 
-    Hard failures → return None → trigger retry:
-      - Non-JSON or wrong top-level structure
-      - assignments length != n_papers
-      - Non-integer or negative group_ids
-      - group_id referenced in assignments but missing from groups dict
+Hard failures → return None → trigger retry:
+  - Non-JSON or wrong top-level structure
+  - assignments missing paper indices or has extra keys
+  - Non-integer or negative group_ids
+  - group_id referenced in assignments but missing from groups dict
 
-    Soft acceptance → log warning, return result:
-      - More than GROUP_COUNT_MAX groups (caller merges excess down)
-    """
-    text = re.sub(r"^```(?:json)?\s*", "", text.strip())
-    text = re.sub(r"\s*```$", "", text)
+Soft acceptance → log warning, return result:
+  - More than GROUP_COUNT_MAX groups (caller merges excess down)
+"""
+text = re.sub(r"^```(?:json)?\s*", "", text.strip())
+text = re.sub(r"\s*```$", "", text)
 
+try:
+    data = json.loads(text)
+except json.JSONDecodeError as e:
+    print(f"    JSON parse error: {e}")
+    return None
+
+if not isinstance(data, dict) or "groups" not in data or "assignments" not in data:
+    print(f"    Expected JSON object with 'groups' and 'assignments' keys, "
+          f"got: {type(data).__name__}.")
+    return None
+
+assignments_raw = data["assignments"]
+groups_raw      = data["groups"]
+
+if not isinstance(assignments_raw, dict):
+    print(f"    'assignments' must be a dict, got {type(assignments_raw).__name__}.")
+    return None
+
+if not isinstance(groups_raw, dict):
+    print(f"    'groups' must be a dict, got {type(groups_raw).__name__}.")
+    return None
+
+# Parse group names dict: keys are string group_ids
+group_names_raw: dict[int, str] = {}
+for k, v in groups_raw.items():
     try:
-        data = json.loads(text)
-    except json.JSONDecodeError as e:
-        print(f"    JSON parse error: {e}")
+        gid = int(k)
+    except (ValueError, TypeError):
+        print(f"    Non-integer group_id key in 'groups': {k!r}")
         return None
+    group_names_raw[gid] = str(v).strip()
 
-    if not isinstance(data, dict) or "groups" not in data or "assignments" not in data:
-        print(f"    Expected JSON object with 'groups' and 'assignments' keys, "
-              f"got: {type(data).__name__}.")
+# Parse assignments dict → mapping from paper index to group_id
+mapping: dict[int, int] = {}
+for k, gid_raw in assignments_raw.items():
+    try:
+        i = int(k)
+    except (ValueError, TypeError):
+        print(f"    Non-integer paper index key in 'assignments': {k!r}")
         return None
-
-    assignments = data["assignments"]
-    groups_raw  = data["groups"]
-
-    if not isinstance(assignments, list):
-        print(f"    'assignments' must be a list, got {type(assignments).__name__}.")
+    if not isinstance(gid_raw, int):
+        print(f"    Non-integer group_id at assignment index {i}: {gid_raw!r}")
         return None
-
-    if len(assignments) != n_papers:
-        print(f"    Expected {n_papers} assignments, got {len(assignments)}.")
+    if gid_raw < 0:
+        print(f"    Negative group_id at assignment index {i}: {gid_raw}")
         return None
-
-    if not isinstance(groups_raw, dict):
-        print(f"    'groups' must be a dict, got {type(groups_raw).__name__}.")
+    if gid_raw not in group_names_raw:
+        print(f"    group_id {gid_raw} used in assignments but missing from 'groups'.")
         return None
+    mapping[i] = gid_raw
 
-    # Parse group names dict: keys are string group_ids
-    group_names_raw: dict[int, str] = {}
-    for k, v in groups_raw.items():
-        try:
-            gid = int(k)
-        except (ValueError, TypeError):
-            print(f"    Non-integer group_id key in 'groups': {k!r}")
-            return None
-        group_names_raw[gid] = str(v).strip()
+missing = set(range(n_papers)) - set(mapping.keys())
+if missing:
+    print(f"    Missing paper indices: {sorted(missing)[:10]}...")
+    return None
 
-    # Parse assignments array → mapping from paper index to group_id
-    mapping: dict[int, int] = {}
-    for i, gid_raw in enumerate(assignments):
-        if not isinstance(gid_raw, int):
-            print(f"    Non-integer group_id at assignment index {i}: {gid_raw!r}")
-            return None
-        if gid_raw < 0:
-            print(f"    Negative group_id at assignment index {i}: {gid_raw}")
-            return None
-        if gid_raw not in group_names_raw:
-            print(f"    group_id {gid_raw} used in assignments but missing from 'groups'.")
-            return None
-        mapping[i] = gid_raw
+all_gids     = set(mapping.values())
+stable_gids  = {g for g in all_gids if g in _STABLE_BUCKET_NAMES}
+dynamic_gids = {g for g in all_gids if g not in _STABLE_BUCKET_NAMES}
+n_groups     = len(all_gids)
 
-    missing = set(range(n_papers)) - set(mapping.keys())
-    if missing:
-        print(f"    Missing paper indices: {sorted(missing)[:10]}...")
-        return None
+print(f"    Groups: {len(stable_gids)} stable, {len(dynamic_gids)} dynamic "
+      f"= {n_groups} total.")
 
-    all_gids     = set(mapping.values())
-    stable_gids  = {g for g in all_gids if g in _STABLE_BUCKET_NAMES}
-    dynamic_gids = {g for g in all_gids if g not in _STABLE_BUCKET_NAMES}
-    n_groups     = len(all_gids)
+if len(dynamic_gids) > GROUP_DYNAMIC_MAX:
+    print(f"    {len(dynamic_gids)} dynamic groups exceeds cap "
+          f"({GROUP_DYNAMIC_MAX}). Will merge excess after parsing.")
 
-    print(f"    Groups: {len(stable_gids)} stable, {len(dynamic_gids)} dynamic "
-          f"= {n_groups} total.")
+if n_groups > GROUP_COUNT_MAX:
+    print(f"    {n_groups} total groups exceeds cap ({GROUP_COUNT_MAX}). "
+          "Will merge excess groups after parsing.")
 
-    if len(dynamic_gids) > GROUP_DYNAMIC_MAX:
-        print(f"    {len(dynamic_gids)} dynamic groups exceeds cap "
-              f"({GROUP_DYNAMIC_MAX}). Will merge excess after parsing.")
+# Build final group_names: stable buckets always use canonical names
+group_names: dict[int, str] = {}
+for gid in all_gids:
+    if gid in _STABLE_BUCKET_NAMES:
+        canonical  = _STABLE_BUCKET_NAMES[gid]
+        haiku_name = group_names_raw.get(gid, "")
+        if haiku_name and haiku_name != canonical:
+            print(f"    Stable group {gid}: normalised "
+                  f"'{haiku_name}' → '{canonical}'")
+        group_names[gid] = canonical
+    else:
+        name = group_names_raw.get(gid, "").title() or f"Emerging Topic {gid}"
+        if not group_names_raw.get(gid):
+            print(f"    Dynamic group {gid}: no name — fallback '{name}'")
+        group_names[gid] = name
 
-    if n_groups > GROUP_COUNT_MAX:
-        print(f"    {n_groups} total groups exceeds cap ({GROUP_COUNT_MAX}). "
-              "Will merge excess groups after parsing.")
-
-    # Build final group_names: stable buckets always use canonical names
-    group_names: dict[int, str] = {}
-    for gid in all_gids:
-        if gid in _STABLE_BUCKET_NAMES:
-            canonical  = _STABLE_BUCKET_NAMES[gid]
-            haiku_name = group_names_raw.get(gid, "")
-            if haiku_name and haiku_name != canonical:
-                print(f"    Stable group {gid}: normalised "
-                      f"'{haiku_name}' → '{canonical}'")
-            group_names[gid] = canonical
-        else:
-            name = group_names_raw.get(gid, "").title() or f"Emerging Topic {gid}"
-            if not group_names_raw.get(gid):
-                print(f"    Dynamic group {gid}: no name — fallback '{name}'")
-            group_names[gid] = name
-
-    return mapping, group_names
-
+return mapping, group_names
+```
 
 def _merge_excess_groups(
-    mapping: dict[int, int],
-    group_names: dict[int, str],
-    df: pd.DataFrame,
-    target_max: int,
+mapping: dict[int, int],
+group_names: dict[int, str],
+df: pd.DataFrame,
+target_max: int,
 ) -> tuple[dict[int, int], dict[int, str]]:
-    """Merge excess groups down to target_max by repeatedly absorbing the
-    closest pair (smallest mean inter-group SPECTER2 cosine distance).
-    The larger group keeps its name; remaps group_ids to 0..n-1 afterward.
-    """
-    from sklearn.metrics.pairwise import cosine_distances
-    from sklearn.preprocessing import normalize as sk_normalize
+“”“Merge excess groups down to target_max by repeatedly absorbing the
+closest pair (smallest mean inter-group SPECTER2 cosine distance).
+The larger group keeps its name; remaps group_ids to 0..n-1 afterward.
+“””
+from sklearn.metrics.pairwise import cosine_distances
+from sklearn.preprocessing import normalize as sk_normalize
 
-    n_groups = len(set(mapping.values()))
-    if n_groups <= target_max:
-        return mapping, group_names
+```
+n_groups = len(set(mapping.values()))
+if n_groups <= target_max:
+    return mapping, group_names
 
-    print(f"\n  Merging {n_groups} → {target_max} groups (absorbing closest pairs)...")
+print(f"\n  Merging {n_groups} → {target_max} groups (absorbing closest pairs)...")
 
-    all_vecs     = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
-    all_pairwise = cosine_distances(all_vecs)
+all_vecs     = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
+all_pairwise = cosine_distances(all_vecs)
 
-    # group_id → list of integer row positions
-    active: dict[int, list[int]] = {}
-    for pos, gid in enumerate(mapping.values()):
-        active.setdefault(gid, []).append(pos)
+# group_id → list of integer row positions
+active: dict[int, list[int]] = {}
+for pos, gid in enumerate(mapping.values()):
+    active.setdefault(gid, []).append(pos)
 
-    def mean_inter(a, b):
-        return float(all_pairwise[np.ix_(a, b)].mean())
+def mean_inter(a, b):
+    return float(all_pairwise[np.ix_(a, b)].mean())
 
-    while len(active) > target_max:
-        gids = sorted(active.keys())
-        best_dist, best_pair = float("inf"), None
-        for i in range(len(gids)):
-            for j in range(i + 1, len(gids)):
-                d = mean_inter(active[gids[i]], active[gids[j]])
-                if d < best_dist:
-                    best_dist, best_pair = d, (gids[i], gids[j])
+while len(active) > target_max:
+    gids = sorted(active.keys())
+    best_dist, best_pair = float("inf"), None
+    for i in range(len(gids)):
+        for j in range(i + 1, len(gids)):
+            d = mean_inter(active[gids[i]], active[gids[j]])
+            if d < best_dist:
+                best_dist, best_pair = d, (gids[i], gids[j])
 
-        ga, gb = best_pair
-        keep   = ga if len(active[ga]) >= len(active[gb]) else gb
-        absorb = gb if keep == ga else ga
-        print(f"    Merge group {absorb} ('{group_names[absorb]}', n={len(active[absorb])}) "
-              f"→ group {keep} ('{group_names[keep]}', n={len(active[keep])})  "
-              f"dist={best_dist:.4f}")
+    ga, gb = best_pair
+    keep   = ga if len(active[ga]) >= len(active[gb]) else gb
+    absorb = gb if keep == ga else ga
+    print(f"    Merge group {absorb} ('{group_names[absorb]}', n={len(active[absorb])}) "
+          f"→ group {keep} ('{group_names[keep]}', n={len(active[keep])})  "
+          f"dist={best_dist:.4f}")
 
-        active[keep].extend(active.pop(absorb))
-        del group_names[absorb]
-        for pos in active[keep]:
-            mapping[pos] = keep
+    active[keep].extend(active.pop(absorb))
+    del group_names[absorb]
+    for pos in active[keep]:
+        mapping[pos] = keep
 
-    # Remap group_ids to clean 0..n-1
-    id_remap    = {old: new for new, old in enumerate(sorted(active.keys()))}
-    new_mapping = {pos: id_remap[g] for pos, g in mapping.items()}
-    new_names   = {id_remap[old]: name for old, name in group_names.items()}
-    print(f"  Merge complete: {len(active)} groups remaining.")
-    return new_mapping, new_names
-
+# Remap group_ids to clean 0..n-1
+id_remap    = {old: new for new, old in enumerate(sorted(active.keys()))}
+new_mapping = {pos: id_remap[g] for pos, g in mapping.items()}
+new_names   = {id_remap[old]: name for old, name in group_names.items()}
+print(f"  Merge complete: {len(active)} groups remaining.")
+return new_mapping, new_names
+```
 
 def haiku_group_papers(
-    df: pd.DataFrame,
-    client,
+df: pd.DataFrame,
+client,
 ) -> tuple[pd.DataFrame, dict[int, str]]:
-    """Stage 3: Haiku assigns every paper to a group and names each group.
+“”“Stage 3: Haiku assigns every paper to a group and names each group.
 
-    Returns (df, group_names):
-      df          — with group_id_v2 column added
-      group_names — {group_id: label_text}
+```
+Returns (df, group_names):
+  df          — with group_id_v2 column added
+  group_names — {group_id: label_text}
 
-    Saves group_names to GROUP_NAMES_CACHE for offline mode reuse.
-    Falls back to HDBSCAN if all Haiku attempts hard-fail.
-    """
-    df = df.reset_index(drop=True)
-    n  = len(df)
-    print(f"\n▶  Stage 3 — Haiku grouping + naming ({n} papers)...")
+Saves group_names to GROUP_NAMES_CACHE for offline mode reuse.
+Falls back to HDBSCAN if all Haiku attempts hard-fail.
+"""
+df = df.reset_index(drop=True)
+n  = len(df)
+print(f"\n▶  Stage 3 — Haiku grouping + naming ({n} papers)...")
 
-    user_msg      = _build_grouping_user_message(df)
-    approx_tokens = len(user_msg) // 4
-    print(f"  Grouping prompt ≈ {approx_tokens:,} tokens "
-          f"(abstracts truncated to {ABSTRACT_GROUPING_CHARS} chars each).")
+user_msg      = _build_grouping_user_message(df)
+approx_tokens = len(user_msg) // 4
+print(f"  Grouping prompt ≈ {approx_tokens:,} tokens "
+      f"(abstracts truncated to {ABSTRACT_GROUPING_CHARS} chars each).")
 
-    result = None
-    for attempt in range(1, GROUPING_MAX_RETRIES + 1):
-        print(f"  Haiku grouping call — attempt {attempt}/{GROUPING_MAX_RETRIES}...")
-        try:
-            response = client.messages.create(
-                model=HAIKU_MODEL,
-                max_tokens=16000,  # ~315 papers × ~70 chars/entry ≈ 5.5K tokens; increased for larger pools
-                system=_GROUPING_SYSTEM,
-                messages=[{"role": "user", "content": user_msg}],
-            )
-            raw = response.content[0].text.strip()
-            print(f"  Response length: {len(raw)} chars.")
-            result = _parse_grouping_response(raw, n)
-            if result is not None:
-                mapping, group_names = result
-                print(f"  ✓ Grouping parsed ({len(set(mapping.values()))} groups "
-                      f"before any merging).")
-                break
-        except Exception as e:
-            err_str = str(e)
-            is_529  = "529" in err_str or "overloaded" in err_str.lower()
-            label   = "API overloaded (529)" if is_529 else "API error"
-            print(f"  {label} on attempt {attempt}: {e}")
+result = None
+for attempt in range(1, GROUPING_MAX_RETRIES + 1):
+    print(f"  Haiku grouping call — attempt {attempt}/{GROUPING_MAX_RETRIES}...")
+    try:
+        response = client.messages.create(
+            model=HAIKU_MODEL,
+            max_tokens=16000,  # ~315 papers × ~70 chars/entry ≈ 5.5K tokens; increased for larger pools
+            system=_GROUPING_SYSTEM,
+            messages=[{"role": "user", "content": user_msg}],
+        )
+        raw = response.content[0].text.strip()
+        print(f"  Response length: {len(raw)} chars.")
+        result = _parse_grouping_response(raw, n)
+        if result is not None:
+            mapping, group_names = result
+            print(f"  ✓ Grouping parsed ({len(set(mapping.values()))} groups "
+                  f"before any merging).")
+            break
+    except Exception as e:
+        err_str = str(e)
+        is_529  = "529" in err_str or "overloaded" in err_str.lower()
+        label   = "API overloaded (529)" if is_529 else "API error"
+        print(f"  {label} on attempt {attempt}: {e}")
 
-        if attempt < GROUPING_MAX_RETRIES:
-            wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
-            print(f"  Retrying in {wait}s...")
-            time.sleep(wait)
+    if attempt < GROUPING_MAX_RETRIES:
+        wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
+        print(f"  Retrying in {wait}s...")
+        time.sleep(wait)
 
-    if result is None:
-        print("  ✗ All Haiku attempts failed. Falling back to HDBSCAN.")
-        mapping     = _hdbscan_fallback_grouping(df)
-        group_names = {gid: f"Group {gid}" for gid in set(mapping.values())}
-    else:
-        # Merge down if Haiku returned more groups than the maximum
-        if len(set(mapping.values())) > GROUP_COUNT_MAX:
-            mapping, group_names = _merge_excess_groups(
-                mapping, group_names, df, target_max=GROUP_COUNT_MAX
-            )
+if result is None:
+    print("  ✗ All Haiku attempts failed. Falling back to HDBSCAN.")
+    mapping     = _hdbscan_fallback_grouping(df)
+    group_names = {gid: f"Group {gid}" for gid in set(mapping.values())}
+else:
+    # Merge down if Haiku returned more groups than the maximum
+    if len(set(mapping.values())) > GROUP_COUNT_MAX:
+        mapping, group_names = _merge_excess_groups(
+            mapping, group_names, df, target_max=GROUP_COUNT_MAX
+        )
 
-    df["group_id_v2"] = [mapping[i] for i in range(n)]
-    group_counts = df["group_id_v2"].value_counts().sort_index()
-    for gid, count in group_counts.items():
-        print(f"    Group {gid:>2} ({count:>3} papers): '{group_names.get(gid, '?')}'")
-    print(f"  Total: {len(group_counts)} groups, {n} papers assigned.")
+df["group_id_v2"] = [mapping[i] for i in range(n)]
+group_counts = df["group_id_v2"].value_counts().sort_index()
+for gid, count in group_counts.items():
+    print(f"    Group {gid:>2} ({count:>3} papers): '{group_names.get(gid, '?')}'")
+print(f"  Total: {len(group_counts)} groups, {n} papers assigned.")
 
-    # Cache for offline mode
-    with open(GROUP_NAMES_CACHE, "w") as f:
-        json.dump({str(k): v for k, v in group_names.items()}, f, indent=2)
-    print(f"  Group names cached to {GROUP_NAMES_CACHE}.")
+# Cache for offline mode
+with open(GROUP_NAMES_CACHE, "w") as f:
+    json.dump({str(k): v for k, v in group_names.items()}, f, indent=2)
+print(f"  Group names cached to {GROUP_NAMES_CACHE}.")
 
-    return df, group_names
-
+return df, group_names
+```
 
 def _load_group_names_cache(df: pd.DataFrame | None = None) -> dict[int, str]:
-    """Load group names from cache (used in offline mode).
+“”“Load group names from cache (used in offline mode).
 
-    If the cache file is missing, falls back to deriving generic names from
-    the group_id_v2 column of df (if provided) rather than crashing.
-    """
-    if os.path.exists(GROUP_NAMES_CACHE):
-        with open(GROUP_NAMES_CACHE) as f:
-            raw = json.load(f)
-        names = {int(k): v for k, v in raw.items()}
-        print(f"  Loaded {len(names)} group names from {GROUP_NAMES_CACHE}.")
-        return names
+```
+If the cache file is missing, falls back to deriving generic names from
+the group_id_v2 column of df (if provided) rather than crashing.
+"""
+if os.path.exists(GROUP_NAMES_CACHE):
+    with open(GROUP_NAMES_CACHE) as f:
+        raw = json.load(f)
+    names = {int(k): v for k, v in raw.items()}
+    print(f"  Loaded {len(names)} group names from {GROUP_NAMES_CACHE}.")
+    return names
 
-    # Cache missing — fall back to generic names derived from the parquet
-    print(f"  WARNING: Group names cache '{GROUP_NAMES_CACHE}' not found.")
-    if df is not None and "group_id_v2" in df.columns:
-        gids  = sorted(int(g) for g in df["group_id_v2"].unique())
-        names = {gid: f"Group {gid}" for gid in gids}
-        print(f"  Using generic names for {len(names)} groups. "
-              "Run once in normal mode to generate meaningful labels.")
-        return names
-    raise FileNotFoundError(
-        f"Group names cache '{GROUP_NAMES_CACHE}' not found and no dataframe "
-        "provided as fallback. Run once in normal mode first."
-    )
-
+# Cache missing — fall back to generic names derived from the parquet
+print(f"  WARNING: Group names cache '{GROUP_NAMES_CACHE}' not found.")
+if df is not None and "group_id_v2" in df.columns:
+    gids  = sorted(int(g) for g in df["group_id_v2"].unique())
+    names = {gid: f"Group {gid}" for gid in gids}
+    print(f"  Using generic names for {len(names)} groups. "
+          "Run once in normal mode to generate meaningful labels.")
+    return names
+raise FileNotFoundError(
+    f"Group names cache '{GROUP_NAMES_CACHE}' not found and no dataframe "
+    "provided as fallback. Run once in normal mode first."
+)
+```
 
 def _hdbscan_fallback_grouping(df: pd.DataFrame) -> dict[int, int]:
-    """Fallback HDBSCAN grouping if all Haiku calls fail."""
-    from sklearn.cluster import HDBSCAN
-    from sklearn.metrics.pairwise import cosine_distances
-    from sklearn.preprocessing import normalize as sk_normalize
+“”“Fallback HDBSCAN grouping if all Haiku calls fail.”””
+from sklearn.cluster import HDBSCAN
+from sklearn.metrics.pairwise import cosine_distances
+from sklearn.preprocessing import normalize as sk_normalize
 
-    print("  Fallback HDBSCAN grouping...")
+```
+print("  Fallback HDBSCAN grouping...")
 
-    if "embedding_50d" in df.columns and df["embedding_50d"].notna().all():
-        X, metric = np.array(df["embedding_50d"].tolist(), dtype=np.float32), "cosine"
-        print("  Clustering on 50D SPECTER2 (cosine).")
-    elif "embedding" in df.columns and df["embedding"].notna().all():
-        X = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
-        metric = "cosine"
-        print("  Clustering on 768D SPECTER2 (cosine).")
-    else:
-        print("  No embedding available — random group assignment.")
-        return {i: i % 8 for i in range(len(df))}
+if "embedding_50d" in df.columns and df["embedding_50d"].notna().all():
+    X, metric = np.array(df["embedding_50d"].tolist(), dtype=np.float32), "cosine"
+    print("  Clustering on 50D SPECTER2 (cosine).")
+elif "embedding" in df.columns and df["embedding"].notna().all():
+    X = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
+    metric = "cosine"
+    print("  Clustering on 768D SPECTER2 (cosine).")
+else:
+    print("  No embedding available — random group assignment.")
+    return {i: i % 8 for i in range(len(df))}
 
-    for mcs in [max(3, len(df) // 30), max(3, len(df) // 40), 3]:
-        clusterer  = HDBSCAN(min_cluster_size=mcs, min_samples=3,
-                             metric=metric, cluster_selection_method="leaf")
-        labels     = clusterer.fit_predict(X)
-        n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
-        print(f"  HDBSCAN min_cluster_size={mcs} → {n_clusters} clusters.")
-        if 5 <= n_clusters <= GROUP_COUNT_MAX + 5:
-            break
+for mcs in [max(3, len(df) // 30), max(3, len(df) // 40), 3]:
+    clusterer  = HDBSCAN(min_cluster_size=mcs, min_samples=3,
+                         metric=metric, cluster_selection_method="leaf")
+    labels     = clusterer.fit_predict(X)
+    n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+    print(f"  HDBSCAN min_cluster_size={mcs} → {n_clusters} clusters.")
+    if 5 <= n_clusters <= GROUP_COUNT_MAX + 5:
+        break
 
-    unique_clusters = [c for c in sorted(set(labels)) if c != -1]
-    if not unique_clusters:
-        return {i: 0 for i in range(len(df))}
+unique_clusters = [c for c in sorted(set(labels)) if c != -1]
+if not unique_clusters:
+    return {i: 0 for i in range(len(df))}
 
-    centroids  = np.array([X[labels == c].mean(axis=0) for c in unique_clusters])
-    noise_mask = labels == -1
-    if noise_mask.any():
-        from sklearn.metrics.pairwise import cosine_distances as _cd
-        nearest = _cd(X[noise_mask], centroids).argmin(axis=1)
-        labels  = labels.copy()
-        labels[noise_mask] = [unique_clusters[j] for j in nearest]
-        print(f"  Reassigned {noise_mask.sum()} noise points.")
+centroids  = np.array([X[labels == c].mean(axis=0) for c in unique_clusters])
+noise_mask = labels == -1
+if noise_mask.any():
+    from sklearn.metrics.pairwise import cosine_distances as _cd
+    nearest = _cd(X[noise_mask], centroids).argmin(axis=1)
+    labels  = labels.copy()
+    labels[noise_mask] = [unique_clusters[j] for j in nearest]
+    print(f"  Reassigned {noise_mask.sum()} noise points.")
 
-    id_map = {old: new for new, old in enumerate(unique_clusters)}
-    return {i: id_map.get(int(labels[i]), 0) for i in range(len(df))}
-
+id_map = {old: new for new, old in enumerate(unique_clusters)}
+return {i: id_map.get(int(labels[i]), 0) for i in range(len(df))}
+```
 
 # ══════════════════════════════════════════════════════════════════════════════
+
 # STAGE 4 — MDS LAYOUT + WITHIN-GROUP SCATTER
+
 # ══════════════════════════════════════════════════════════════════════════════
 
 def compute_mds_centroids(df: pd.DataFrame) -> dict[int, tuple[float, float]]:
-    """Stage 4a: MDS on group-to-group SPECTER2 distances → scaled 2D centroids.
+“”“Stage 4a: MDS on group-to-group SPECTER2 distances → scaled 2D centroids.
 
-    Raw MDS output is multiplied by LAYOUT_SCALE so centroid coordinates land
-    in a useful range for Atlas rendering (see LAYOUT_SCALE config comment).
+```
+Raw MDS output is multiplied by LAYOUT_SCALE so centroid coordinates land
+in a useful range for Atlas rendering (see LAYOUT_SCALE config comment).
 
-    Returns: {group_id: (cx, cy)} — coordinates already include LAYOUT_SCALE.
-    """
-    from sklearn.manifold import MDS
-    from sklearn.metrics.pairwise import cosine_distances
-    from sklearn.preprocessing import normalize as sk_normalize
+Returns: {group_id: (cx, cy)} — coordinates already include LAYOUT_SCALE.
+"""
+from sklearn.manifold import MDS
+from sklearn.metrics.pairwise import cosine_distances
+from sklearn.preprocessing import normalize as sk_normalize
 
-    print("\n▶  Stage 4a — MDS between-group layout...")
+print("\n▶  Stage 4a — MDS between-group layout...")
 
-    if "embedding" not in df.columns or df["embedding"].isna().any():
-        raise RuntimeError("SPECTER2 'embedding' column missing or has NaNs.")
+if "embedding" not in df.columns or df["embedding"].isna().any():
+    raise RuntimeError("SPECTER2 'embedding' column missing or has NaNs.")
 
-    all_vecs  = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
-    group_ids = sorted(df["group_id_v2"].unique())
-    n_groups  = len(group_ids)
-    print(f"  Computing {n_groups}×{n_groups} group distance matrix...")
+all_vecs  = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
+group_ids = sorted(df["group_id_v2"].unique())
+n_groups  = len(group_ids)
+print(f"  Computing {n_groups}×{n_groups} group distance matrix...")
 
-    # group_id → list of integer row positions in df
-    group_pos: dict[int, list[int]] = {gid: [] for gid in group_ids}
-    for pos, gid in enumerate(df["group_id_v2"].tolist()):
-        group_pos[gid].append(pos)
+# group_id → list of integer row positions in df
+group_pos: dict[int, list[int]] = {gid: [] for gid in group_ids}
+for pos, gid in enumerate(df["group_id_v2"].tolist()):
+    group_pos[gid].append(pos)
 
-    all_pairwise = cosine_distances(all_vecs)
+all_pairwise = cosine_distances(all_vecs)
 
-    group_dist = np.zeros((n_groups, n_groups), dtype=np.float32)
-    for i, gid_i in enumerate(group_ids):
-        for j, gid_j in enumerate(group_ids):
-            if i == j:
-                continue
-            group_dist[i, j] = float(
-                all_pairwise[np.ix_(group_pos[gid_i], group_pos[gid_j])].mean()
-            )
-    group_dist = (group_dist + group_dist.T) / 2
-    np.fill_diagonal(group_dist, 0.0)
+group_dist = np.zeros((n_groups, n_groups), dtype=np.float32)
+for i, gid_i in enumerate(group_ids):
+    for j, gid_j in enumerate(group_ids):
+        if i == j:
+            continue
+        group_dist[i, j] = float(
+            all_pairwise[np.ix_(group_pos[gid_i], group_pos[gid_j])].mean()
+        )
+group_dist = (group_dist + group_dist.T) / 2
+np.fill_diagonal(group_dist, 0.0)
 
-    print(f"  Group dist: min={group_dist.min():.4f}, "
-          f"max={group_dist.max():.4f}, mean={group_dist.mean():.4f}")
+print(f"  Group dist: min={group_dist.min():.4f}, "
+      f"max={group_dist.max():.4f}, mean={group_dist.mean():.4f}")
 
-    mds = MDS(n_components=2, metric=True, dissimilarity="precomputed",
-              random_state=42, n_init=4, max_iter=500, normalized_stress="auto")
-    raw_coords   = mds.fit_transform(group_dist)          # shape (n_groups, 2)
-    group_coords = raw_coords * LAYOUT_SCALE               # ← scale applied here
-    print(f"  MDS stress: {mds.stress_:.6f}  (lower is better)")
-    print(f"  LAYOUT_SCALE={LAYOUT_SCALE}×  raw range "
-          f"[{raw_coords.min():.3f}, {raw_coords.max():.3f}] → "
-          f"scaled [{group_coords.min():.2f}, {group_coords.max():.2f}]")
+mds = MDS(n_components=2, metric=True, dissimilarity="precomputed",
+          random_state=42, n_init=4, max_iter=500, normalized_stress="auto")
+raw_coords   = mds.fit_transform(group_dist)          # shape (n_groups, 2)
+group_coords = raw_coords * LAYOUT_SCALE               # ← scale applied here
+print(f"  MDS stress: {mds.stress_:.6f}  (lower is better)")
+print(f"  LAYOUT_SCALE={LAYOUT_SCALE}×  raw range "
+      f"[{raw_coords.min():.3f}, {raw_coords.max():.3f}] → "
+      f"scaled [{group_coords.min():.2f}, {group_coords.max():.2f}]")
 
-    centroids: dict[int, tuple[float, float]] = {}
-    for i, gid in enumerate(group_ids):
-        cx, cy = float(group_coords[i, 0]), float(group_coords[i, 1])
-        centroids[gid] = (cx, cy)
-        print(f"  Group {gid:>2}: centroid=({cx:+.2f}, {cy:+.2f}), "
-              f"n={len(group_pos[gid])}")
+centroids: dict[int, tuple[float, float]] = {}
+for i, gid in enumerate(group_ids):
+    cx, cy = float(group_coords[i, 0]), float(group_coords[i, 1])
+    centroids[gid] = (cx, cy)
+    print(f"  Group {gid:>2}: centroid=({cx:+.2f}, {cy:+.2f}), "
+          f"n={len(group_pos[gid])}")
 
-    return centroids
-
+return centroids
+```
 
 def scatter_within_groups(
-    df: pd.DataFrame,
-    centroids: dict[int, tuple[float, float]],
-    group_names: dict[int, str],
+df: pd.DataFrame,
+centroids: dict[int, tuple[float, float]],
+group_names: dict[int, str],
 ) -> pd.DataFrame:
-    """Stage 4b: Place each paper around its MDS centroid.
+“”“Stage 4b: Place each paper around its MDS centroid.
 
-    Scatter radius is expressed as a fraction of the median nearest-neighbour
-    centroid distance, so it auto-scales regardless of LAYOUT_SCALE or how
-    semantically similar the groups are to each other.
+```
+Scatter radius is expressed as a fraction of the median nearest-neighbour
+centroid distance, so it auto-scales regardless of LAYOUT_SCALE or how
+semantically similar the groups are to each other.
 
-    Position formula:
-      direction    = unit vector from SPECTER2 group centroid → paper's UMAP pos
-      base_radius  = median_nn_centroid_dist * SCATTER_FRACTION
-      scatter_dist = base_radius
-                   * (paper_mean_intra_dist / group_mean_intra_dist)
-                   * (1 + group_variance * VARIANCE_AMPLIFIER)
-      final_pos    = mds_centroid + direction * scatter_dist
+Position formula:
+  direction    = unit vector from SPECTER2 group centroid → paper's UMAP pos
+  base_radius  = median_nn_centroid_dist * SCATTER_FRACTION
+  scatter_dist = base_radius
+               * (paper_mean_intra_dist / group_mean_intra_dist)
+               * (1 + group_variance * VARIANCE_AMPLIFIER)
+  final_pos    = mds_centroid + direction * scatter_dist
 
-    Normalising by group_mean_intra_dist ensures papers at the edge of a group
-    scatter proportionally further than papers at the core, without the raw
-    cosine distance magnitude inflating the radius when groups are loose.
+Normalising by group_mean_intra_dist ensures papers at the edge of a group
+scatter proportionally further than papers at the core, without the raw
+cosine distance magnitude inflating the radius when groups are loose.
 
-    Writes: projection_v2_x, projection_v2_y
-    """
-    from sklearn.metrics.pairwise import cosine_distances
-    from sklearn.preprocessing import normalize as sk_normalize
+Writes: projection_v2_x, projection_v2_y
+"""
+from sklearn.metrics.pairwise import cosine_distances
+from sklearn.preprocessing import normalize as sk_normalize
 
-    print("\n▶  Stage 4b — Within-group scatter (fraction of centroid spacing)...")
+print("\n▶  Stage 4b — Within-group scatter (fraction of centroid spacing)...")
 
-    df = df.copy()
-    df["projection_v2_x"] = np.nan
-    df["projection_v2_y"] = np.nan
+df = df.copy()
+df["projection_v2_x"] = np.nan
+df["projection_v2_y"] = np.nan
 
-    all_vecs   = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
-    specter2_x = df["projection_x"].values
-    specter2_y = df["projection_y"].values
+all_vecs   = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
+specter2_x = df["projection_x"].values
+specter2_y = df["projection_y"].values
 
-    # ── Compute median nearest-neighbour centroid distance ───────────────────
-    # This is the reference scale for scatter radius.
-    gids       = sorted(centroids.keys())
-    c_array    = np.array([centroids[g] for g in gids])   # (n_groups, 2)
-    nn_dists   = []
-    for i in range(len(gids)):
-        dists_to_others = [
-            sqrt((c_array[i,0]-c_array[j,0])**2 + (c_array[i,1]-c_array[j,1])**2)
-            for j in range(len(gids)) if j != i
-        ]
-        nn_dists.append(min(dists_to_others))
-    median_nn_dist = float(np.median(nn_dists))
-    base_radius    = median_nn_dist * SCATTER_FRACTION
-    print(f"  Median nearest-neighbour centroid dist: {median_nn_dist:.3f}")
-    print(f"  Base scatter radius (SCATTER_FRACTION={SCATTER_FRACTION}): "
-          f"{base_radius:.3f}  ({SCATTER_FRACTION*100:.0f}% of centroid spacing)")
+# ── Compute median nearest-neighbour centroid distance ───────────────────
+# This is the reference scale for scatter radius.
+gids       = sorted(centroids.keys())
+c_array    = np.array([centroids[g] for g in gids])   # (n_groups, 2)
+nn_dists   = []
+for i in range(len(gids)):
+    dists_to_others = [
+        sqrt((c_array[i,0]-c_array[j,0])**2 + (c_array[i,1]-c_array[j,1])**2)
+        for j in range(len(gids)) if j != i
+    ]
+    nn_dists.append(min(dists_to_others))
+median_nn_dist = float(np.median(nn_dists))
+base_radius    = median_nn_dist * SCATTER_FRACTION
+print(f"  Median nearest-neighbour centroid dist: {median_nn_dist:.3f}")
+print(f"  Base scatter radius (SCATTER_FRACTION={SCATTER_FRACTION}): "
+      f"{base_radius:.3f}  ({SCATTER_FRACTION*100:.0f}% of centroid spacing)")
 
-    for gid in gids:
-        mask      = df["group_id_v2"] == gid
-        positions = df.index[mask].tolist()
-        pos_array = [df.index.get_loc(p) for p in positions]
-        n_g       = len(positions)
-        name      = group_names.get(gid, f"Group {gid}")
-        mds_cx, mds_cy = centroids[gid]
+for gid in gids:
+    mask      = df["group_id_v2"] == gid
+    positions = df.index[mask].tolist()
+    pos_array = [df.index.get_loc(p) for p in positions]
+    n_g       = len(positions)
+    name      = group_names.get(gid, f"Group {gid}")
+    mds_cx, mds_cy = centroids[gid]
 
-        if n_g == 1:
-            df.at[positions[0], "projection_v2_x"] = mds_cx
-            df.at[positions[0], "projection_v2_y"] = mds_cy
-            print(f"  Group {gid:>2} ('{name}'): singleton at centroid.")
-            continue
+    if n_g == 1:
+        df.at[positions[0], "projection_v2_x"] = mds_cx
+        df.at[positions[0], "projection_v2_y"] = mds_cy
+        print(f"  Group {gid:>2} ('{name}'): singleton at centroid.")
+        continue
 
-        g_vecs         = all_vecs[pos_array]
-        pairwise       = cosine_distances(g_vecs)
-        mean_dists     = pairwise.mean(axis=1)          # per-paper mean distance
-        group_mean     = float(mean_dists.mean())       # group-level mean
-        upper          = pairwise[np.triu_indices(n_g, k=1)]
-        group_variance = float(upper.std()) if len(upper) > 0 else 0.0
-        variance_boost = 1.0 + group_variance * VARIANCE_AMPLIFIER
+    g_vecs         = all_vecs[pos_array]
+    pairwise       = cosine_distances(g_vecs)
+    mean_dists     = pairwise.mean(axis=1)          # per-paper mean distance
+    group_mean     = float(mean_dists.mean())       # group-level mean
+    upper          = pairwise[np.triu_indices(n_g, k=1)]
+    group_variance = float(upper.std()) if len(upper) > 0 else 0.0
+    variance_boost = 1.0 + group_variance * VARIANCE_AMPLIFIER
 
-        # Effective radius for this group
-        eff_radius = base_radius * variance_boost
-        print(f"  Group {gid:>2} ('{name}'): "
-              f"n={n_g:>3}, var={group_variance:.4f}, "
-              f"eff_radius={eff_radius:.3f}, "
-              f"centroid=({mds_cx:+.2f}, {mds_cy:+.2f})")
+    # Effective radius for this group
+    eff_radius = base_radius * variance_boost
+    print(f"  Group {gid:>2} ('{name}'): "
+          f"n={n_g:>3}, var={group_variance:.4f}, "
+          f"eff_radius={eff_radius:.3f}, "
+          f"centroid=({mds_cx:+.2f}, {mds_cy:+.2f})")
 
-        sp_cx = specter2_x[pos_array].mean()
-        sp_cy = specter2_y[pos_array].mean()
+    sp_cx = specter2_x[pos_array].mean()
+    sp_cy = specter2_y[pos_array].mean()
 
-        for local_i, (df_idx, pos_i) in enumerate(zip(positions, pos_array)):
-            dx     = specter2_x[pos_i] - sp_cx
-            dy     = specter2_y[pos_i] - sp_cy
-            length = sqrt(dx * dx + dy * dy)
-            if length < 1e-8:
-                angle  = random.uniform(0, 2 * 3.14159265)
-                dx, dy = float(np.cos(angle)), float(np.sin(angle))
-                length = 1.0
-            # Scale per-paper distance relative to group mean so core papers
-            # cluster tightly and edge papers drift proportionally further out
-            rel_dist     = (mean_dists[local_i] / group_mean) if group_mean > 1e-8 else 1.0
-            scatter_dist = eff_radius * rel_dist
-            df.at[df_idx, "projection_v2_x"] = mds_cx + (dx / length) * scatter_dist
-            df.at[df_idx, "projection_v2_y"] = mds_cy + (dy / length) * scatter_dist
+    for local_i, (df_idx, pos_i) in enumerate(zip(positions, pos_array)):
+        dx     = specter2_x[pos_i] - sp_cx
+        dy     = specter2_y[pos_i] - sp_cy
+        length = sqrt(dx * dx + dy * dy)
+        if length < 1e-8:
+            angle  = random.uniform(0, 2 * 3.14159265)
+            dx, dy = float(np.cos(angle)), float(np.sin(angle))
+            length = 1.0
+        # Scale per-paper distance relative to group mean so core papers
+        # cluster tightly and edge papers drift proportionally further out
+        rel_dist     = (mean_dists[local_i] / group_mean) if group_mean > 1e-8 else 1.0
+        scatter_dist = eff_radius * rel_dist
+        df.at[df_idx, "projection_v2_x"] = mds_cx + (dx / length) * scatter_dist
+        df.at[df_idx, "projection_v2_y"] = mds_cy + (dy / length) * scatter_dist
 
-    n_placed = df["projection_v2_x"].notna().sum()
-    x_range  = (df["projection_v2_x"].min(), df["projection_v2_x"].max())
-    y_range  = (df["projection_v2_y"].min(), df["projection_v2_y"].max())
-    print(f"\n  Placed {n_placed}/{len(df)} papers.")
-    print(f"  Final layout bounds: x=[{x_range[0]:.2f}, {x_range[1]:.2f}], "
-          f"y=[{y_range[0]:.2f}, {y_range[1]:.2f}]")
-    return df
-
+n_placed = df["projection_v2_x"].notna().sum()
+x_range  = (df["projection_v2_x"].min(), df["projection_v2_x"].max())
+y_range  = (df["projection_v2_y"].min(), df["projection_v2_y"].max())
+print(f"\n  Placed {n_placed}/{len(df)} papers.")
+print(f"  Final layout bounds: x=[{x_range[0]:.2f}, {x_range[1]:.2f}], "
+      f"y=[{y_range[0]:.2f}, {y_range[1]:.2f}]")
+return df
+```
 
 # ══════════════════════════════════════════════════════════════════════════════
+
 # WRITE LABELS PARQUET
+
 # ══════════════════════════════════════════════════════════════════════════════
 
 def write_labels_parquet(
-    df: pd.DataFrame,
-    labels: dict[int, str],
-    centroids: dict[int, tuple[float, float]],
-    labels_path: str = "labels_v2.parquet",
+df: pd.DataFrame,
+labels: dict[int, str],
+centroids: dict[int, tuple[float, float]],
+labels_path: str = “labels_v2.parquet”,
 ) -> str:
-    """Write labels.parquet for the Atlas CLI --labels flag.
+“”“Write labels.parquet for the Atlas CLI –labels flag.
 
-    Label x/y are the mean of each group's actual projection_v2_x/y positions —
-    the visual centre of the dot cloud after scatter — not the MDS centroid.
-    This keeps labels anchored to where their papers actually landed, regardless
-    of how far the scatter pushed them from the centroid.
-    """
-    print(f"\n▶  Writing labels parquet ({len(centroids)} labels)...")
-    rows = []
-    for gid in sorted(centroids.keys()):
-        label_text = labels.get(gid, f"Group {gid}")
-        mask       = df["group_id_v2"] == gid
-        n_papers   = int(mask.sum())
-        # Mean of actual paper positions — tracks where dots landed after scatter
-        cx = float(df.loc[mask, "projection_v2_x"].mean())
-        cy = float(df.loc[mask, "projection_v2_y"].mean())
-        rows.append({"x": cx, "y": cy, "text": label_text,
-                     "level": 0, "priority": 10})
-        print(f"  [{gid:>2}] '{label_text}' @ ({cx:+.2f}, {cy:+.2f}), {n_papers} papers")
+```
+Label x/y are the mean of each group's actual projection_v2_x/y positions —
+the visual centre of the dot cloud after scatter — not the MDS centroid.
+This keeps labels anchored to where their papers actually landed, regardless
+of how far the scatter pushed them from the centroid.
+"""
+print(f"\n▶  Writing labels parquet ({len(centroids)} labels)...")
+rows = []
+for gid in sorted(centroids.keys()):
+    label_text = labels.get(gid, f"Group {gid}")
+    mask       = df["group_id_v2"] == gid
+    n_papers   = int(mask.sum())
+    # Mean of actual paper positions — tracks where dots landed after scatter
+    cx = float(df.loc[mask, "projection_v2_x"].mean())
+    cy = float(df.loc[mask, "projection_v2_y"].mean())
+    rows.append({"x": cx, "y": cy, "text": label_text,
+                 "level": 0, "priority": 10})
+    print(f"  [{gid:>2}] '{label_text}' @ ({cx:+.2f}, {cy:+.2f}), {n_papers} papers")
 
-    labels_df = pd.DataFrame(rows)
-    labels_df.to_parquet(labels_path, index=False)
-    print(f"  Wrote {len(labels_df)} labels → {labels_path}.")
-    return labels_path
-
+labels_df = pd.DataFrame(rows)
+labels_df.to_parquet(labels_path, index=False)
+print(f"  Wrote {len(labels_df)} labels → {labels_path}.")
+return labels_path
+```
 
 # ══════════════════════════════════════════════════════════════════════════════
+
 # MAIN
+
 # ══════════════════════════════════════════════════════════════════════════════
 
-if __name__ == "__main__":
-    import anthropic
+if **name** == “**main**”:
+import anthropic
 
-    now      = datetime.now(timezone.utc)
-    run_date = now.strftime("%B %d, %Y")
+```
+now      = datetime.now(timezone.utc)
+run_date = now.strftime("%B %d, %Y")
 
-    print("=" * 60)
-    print(f"  AI Research Atlas v2 — {run_date} UTC")
-    print(f"  OFFLINE_MODE       : {OFFLINE_MODE}")
-    print(f"  BACKFILL_HINDICES  : {BACKFILL_HINDICES}")
-    print(f"  GROUP_COUNT        : up to {GROUP_COUNT_MAX} ({GROUP_STABLE_COUNT} stable + {GROUP_DYNAMIC_MAX} dynamic max)")
-    print(f"  LAYOUT_SCALE       : {LAYOUT_SCALE}")
-    print(f"  SCATTER_FRACTION   : {SCATTER_FRACTION}")
-    print(f"  VARIANCE_AMPLIFIER : {VARIANCE_AMPLIFIER}")
-    print("=" * 60)
+print("=" * 60)
+print(f"  AI Research Atlas v2 — {run_date} UTC")
+print(f"  OFFLINE_MODE       : {OFFLINE_MODE}")
+print(f"  BACKFILL_HINDICES  : {BACKFILL_HINDICES}")
+print(f"  GROUP_COUNT        : up to {GROUP_COUNT_MAX} ({GROUP_STABLE_COUNT} stable + {GROUP_DYNAMIC_MAX} dynamic max)")
+print(f"  LAYOUT_SCALE       : {LAYOUT_SCALE}")
+print(f"  SCATTER_FRACTION   : {SCATTER_FRACTION}")
+print(f"  VARIANCE_AMPLIFIER : {VARIANCE_AMPLIFIER}")
+print("=" * 60)
 
-    # ══════════════════════════════════════════════════════════════════════════
-    # OFFLINE MODE — re-run layout + build only
-    # ══════════════════════════════════════════════════════════════════════════
-    if OFFLINE_MODE:
-        print("\n▶  OFFLINE MODE — loading existing data, skipping all API calls...")
+# ══════════════════════════════════════════════════════════════════════════
+# OFFLINE MODE — re-run layout + build only
+# ══════════════════════════════════════════════════════════════════════════
+if OFFLINE_MODE:
+    print("\n▶  OFFLINE MODE — loading existing data, skipping all API calls...")
 
-        df = load_existing_db(bypass_pruning=True)
-        if df.empty:
-            raise RuntimeError(
-                "database.parquet is empty or missing. "
-                "Run once in normal mode (remove OFFLINE_MODE from the YAML) to populate it."
-            )
-        if "group_id_v2" not in df.columns:
-            raise RuntimeError(
-                "database.parquet has no group_id_v2 column. "
-                "Run once in normal mode to populate it, then retry offline."
-            )
-        if "embedding" not in df.columns or df["embedding"].isna().any():
-            raise RuntimeError(
-                "database.parquet is missing SPECTER2 embeddings. "
-                "Run once in normal mode to embed, then retry offline."
-            )
-        if "projection_x" not in df.columns or df["projection_x"].isna().any():
-            raise RuntimeError(
-                "database.parquet is missing projection_x/y (SPECTER2 UMAP). "
-                "Run once in normal mode first."
-            )
+    df = load_existing_db(bypass_pruning=True)
+    if df.empty:
+        raise RuntimeError(
+            "database.parquet is empty or missing. "
+            "Run once in normal mode (remove OFFLINE_MODE from the YAML) to populate it."
+        )
+    if "group_id_v2" not in df.columns:
+        raise RuntimeError(
+            "database.parquet has no group_id_v2 column. "
+            "Run once in normal mode to populate it, then retry offline."
+        )
+    if "embedding" not in df.columns or df["embedding"].isna().any():
+        raise RuntimeError(
+            "database.parquet is missing SPECTER2 embeddings. "
+            "Run once in normal mode to embed, then retry offline."
+        )
+    if "projection_x" not in df.columns or df["projection_x"].isna().any():
+        raise RuntimeError(
+            "database.parquet is missing projection_x/y (SPECTER2 UMAP). "
+            "Run once in normal mode first."
+        )
 
-        # Migrate Reputation → Prominence column name if present from older runs
-        if "Reputation" in df.columns and "Prominence" not in df.columns:
-            df = df.rename(columns={"Reputation": "Prominence"})
-            print("  Migrated 'Reputation' column -> 'Prominence'.")
+    # Migrate Reputation → Prominence column name if present from older runs
+    if "Reputation" in df.columns and "Prominence" not in df.columns:
+        df = df.rename(columns={"Reputation": "Prominence"})
+        print("  Migrated 'Reputation' column -> 'Prominence'.")
 
-        # Recompute Prominence tier values if they look like the old two-value system
-        if "Prominence" in df.columns:
-            old_values = {"Reputation Enhanced", "Reputation Std"}
-            if set(df["Prominence"].dropna().unique()).issubset(old_values):
-                print("  Recomputing Prominence tiers (old two-value system detected)...")
-                df["Prominence"] = df.apply(calculate_prominence, axis=1)
-                tier_counts = df["Prominence"].value_counts()
-                for tier in ["Elite", "Enhanced", "Emerging", "Unverified"]:
-                    print(f"    {tier}: {tier_counts.get(tier, 0)}")
+    # Recompute Prominence tier values if they look like the old two-value system
+    if "Prominence" in df.columns:
+        old_values = {"Reputation Enhanced", "Reputation Std"}
+        if set(df["Prominence"].dropna().unique()).issubset(old_values):
+            print("  Recomputing Prominence tiers (old two-value system detected)...")
+            df["Prominence"] = df.apply(calculate_prominence, axis=1)
+            tier_counts = df["Prominence"].value_counts()
+            for tier in ["Elite", "Enhanced", "Emerging", "Unverified"]:
+                print(f"    {tier}: {tier_counts.get(tier, 0)}")
 
-        # Ensure paper_source exists (needed for CitationTier)
+    # Ensure paper_source exists (needed for CitationTier)
+    if "paper_source" not in df.columns:
+        df["paper_source"] = "Recent"
+
+    # Note: significant.parquet is NOT loaded in offline mode.
+    # Significant papers lack embeddings and group_id_v2, so they cannot
+    # participate in Stage 4 (MDS layout). Offline mode is for layout/UI
+    # iteration only — CitationTier is still computed for Recent papers
+    # (all "Cited" or blank) so the column exists in the build.
+
+    # Ensure CitationTier exists; recompute so layout reflects current pool
+    print("\n▶  (Offline) Computing CitationTier (Recent papers only)...")
+    if "ss_citation_count" not in df.columns:
+        df["ss_citation_count"] = 0
+    if "ss_influential_citations" not in df.columns:
+        df["ss_influential_citations"] = 0
+    df["CitationTier"] = calculate_citation_tier(df)
+
+    group_names = _load_group_names_cache(df)
+
+    # Patch any group IDs in the parquet that are missing from the cache
+    parquet_gids  = set(int(g) for g in df["group_id_v2"].unique())
+    missing_names = parquet_gids - set(group_names.keys())
+    if missing_names:
+        print(f"  WARNING: {len(missing_names)} group IDs have no cached name "
+              f"{missing_names} — using 'Group N' fallback.")
+        for gid in missing_names:
+            group_names[gid] = f"Group {gid}"
+
+    print(f"  Loaded {len(df)} papers, "
+          f"{df['group_id_v2'].nunique()} groups, "
+          f"{len(group_names)} cached names.")
+
+# ══════════════════════════════════════════════════════════════════════════
+# NORMAL MODE — full pipeline
+# ══════════════════════════════════════════════════════════════════════════
+else:
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError(
+            "ANTHROPIC_API_KEY is not set. Add it to GitHub repo secrets "
+            "and expose it in the workflow YAML under env:."
+        )
+    haiku_client = anthropic.Anthropic(api_key=api_key)
+
+    # ── Stage 1: Load & prune rolling DB ────────────────────────────────
+    print("\n▶  Stage 1 -- Loading rolling database...")
+
+    # ── Load database.parquet (Recent papers only) ───────────────────────
+    if os.path.exists(DB_PATH):
+        existing_df = pd.read_parquet(DB_PATH)
+    else:
+        existing_df = pd.DataFrame()
+
+    # Ensure paper_source column exists and default to "Recent"
+    if not existing_df.empty and "paper_source" not in existing_df.columns:
+        existing_df["paper_source"] = "Recent"
+
+    # Remove any Significant papers that leaked into database.parquet from
+    # a prior run — they'll be re-added cleanly from significant.parquet below
+    if not existing_df.empty and "paper_source" in existing_df.columns:
+        before_sig = len(existing_df)
+        existing_df = existing_df[
+            existing_df["paper_source"] != "Significant"
+        ].copy().reset_index(drop=True)
+        removed = before_sig - len(existing_df)
+        if removed:
+            print(f"  Removed {removed} Significant rows from database.parquet "
+                  f"(will reload from significant.parquet).")
+
+    # Prune Recent papers older than RETENTION_DAYS
+    if not existing_df.empty and "date_added" in existing_df.columns:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)
+        existing_df["date_added"] = pd.to_datetime(
+            existing_df["date_added"], utc=True, errors="coerce"
+        )
+        before = len(existing_df)
+        existing_df = existing_df[
+            existing_df["date_added"] >= cutoff
+        ].reset_index(drop=True)
+        pruned = before - len(existing_df)
+        if pruned:
+            print(f"  Pruned {pruned} Recent papers older than {RETENTION_DAYS} days.")
+
+    # Migrate Reputation → Prominence column name if present from older runs
+    if "Reputation" in existing_df.columns and "Prominence" not in existing_df.columns:
+        existing_df = existing_df.rename(columns={"Reputation": "Prominence"})
+        print("  Migrated 'Reputation' column -> 'Prominence'.")
+
+    print(f"  Loaded {len(existing_df)} existing Recent papers.")
+
+    # ── Load and merge significant.parquet ──────────────────────────────
+    if os.path.exists(SIGNIFICANT_PATH):
+        sig_df = pd.read_parquet(SIGNIFICANT_PATH)
+        sig_df["paper_source"] = "Significant"
+        n_sig = len(sig_df)
+        # Remove Significant papers that are also in the recent window
+        # (prefer Recent so they get pruned naturally when they age out)
+        sig_df = sig_df[~sig_df["id"].isin(existing_df["id"])].reset_index(drop=True)
+        if len(sig_df) < n_sig:
+            print(f"  {n_sig - len(sig_df)} Significant paper(s) already in "
+                  f"recent window -- skipping duplicates.")
+        existing_df = pd.concat([existing_df, sig_df], ignore_index=True)
+        print(f"  Merged {len(sig_df)} Significant papers "
+              f"(total: {len(existing_df)}).")
+    else:
+        print("  No significant.parquet found -- running without Significant papers.")
+
+    is_first_run = existing_df.empty and not os.path.exists(DB_PATH)
+    days_back = 5 if is_first_run else 1
+
+    if is_first_run:
+        print("  First run — pre-filling with last 5 days of arXiv papers.")
+    else:
+        print(f"  Loaded {len(existing_df)} existing papers.")
+
+    # ── Stage 1b: arXiv fetch (OAI-PMH announcement-date) ───────────────
+    print("\n▶  Stage 1b — Fetching from arXiv (OAI-PMH)...")
+    results = fetch_arxiv_oai(days_back=days_back, max_results=ARXIV_MAX)
+
+    if not results:
+        if existing_df.empty:
+            print("  No arXiv results and no existing DB. Exiting.")
+            exit(0)
+        print(f"  No new papers (weekend / dry spell). "
+              f"Rebuilding from {len(existing_df)} existing papers.")
+
+    if results:
+        print(f"  Fetched {len(results)} papers from arXiv.")
+        today_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+        rows = []
+        for r in results:
+            title      = r.title
+            abstract   = r.summary
+            scrubbed   = scrub_model_words(f"{title}. {title}. {abstract}")
+            label_text = scrub_model_words(f"{title}. {title}. {title}.")
+            rows.append({
+                "title":        title,
+                "abstract":     abstract,
+                "text":         scrubbed,
+                "label_text":   label_text,
+                "url":          r.pdf_url,
+                "id":           r.entry_id.split("/")[-1],
+                "author_count": len(r.authors),
+                "author_tier":  categorize_authors(len(r.authors)),
+                "date_added":   today_str,
+                "authors_list": [a.name for a in r.authors],
+            })
+        new_df = pd.DataFrame(rows)
+        new_df["Prominence"]   = "Unverified"   # placeholder; recalculated in 1c
+        new_df["paper_source"] = "Recent"
+        df = merge_papers(existing_df, new_df)
+        df = df.drop(columns=["group", "group_id_v2"], errors="ignore")
+        print(f"  Rolling DB: {len(df)} papers after merge.")
+    else:
+        df = existing_df.drop(columns=["group", "group_id_v2"], errors="ignore")
+        # Ensure paper_source is set for all rows
         if "paper_source" not in df.columns:
             df["paper_source"] = "Recent"
 
-        # Note: significant.parquet is NOT loaded in offline mode.
-        # Significant papers lack embeddings and group_id_v2, so they cannot
-        # participate in Stage 4 (MDS layout). Offline mode is for layout/UI
-        # iteration only — CitationTier is still computed for Recent papers
-        # (all "Cited" or blank) so the column exists in the build.
+    # ── Stage 1c: Author h-index enrichment ─────────────────────────────
+    print("\n▶  Stage 1c — Author h-index enrichment (OpenAlex)...")
+    if "author_hindices" not in df.columns:
+        df["author_hindices"] = None
+    if "authors_list" not in df.columns:
+        df["authors_list"] = None
 
-        # Ensure CitationTier exists; recompute so layout reflects current pool
-        print("\n▶  (Offline) Computing CitationTier (Recent papers only)...")
-        if "ss_citation_count" not in df.columns:
-            df["ss_citation_count"] = 0
-        if "ss_influential_citations" not in df.columns:
-            df["ss_influential_citations"] = 0
-        df["CitationTier"] = calculate_citation_tier(df)
+    author_cache = load_author_cache()
 
-        group_names = _load_group_names_cache(df)
-
-        # Patch any group IDs in the parquet that are missing from the cache
-        parquet_gids  = set(int(g) for g in df["group_id_v2"].unique())
-        missing_names = parquet_gids - set(group_names.keys())
-        if missing_names:
-            print(f"  WARNING: {len(missing_names)} group IDs have no cached name "
-                  f"{missing_names} — using 'Group N' fallback.")
-            for gid in missing_names:
-                group_names[gid] = f"Group {gid}"
-
-        print(f"  Loaded {len(df)} papers, "
-              f"{df['group_id_v2'].nunique()} groups, "
-              f"{len(group_names)} cached names.")
-
-    # ══════════════════════════════════════════════════════════════════════════
-    # NORMAL MODE — full pipeline
-    # ══════════════════════════════════════════════════════════════════════════
+    if BACKFILL_HINDICES:
+        # Re-fetch for all rows, including those with empty lists
+        needs_hindex = pd.Series([True] * len(df), index=df.index)
+        print(f"  BACKFILL_HINDICES=true — re-fetching all {len(df)} papers.")
     else:
-        api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
-        if not api_key:
-            raise RuntimeError(
-                "ANTHROPIC_API_KEY is not set. Add it to GitHub repo secrets "
-                "and expose it in the workflow YAML under env:."
-            )
-        haiku_client = anthropic.Anthropic(api_key=api_key)
+        # Normal mode: only fetch for rows missing h-index data
+        needs_hindex = df["author_hindices"].isna() | df["author_hindices"].apply(
+            lambda x: isinstance(x, list) and len(x) == 0
+        )
 
-        # ── Stage 1: Load & prune rolling DB ────────────────────────────────
-        print("\n▶  Stage 1 -- Loading rolling database...")
+    n_needs = needs_hindex.sum()
+    print(f"  {n_needs} papers need h-index lookup"
+          f" ({len(df) - n_needs} already have data).")
 
-        # ── Load database.parquet (Recent papers only) ───────────────────────
-        if os.path.exists(DB_PATH):
-            existing_df = pd.read_parquet(DB_PATH)
-        else:
-            existing_df = pd.DataFrame()
+    for idx in df.index[needs_hindex]:
+        authors = df.at[idx, "authors_list"]
+        if not isinstance(authors, list) or len(authors) == 0:
+            df.at[idx, "author_hindices"] = []
+            continue
+        df.at[idx, "author_hindices"] = fetch_author_hindices(authors, author_cache)
 
-        # Ensure paper_source column exists and default to "Recent"
-        if not existing_df.empty and "paper_source" not in existing_df.columns:
-            existing_df["paper_source"] = "Recent"
+    save_author_cache(author_cache)
+    print(f"  h-index enrichment complete. Cache now has {len(author_cache)} entries.")
 
-        # Remove any Significant papers that leaked into database.parquet from
-        # a prior run — they'll be re-added cleanly from significant.parquet below
-        if not existing_df.empty and "paper_source" in existing_df.columns:
-            before_sig = len(existing_df)
-            existing_df = existing_df[
-                existing_df["paper_source"] != "Significant"
-            ].copy().reset_index(drop=True)
-            removed = before_sig - len(existing_df)
-            if removed:
-                print(f"  Removed {removed} Significant rows from database.parquet "
-                      f"(will reload from significant.parquet).")
+    # Compute Prominence now that author_hindices is populated
+    df["Prominence"] = df.apply(calculate_prominence, axis=1)
+    tier_counts = df["Prominence"].value_counts()
+    for tier in ["Elite", "Enhanced", "Emerging", "Unverified"]:
+        print(f"  {tier}: {tier_counts.get(tier, 0)}")
 
-        # Prune Recent papers older than RETENTION_DAYS
-        if not existing_df.empty and "date_added" in existing_df.columns:
-            cutoff = datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)
-            existing_df["date_added"] = pd.to_datetime(
-                existing_df["date_added"], utc=True, errors="coerce"
-            )
-            before = len(existing_df)
-            existing_df = existing_df[
-                existing_df["date_added"] >= cutoff
-            ].reset_index(drop=True)
-            pruned = before - len(existing_df)
-            if pruned:
-                print(f"  Pruned {pruned} Recent papers older than {RETENTION_DAYS} days.")
+    # ── Stage 1d: Semantic Scholar enrichment ────────────────────────────
+    print("\n▶  Stage 1d — Semantic Scholar enrichment...")
 
-        # Migrate Reputation → Prominence column name if present from older runs
-        if "Reputation" in existing_df.columns and "Prominence" not in existing_df.columns:
-            existing_df = existing_df.rename(columns={"Reputation": "Prominence"})
-            print("  Migrated 'Reputation' column -> 'Prominence'.")
+    # Ensure columns exist (default values; populated below from cache)
+    for col, default in [
+        ("ss_citation_count",        0),
+        ("ss_influential_citations", 0),
+        ("ss_tldr",                  ""),
+    ]:
+        if col not in df.columns:
+            df[col] = default
 
-        print(f"  Loaded {len(existing_df)} existing Recent papers.")
+    ss_cache = load_ss_cache()
 
-        # ── Load and merge significant.parquet ──────────────────────────────
-        if os.path.exists(SIGNIFICANT_PATH):
-            sig_df = pd.read_parquet(SIGNIFICANT_PATH)
-            sig_df["paper_source"] = "Significant"
-            n_sig = len(sig_df)
-            # Remove Significant papers that are also in the recent window
-            # (prefer Recent so they get pruned naturally when they age out)
-            sig_df = sig_df[~sig_df["id"].isin(existing_df["id"])].reset_index(drop=True)
-            if len(sig_df) < n_sig:
-                print(f"  {n_sig - len(sig_df)} Significant paper(s) already in "
-                      f"recent window -- skipping duplicates.")
-            existing_df = pd.concat([existing_df, sig_df], ignore_index=True)
-            print(f"  Merged {len(sig_df)} Significant papers "
-                  f"(total: {len(existing_df)}).")
-        else:
-            print("  No significant.parquet found -- running without Significant papers.")
+    # Fetch a paper if any of these are true:
+    #   (a) not in cache at all
+    #   (b) cache entry is older than SS_CACHE_TTL_DAYS (normal TTL)
+    #   (c) cache entry has zero signal — citation_count=0, tldr="" —
+    #       meaning S2 hadn't indexed it yet; retry every run until it
+    #       appears (brand-new papers typically land in S2 within days)
+    cutoff_ss = (
+        datetime.now(timezone.utc) - timedelta(days=SS_CACHE_TTL_DAYS)
+    ).isoformat()
 
-        is_first_run = existing_df.empty and not os.path.exists(DB_PATH)
-        days_back = 5 if is_first_run else 1
+    def _needs_ss_fetch(arxiv_id):
+        """Return a reason string if the paper needs a fetch, else None."""
+        base  = _arxiv_id_base(arxiv_id)
+        entry = ss_cache.get(base)
+        if entry is None:
+            return "not cached"
+        if entry.get("fetched_at", "") < cutoff_ss:
+            return "stale (TTL expired)"
+        no_signal = (
+            int(entry.get("citation_count",             0)) == 0
+            and int(entry.get("influential_citation_count", 0)) == 0
+            and not (entry.get("tldr") or "").strip()
+        )
+        if no_signal:
+            return "unindexed (no signal yet)"
+        return None
 
-        if is_first_run:
-            print("  First run — pre-filling with last 5 days of arXiv papers.")
-        else:
-            print(f"  Loaded {len(existing_df)} existing papers.")
+    reason_map = {
+        aid: _needs_ss_fetch(aid)
+        for aid in df["id"].tolist()
+    }
+    arxiv_ids_to_fetch = [aid for aid, reason in reason_map.items()
+                           if reason is not None]
+    n_cached    = len(df) - len(arxiv_ids_to_fetch)
+    n_unindexed = sum(1 for r in reason_map.values()
+                      if r == "unindexed (no signal yet)")
+    n_stale     = sum(1 for r in reason_map.values()
+                      if r == "stale (TTL expired)")
+    n_missing   = sum(1 for r in reason_map.values() if r == "not cached")
+    print(f"  {len(arxiv_ids_to_fetch)} papers need S2 fetch "
+          f"({n_cached} skipped: already have data within TTL). "
+          f"Breakdown: {n_missing} missing, {n_stale} stale, "
+          f"{n_unindexed} not yet indexed.")
 
-        # ── Stage 1b: arXiv fetch (OAI-PMH announcement-date) ───────────────
-        print("\n▶  Stage 1b — Fetching from arXiv (OAI-PMH)...")
-        results = fetch_arxiv_oai(days_back=days_back, max_results=ARXIV_MAX)
+    if arxiv_ids_to_fetch:
+        fetch_semantic_scholar_data(arxiv_ids_to_fetch, ss_cache)
+        save_ss_cache(ss_cache)
+        print(f"  S2 cache now has {len(ss_cache)} entries.")
+    else:
+        print(f"  All papers found in S2 cache — no fetch needed.")
 
-        if not results:
-            if existing_df.empty:
-                print("  No arXiv results and no existing DB. Exiting.")
-                exit(0)
-            print(f"  No new papers (weekend / dry spell). "
-                  f"Rebuilding from {len(existing_df)} existing papers.")
+    # Apply cache values to DataFrame (covers all papers, not just re-fetched)
+    for idx in df.index:
+        base  = _arxiv_id_base(df.at[idx, "id"])
+        entry = ss_cache.get(base)
+        if entry:
+            df.at[idx, "ss_citation_count"]        = int(entry.get("citation_count",             0))
+            df.at[idx, "ss_influential_citations"]  = int(entry.get("influential_citation_count", 0))
+            df.at[idx, "ss_tldr"]                   = entry.get("tldr", "") or ""
 
-        if results:
-            print(f"  Fetched {len(results)} papers from arXiv.")
-            today_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-            rows = []
-            for r in results:
-                title      = r.title
-                abstract   = r.summary
-                scrubbed   = scrub_model_words(f"{title}. {title}. {abstract}")
-                label_text = scrub_model_words(f"{title}. {title}. {title}.")
-                rows.append({
-                    "title":        title,
-                    "abstract":     abstract,
-                    "text":         scrubbed,
-                    "label_text":   label_text,
-                    "url":          r.pdf_url,
-                    "id":           r.entry_id.split("/")[-1],
-                    "author_count": len(r.authors),
-                    "author_tier":  categorize_authors(len(r.authors)),
-                    "date_added":   today_str,
-                    "authors_list": [a.name for a in r.authors],
-                })
-            new_df = pd.DataFrame(rows)
-            new_df["Prominence"]   = "Unverified"   # placeholder; recalculated in 1c
-            new_df["paper_source"] = "Recent"
-            df = merge_papers(existing_df, new_df)
-            df = df.drop(columns=["group", "group_id_v2"], errors="ignore")
-            print(f"  Rolling DB: {len(df)} papers after merge.")
-        else:
-            df = existing_df.drop(columns=["group", "group_id_v2"], errors="ignore")
-            # Ensure paper_source is set for all rows
-            if "paper_source" not in df.columns:
-                df["paper_source"] = "Recent"
+    n_with_tldr  = (df["ss_tldr"].astype(str).str.len() > 0).sum()
+    n_with_cites = (df["ss_citation_count"] > 0).sum()
+    print(f"  S2 enrichment complete: "
+          f"{n_with_cites}/{len(df)} papers with citations, "
+          f"{n_with_tldr}/{len(df)} with TLDRs.")
 
-        # ── Stage 1c: Author h-index enrichment ─────────────────────────────
-        print("\n▶  Stage 1c — Author h-index enrichment (OpenAlex)...")
-        if "author_hindices" not in df.columns:
-            df["author_hindices"] = None
-        if "authors_list" not in df.columns:
-            df["authors_list"] = None
+    # ── Stage 1e: CitationTier ────────────────────────────────────────────
+    print("\n▶  Stage 1e -- Computing CitationTier...")
+    df["CitationTier"] = calculate_citation_tier(df)
 
-        author_cache = load_author_cache()
+    # ── Stage 2: SPECTER2 embed + UMAP ──────────────────────────────────
+    print("\n▶  Stage 2 — SPECTER2 embedding + UMAP...")
+    df = embed_and_project(df, model_name="specter2")
 
-        if BACKFILL_HINDICES:
-            # Re-fetch for all rows, including those with empty lists
-            needs_hindex = pd.Series([True] * len(df), index=df.index)
-            print(f"  BACKFILL_HINDICES=true — re-fetching all {len(df)} papers.")
-        else:
-            # Normal mode: only fetch for rows missing h-index data
-            needs_hindex = df["author_hindices"].isna() | df["author_hindices"].apply(
-                lambda x: isinstance(x, list) and len(x) == 0
-            )
+    # ── Stage 3: Haiku grouping + naming ────────────────────────────────
+    df, group_names = haiku_group_papers(df, haiku_client)
 
-        n_needs = needs_hindex.sum()
-        print(f"  {n_needs} papers need h-index lookup"
-              f" ({len(df) - n_needs} already have data).")
+# ══════════════════════════════════════════════════════════════════════════
+# STAGES 4-5: Layout + build — run in both normal AND offline modes
+# ══════════════════════════════════════════════════════════════════════════
 
-        for idx in df.index[needs_hindex]:
-            authors = df.at[idx, "authors_list"]
-            if not isinstance(authors, list) or len(authors) == 0:
-                df.at[idx, "author_hindices"] = []
-                continue
-            df.at[idx, "author_hindices"] = fetch_author_hindices(authors, author_cache)
+# ── Stage 4a: MDS centroids ──────────────────────────────────────────────
+centroids = compute_mds_centroids(df)
 
-        save_author_cache(author_cache)
-        print(f"  h-index enrichment complete. Cache now has {len(author_cache)} entries.")
+# ── Stage 4b: Within-group scatter ───────────────────────────────────────
+df = scatter_within_groups(df, centroids, group_names)
 
-        # Compute Prominence now that author_hindices is populated
-        df["Prominence"] = df.apply(calculate_prominence, axis=1)
-        tier_counts = df["Prominence"].value_counts()
-        for tier in ["Elite", "Enhanced", "Emerging", "Unverified"]:
-            print(f"  {tier}: {tier_counts.get(tier, 0)}")
+# ── Write labels parquet ─────────────────────────────────────────────────
+labels_path = write_labels_parquet(df, group_names, centroids)
 
-        # ── Stage 1d: Semantic Scholar enrichment ────────────────────────────
-        print("\n▶  Stage 1d — Semantic Scholar enrichment...")
+# ── Save rolling DB ───────────────────────────────────────────────────────
+print("\n▶  Saving rolling database...")
+save_df = df.copy()
+save_df["date_added"] = pd.to_datetime(
+    save_df["date_added"], utc=True
+).dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        # Ensure columns exist (default values; populated below from cache)
-        for col, default in [
-            ("ss_citation_count",        0),
-            ("ss_influential_citations", 0),
-            ("ss_tldr",                  ""),
-        ]:
-            if col not in df.columns:
-                df[col] = default
+if "projection_v2_x" not in save_df.columns:
+    raise RuntimeError("projection_v2_x missing — layout step failed.")
 
-        ss_cache = load_ss_cache()
+save_df.to_parquet(DB_PATH, index=False)
+print(f"  Saved {len(save_df)} papers to {DB_PATH}.")
+proj_cols = [c for c in save_df.columns if "projection" in c or "group_id" in c]
+print(f"  Projection / group columns: {proj_cols}")
 
-        # Fetch a paper if any of these are true:
-        #   (a) not in cache at all
-        #   (b) cache entry is older than SS_CACHE_TTL_DAYS (normal TTL)
-        #   (c) cache entry has zero signal — citation_count=0, tldr="" —
-        #       meaning S2 hadn't indexed it yet; retry every run until it
-        #       appears (brand-new papers typically land in S2 within days)
-        cutoff_ss = (
-            datetime.now(timezone.utc) - timedelta(days=SS_CACHE_TTL_DAYS)
-        ).isoformat()
+# ── Stage 5: Build + deploy ───────────────────────────────────────────────
+print("\n▶  Stage 5 — Building atlas...")
+build_and_deploy_atlas(
+    db_path     = DB_PATH,
+    proj_x_col  = PROJ_X_COL,
+    proj_y_col  = PROJ_Y_COL,
+    labels_path = labels_path,
+    run_date    = run_date,
+)
 
-        def _needs_ss_fetch(arxiv_id):
-            """Return a reason string if the paper needs a fetch, else None."""
-            base  = _arxiv_id_base(arxiv_id)
-            entry = ss_cache.get(base)
-            if entry is None:
-                return "not cached"
-            if entry.get("fetched_at", "") < cutoff_ss:
-                return "stale (TTL expired)"
-            no_signal = (
-                int(entry.get("citation_count",             0)) == 0
-                and int(entry.get("influential_citation_count", 0)) == 0
-                and not (entry.get("tldr") or "").strip()
-            )
-            if no_signal:
-                return "unindexed (no signal yet)"
-            return None
-
-        reason_map = {
-            aid: _needs_ss_fetch(aid)
-            for aid in df["id"].tolist()
-        }
-        arxiv_ids_to_fetch = [aid for aid, reason in reason_map.items()
-                               if reason is not None]
-        n_cached    = len(df) - len(arxiv_ids_to_fetch)
-        n_unindexed = sum(1 for r in reason_map.values()
-                          if r == "unindexed (no signal yet)")
-        n_stale     = sum(1 for r in reason_map.values()
-                          if r == "stale (TTL expired)")
-        n_missing   = sum(1 for r in reason_map.values() if r == "not cached")
-        print(f"  {len(arxiv_ids_to_fetch)} papers need S2 fetch "
-              f"({n_cached} skipped: already have data within TTL). "
-              f"Breakdown: {n_missing} missing, {n_stale} stale, "
-              f"{n_unindexed} not yet indexed.")
-
-        if arxiv_ids_to_fetch:
-            fetch_semantic_scholar_data(arxiv_ids_to_fetch, ss_cache)
-            save_ss_cache(ss_cache)
-            print(f"  S2 cache now has {len(ss_cache)} entries.")
-        else:
-            print(f"  All papers found in S2 cache — no fetch needed.")
-
-        # Apply cache values to DataFrame (covers all papers, not just re-fetched)
-        for idx in df.index:
-            base  = _arxiv_id_base(df.at[idx, "id"])
-            entry = ss_cache.get(base)
-            if entry:
-                df.at[idx, "ss_citation_count"]        = int(entry.get("citation_count",             0))
-                df.at[idx, "ss_influential_citations"]  = int(entry.get("influential_citation_count", 0))
-                df.at[idx, "ss_tldr"]                   = entry.get("tldr", "") or ""
-
-        n_with_tldr  = (df["ss_tldr"].astype(str).str.len() > 0).sum()
-        n_with_cites = (df["ss_citation_count"] > 0).sum()
-        print(f"  S2 enrichment complete: "
-              f"{n_with_cites}/{len(df)} papers with citations, "
-              f"{n_with_tldr}/{len(df)} with TLDRs.")
-
-        # ── Stage 1e: CitationTier ────────────────────────────────────────────
-        print("\n▶  Stage 1e -- Computing CitationTier...")
-        df["CitationTier"] = calculate_citation_tier(df)
-
-        # ── Stage 2: SPECTER2 embed + UMAP ──────────────────────────────────
-        print("\n▶  Stage 2 — SPECTER2 embedding + UMAP...")
-        df = embed_and_project(df, model_name="specter2")
-
-        # ── Stage 3: Haiku grouping + naming ────────────────────────────────
-        df, group_names = haiku_group_papers(df, haiku_client)
-
-    # ══════════════════════════════════════════════════════════════════════════
-    # STAGES 4-5: Layout + build — run in both normal AND offline modes
-    # ══════════════════════════════════════════════════════════════════════════
-
-    # ── Stage 4a: MDS centroids ──────────────────────────────────────────────
-    centroids = compute_mds_centroids(df)
-
-    # ── Stage 4b: Within-group scatter ───────────────────────────────────────
-    df = scatter_within_groups(df, centroids, group_names)
-
-    # ── Write labels parquet ─────────────────────────────────────────────────
-    labels_path = write_labels_parquet(df, group_names, centroids)
-
-    # ── Save rolling DB ───────────────────────────────────────────────────────
-    print("\n▶  Saving rolling database...")
-    save_df = df.copy()
-    save_df["date_added"] = pd.to_datetime(
-        save_df["date_added"], utc=True
-    ).dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    if "projection_v2_x" not in save_df.columns:
-        raise RuntimeError("projection_v2_x missing — layout step failed.")
-
-    save_df.to_parquet(DB_PATH, index=False)
-    print(f"  Saved {len(save_df)} papers to {DB_PATH}.")
-    proj_cols = [c for c in save_df.columns if "projection" in c or "group_id" in c]
-    print(f"  Projection / group columns: {proj_cols}")
-
-    # ── Stage 5: Build + deploy ───────────────────────────────────────────────
-    print("\n▶  Stage 5 — Building atlas...")
-    build_and_deploy_atlas(
-        db_path     = DB_PATH,
-        proj_x_col  = PROJ_X_COL,
-        proj_y_col  = PROJ_Y_COL,
-        labels_path = labels_path,
-        run_date    = run_date,
-    )
-
-    print("\n✓  update_map_v2.py complete.")
+print("\n✓  update_map_v2.py complete.")
+```
