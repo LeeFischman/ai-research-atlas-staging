@@ -9,100 +9,93 @@
         },
         "embeddingViewLabels": [
             {
-                "x": -0.8989567723923563,
-                "y": 0.987793944309524,
+                "x": -0.8645047553432438,
+                "y": -1.2902281003624905,
                 "text": "Language Models & Reasoning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.9636520694959663,
-                "y": -0.29543679698216857,
+                "x": 1.2697372407713616,
+                "y": -1.6071953875758547,
                 "text": "Computer Vision",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.6064749177757834,
-                "y": 0.6394155929844872,
+                "x": -0.1106834672916777,
+                "y": -0.3452871474879142,
                 "text": "Multimodal Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.7171922562126506,
-                "y": -0.2789402626624679,
+                "x": -0.11123654145849719,
+                "y": 1.3263787792052268,
                 "text": "Reinforcement Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.736285172010543,
-                "y": 0.8817917210062175,
+                "x": -0.7680306019482305,
+                "y": 1.9951623527515323,
                 "text": "Robotics & Embodied AI",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.8470497231335243,
-                "y": 1.7525787962037638,
+                "x": -2.121763158956758,
+                "y": -1.3933769346347167,
                 "text": "Safety, Alignment & Ethics",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.5157393479784782,
-                "y": -1.8197348807611458,
+                "x": 2.027921260125811,
+                "y": -0.7204582343307496,
                 "text": "Theory, Optimization & Efficient ML",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.1117913468991327,
-                "y": -1.2407407338211907,
+                "x": -2.004557716774915,
+                "y": 0.01861880858175314,
                 "text": "Domain Applications",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.1860204716073717,
-                "y": 2.2565639556673407,
+                "x": -1.6247928227786061,
+                "y": 1.0941954459970709,
+                "text": "Agentic Ai Systems",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 1.164720362979865,
+                "y": 1.9793827329063312,
                 "text": "Speech & Audio Processing",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.7595245592513808,
-                "y": -1.9299289854672992,
+                "x": 0.1204833662979257,
+                "y": -2.3576476669091275,
                 "text": "Graph Neural Networks & Structured Data",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.6860988047737532,
-                "y": -0.680299045659175,
-                "text": "Diffusion Models & Generative Modeling",
+                "x": 0.7761735515855525,
+                "y": 0.09100345263174868,
+                "text": "Diffusion & Generative Models",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.005497094175415,
-                "y": 0.19376661699643918,
-                "text": "Multi-Agent Systems",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -0.033715329824615926,
-                "y": 1.870073504420037,
-                "text": "Medical Ai & Healthcare",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 0.2027172422839339,
-                "y": -1.9128879279145563,
-                "text": "Knowledge Graphs & Semantic Systems",
+                "x": 1.8645259409929813,
+                "y": 0.6187120461410103,
+                "text": "Time Series & Forecasting",
                 "level": 0,
                 "priority": 10
             }
