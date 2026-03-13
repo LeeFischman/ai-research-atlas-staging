@@ -57,7 +57,8 @@ DOMINANT_GROUP_WARN_PCT    = 0.60  # one group owning > 60% of papers is suspici
 DOMINANT_GROUP_FAIL_PCT    = 0.80  # one group owning > 80% is almost certainly broken
 
 SIGNIFICANT_POOL_SIZE      = 75
-SIGNIFICANT_POOL_MIN       = 20    # below this something went badly wrong
+SIGNIFICANT_POOL_MIN       = 10    # below this something went badly wrong (FAIL)
+SIGNIFICANT_POOL_WARN      = 20    # below this pool is thinning (WARN)
 SIGNIFICANT_POOL_MAX       = 80    # above this retirement logic is not firing
 SIGNIFICANT_LOOKBACK_DAYS  = 150
 SIGNIFICANT_STRIKES_LIMIT  = 2
@@ -402,6 +403,9 @@ def check_significant(c: Checker, db_df: pd.DataFrame | None, now: datetime) -> 
     if n < SIGNIFICANT_POOL_MIN:
         c.fail(sec, f"Only {n} papers — expected ≥{SIGNIFICANT_POOL_MIN}. "
                     f"Pool may have been over-retired.")
+    elif n < SIGNIFICANT_POOL_WARN:
+        c.warn(sec, f"Only {n} papers — pool is thinning (expected ≥{SIGNIFICANT_POOL_WARN}). "
+                    f"Weekly replenishment job may have missed a run.")
     elif n > SIGNIFICANT_POOL_MAX:
         c.warn(sec, f"{n} papers exceeds {SIGNIFICANT_POOL_MAX} — "
                     f"retirement logic may not be firing.")
