@@ -1191,6 +1191,26 @@ if __name__ == "__main__":
         print("\n▶  Stage 1e -- Computing CitationTier...")
         df["CitationTier"] = calculate_citation_tier(df)
 
+        # ── Stage 1f: Recency label ───────────────────────────────────────────
+        # Categorical column for sidebar color-by shortcut.
+        # "Today" / "Yesterday" / "Earlier" based on date_added.
+        print("\n▶  Stage 1f -- Computing Recency...")
+        _today_utc = datetime.now(timezone.utc).date()
+        def _recency_label(date_added_val):
+            try:
+                d = pd.to_datetime(date_added_val, utc=True).date()
+                delta = (_today_utc - d).days
+                if delta == 0:  return "Today"
+                if delta == 1:  return "Yesterday"
+                return "Earlier"
+            except Exception:
+                return "Earlier"
+        df["recency"] = df["date_added"].apply(_recency_label)
+        recency_counts = df["recency"].value_counts()
+        print(f"  Recency: Today={recency_counts.get('Today', 0)}, "
+              f"Yesterday={recency_counts.get('Yesterday', 0)}, "
+              f"Earlier={recency_counts.get('Earlier', 0)}.")
+
         # ── Stage 2: SPECTER2 embed + UMAP ──────────────────────────────────
         print("\n▶  Stage 2 — SPECTER2 embedding + UMAP...")
         df = embed_and_project(df, model_name="specter2")
