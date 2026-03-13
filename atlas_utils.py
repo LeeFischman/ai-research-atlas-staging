@@ -1458,6 +1458,7 @@ def build_and_deploy_atlas(
             "ss_influential_citations":"ss_influential_citations",
             "ss_tldr":                 "ss_tldr",
             "CitationTier":            "CitationTier",
+            "recency":                 "recency",
             "paper_source":            "paper_source",
         })
 
@@ -1938,6 +1939,11 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('CitationTier', this)">
       <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,13 6,8 10,10 16,4"/><polyline points="12,4 16,4 16,8"/></svg></span>
       <span class="arm-tile-text"><span class="arm-tile-label">Citation impact</span><span class="arm-tile-sub">Very Highly Cited · Highly Cited · Cited</span></span>
+    </a>
+
+    <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('recency', this)">
+      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="7"/><polyline points="9,5 9,9 12,11"/></svg></span>
+      <span class="arm-tile-text"><span class="arm-tile-label">Recency</span><span class="arm-tile-sub">Today · Yesterday · Earlier</span></span>
     </a>
 
   </div>
