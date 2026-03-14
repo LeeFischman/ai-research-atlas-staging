@@ -9,93 +9,93 @@
         },
         "embeddingViewLabels": [
             {
-                "x": -0.8645047553432438,
-                "y": -1.2902281003624905,
+                "x": -0.38204399656782795,
+                "y": -1.4475378418899807,
                 "text": "Language Models & Reasoning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.2697372407713616,
-                "y": -1.6071953875758547,
+                "x": 0.7454130897623689,
+                "y": 0.44001890888821826,
                 "text": "Computer Vision",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.1106834672916777,
-                "y": -0.3452871474879142,
+                "x": 1.0396104822553878,
+                "y": -0.6889558336972573,
                 "text": "Multimodal Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.11123654145849719,
-                "y": 1.3263787792052268,
+                "x": 1.0301501555649595,
+                "y": 1.864873599777401,
                 "text": "Reinforcement Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.7680306019482305,
-                "y": 1.9951623527515323,
+                "x": 1.88924552162146,
+                "y": 0.9103601597850207,
                 "text": "Robotics & Embodied AI",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.121763158956758,
-                "y": -1.3933769346347167,
+                "x": -1.4012166477299344,
+                "y": -2.2434744367026083,
                 "text": "Safety, Alignment & Ethics",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.027921260125811,
-                "y": -0.7204582343307496,
-                "text": "Theory, Optimization & Efficient ML",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -2.004557716774915,
-                "y": 0.01861880858175314,
-                "text": "Domain Applications",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -1.6247928227786061,
-                "y": 1.0941954459970709,
-                "text": "Agentic Ai Systems",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 1.164720362979865,
-                "y": 1.9793827329063312,
+                "x": 2.1610913388884967,
+                "y": -0.9631544049941607,
                 "text": "Speech & Audio Processing",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.1204833662979257,
-                "y": -2.3576476669091275,
+                "x": -2.0151750826601367,
+                "y": -0.6303050680303126,
                 "text": "Graph Neural Networks & Structured Data",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.7761735515855525,
-                "y": 0.09100345263174868,
-                "text": "Diffusion & Generative Models",
+                "x": -1.2515363353535642,
+                "y": 1.526753687333212,
+                "text": "Time Series & Forecasting",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.8645259409929813,
-                "y": 0.6187120461410103,
-                "text": "Time Series & Forecasting",
+                "x": -0.2773218111417846,
+                "y": 2.161255380537363,
+                "text": "Scientific Computing & Physics",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -1.9004268676667098,
+                "y": 0.6812568997977888,
+                "text": "Optimization & Training Methods",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 0.6602550159618291,
+                "y": -2.0242973364175407,
+                "text": "Domain Applications In Healthcare",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.9348473881038347,
+                "y": 0.13272331370253845,
+                "text": "Domain Applications In Science & Engineering",
                 "level": 0,
                 "priority": 10
             }
@@ -120,6 +120,7 @@
         "ss_influential_citations": "ss_influential_citations",
         "ss_tldr": "ss_tldr",
         "CitationTier": "CitationTier",
+        "recency": "recency",
         "paper_source": "paper_source"
     }
 }
