@@ -722,7 +722,7 @@ _OAI_NS = {
     "atom":   "http://www.w3.org/2005/Atom",
 }
 
-_OAI_BASE_URL    = "https://export.arxiv.org/oai2"
+_OAI_BASE_URL    = "https://oaipmh.arxiv.org/oai"
 _SEARCH_BASE_URL = "https://export.arxiv.org/api/query"
 _OAI_RESUMPTION_SLEEP  = 20   # seconds — strictly required by arXiv
 _SEARCH_BATCH_SIZE     = 50   # IDs per Search API request
