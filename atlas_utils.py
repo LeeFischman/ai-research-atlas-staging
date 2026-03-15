@@ -1494,27 +1494,10 @@ def build_and_deploy_atlas(
         grid_df = pd.read_parquet(db_path)
         grid_cols = [
             "title", "ss_tldr", "abstract", "url", "date_added",
-            "Prominence", "author_tier", "author_hindices",
-            "author_count", "CitationTier", "recency",
+            "Prominence", "author_count", "CitationTier", "recency",
         ]
         grid_cols = [c for c in grid_cols if c in grid_df.columns]
         grid_out = grid_df[grid_cols].copy()
-
-        def _norm_hindices(v):
-            if v is None:
-                return []
-            try:
-                import numpy as _np
-                if isinstance(v, _np.ndarray):
-                    return [int(x) for x in v.tolist()]
-            except Exception:
-                pass
-            if isinstance(v, list):
-                return [int(x) for x in v if x is not None]
-            return []
-
-        if "author_hindices" in grid_out.columns:
-            grid_out["author_hindices"] = grid_out["author_hindices"].apply(_norm_hindices)
 
         papers_json_path = os.path.join(docs_dir, "data", "papers.json")
         grid_out.to_json(papers_json_path, orient="records", default_handler=str)
@@ -1935,6 +1918,17 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
   }
   window.addEventListener('load', () => setTimeout(collapseChartsPanel, 300));
 })();
+
+// Collapse table panel on load
+(function() {
+  function collapseTablePanel() {
+    const btn = Array.from(document.querySelectorAll('button'))
+      .find(b => b.title === 'Show / hide table');
+    if (!btn) { setTimeout(collapseTablePanel, 200); return; }
+    if (!btn.classList.contains('text-slate-400')) { btn.click(); }
+  }
+  window.addEventListener('load', () => setTimeout(collapseTablePanel, 300));
+})();
 </script>
 
 <!-- ── Top title bar ──────────────────────────────────────────────── -->
@@ -1972,11 +1966,6 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('author_count', this)">
       <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="6" r="2.5"/><path d="M1 16c0-3.3 2.5-5 5.5-5"/><circle cx="13" cy="6" r="2.5"/><path d="M17 16c0-3.3-2.5-5-5.5-5"/><path d="M10 16c0-2.8-1.8-4.5-4-4.5"/></svg></span>
       <span class="arm-tile-text"><span class="arm-tile-label">Author count</span><span class="arm-tile-sub">More authors tends to be better</span></span>
-    </a>
-
-    <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('author_tier', this)">
-      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5L9 4l5 4.5"/><path d="M5.5 8v5.5h7V8"/><path d="M7 13.5v-3h4v3"/><path d="M3 8.5h12"/></svg></span>
-      <span class="arm-tile-text"><span class="arm-tile-label">Author seniority</span><span class="arm-tile-sub">Highlights established researchers</span></span>
     </a>
 
     <a class="arm-tile" href="javascript:void(0)" onclick="armSetColor('CitationTier', this)">
@@ -2173,7 +2162,7 @@ def build_grid_html(run_date: str) -> str:
 
   /* ── Filter popup ──────────────────────────────────────────────────── */
   #arm-filter-popup {
-    position:fixed; top:60px; left:46px;
+    position:fixed;
     z-index:1000001;
     background:rgba(15,23,42,0.97); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
     border:1px solid var(--arm-border); border-radius:12px;
@@ -2181,6 +2170,7 @@ def build_grid_html(run_date: str) -> str:
     box-shadow:4px 8px 32px rgba(0,0,0,0.7);
     font-family:var(--arm-font);
     display:none;
+    transition:none;
   }
   #arm-filter-popup .fp-title {
     font-size:10px; font-weight:600; text-transform:uppercase;
@@ -2238,13 +2228,14 @@ def build_grid_html(run_date: str) -> str:
   }
   #grid-table tr:hover td { background:rgba(255,255,255,0.018); }
 
-  .col-title    { width:22%; min-width:160px; }
-  .col-tldr     { width:18%; min-width:120px; }
-  .col-abstract { width:20%; min-width:130px; }
-  .col-url      { width:5%;  min-width:56px;  }
-  .col-date     { width:9%;  min-width:86px;  }
-  .col-tier     { width:10%; min-width:90px;  }
-  .col-hindices { width:16%; min-width:100px; }
+  .col-title      { width:20%; min-width:150px; }
+  .col-tldr       { width:17%; min-width:110px; }
+  .col-abstract   { width:18%; min-width:120px; }
+  .col-url        { width:5%;  min-width:56px;  }
+  .col-date       { width:8%;  min-width:82px;  }
+  .col-prominence { width:9%;  min-width:88px;  }
+  .col-count      { width:8%;  min-width:78px;  }
+  .col-citation   { width:11%; min-width:96px;  }
 
   .cell-title { color:#f1f5f9; font-weight:600; font-size:12px; text-decoration:none; display:block; line-height:1.4; }
   .cell-title:hover { color:var(--arm-accent); text-decoration:underline; }
@@ -2262,18 +2253,34 @@ def build_grid_html(run_date: str) -> str:
 
   .cell-date { font-size:11px; color:#475569; white-space:nowrap; }
 
-  .cell-hindices { font-size:11px; color:#64748b; }
-
-  /* Prominence badges */
+  /* ── Shared badge base ──────────────────────────────────────────── */
   .badge {
     display:inline-block; font-size:10px; font-weight:600;
     letter-spacing:0.04em; padding:2px 7px; border-radius:99px; border:1px solid;
     white-space:nowrap;
   }
+
+  /* Prominence (author tier) */
   .badge-elite      { color:#f59e0b; background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.35); }
   .badge-enhanced   { color:#60a5fa; background:rgba(96,165,250,0.12); border-color:rgba(96,165,250,0.35); }
   .badge-emerging   { color:#4ade80; background:rgba(74,222,128,0.10); border-color:rgba(74,222,128,0.30); }
   .badge-unverified { color:#475569; background:rgba(71,85,105,0.15);  border-color:rgba(71,85,105,0.35); }
+
+  /* Author count — Fibonacci red→yellow→green */
+  .badge-count-1  { color:#ef4444; background:rgba(239,68,68,0.12);   border-color:rgba(239,68,68,0.35); }
+  .badge-count-2  { color:#f97316; background:rgba(249,115,22,0.12);  border-color:rgba(249,115,22,0.35); }
+  .badge-count-3  { color:#fb923c; background:rgba(251,146,60,0.12);  border-color:rgba(251,146,60,0.35); }
+  .badge-count-5  { color:#f59e0b; background:rgba(245,158,11,0.12);  border-color:rgba(245,158,11,0.35); }
+  .badge-count-8  { color:#eab308; background:rgba(234,179,8,0.12);   border-color:rgba(234,179,8,0.35); }
+  .badge-count-13 { color:#84cc16; background:rgba(132,204,22,0.12);  border-color:rgba(132,204,22,0.35); }
+  .badge-count-21 { color:#22c55e; background:rgba(34,197,94,0.12);   border-color:rgba(34,197,94,0.35); }
+  .badge-count-21p{ color:#10b981; background:rgba(16,185,129,0.12);  border-color:rgba(16,185,129,0.35); }
+
+  /* Citation impact */
+  .badge-uncited        { color:#475569; background:rgba(71,85,105,0.15);   border-color:rgba(71,85,105,0.35); }
+  .badge-cited          { color:#facc15; background:rgba(250,204,21,0.12);  border-color:rgba(250,204,21,0.35); }
+  .badge-highly-cited   { color:#f97316; background:rgba(249,115,22,0.12); border-color:rgba(249,115,22,0.35); }
+  .badge-vhc            { color:#ef4444; background:rgba(239,68,68,0.12);   border-color:rgba(239,68,68,0.35); }
 
   /* ── Status bar ────────────────────────────────────────────────────── */
   #grid-status-bar {
@@ -2338,12 +2345,6 @@ def build_grid_html(run_date: str) -> str:
        onclick="armShowFilterOptions('author_count','Author count',this)">
       <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="6" r="2.5"/><path d="M1 16c0-3.3 2.5-5 5.5-5"/><circle cx="13" cy="6" r="2.5"/><path d="M17 16c0-3.3-2.5-5-5.5-5"/><path d="M10 16c0-2.8-1.8-4.5-4-4.5"/></svg></span>
       <span class="arm-tile-text"><span class="arm-tile-label">Author count</span><span class="arm-tile-sub">More authors tends to be better</span></span>
-    </a>
-
-    <a class="arm-tile" href="javascript:void(0)" id="tile-author_tier"
-       onclick="armShowFilterOptions('author_tier','Author seniority',this)">
-      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5L9 4l5 4.5"/><path d="M5.5 8v5.5h7V8"/><path d="M7 13.5v-3h4v3"/><path d="M3 8.5h12"/></svg></span>
-      <span class="arm-tile-text"><span class="arm-tile-label">Author seniority</span><span class="arm-tile-sub">Highlights established researchers</span></span>
     </a>
 
     <a class="arm-tile" href="javascript:void(0)" id="tile-CitationTier"
@@ -2420,20 +2421,22 @@ def build_grid_html(run_date: str) -> str:
   <table id="grid-table">
     <thead>
       <tr>
-        <th class="col-title"    onclick="setSort('title')">
+        <th class="col-title"      onclick="setSort('title')">
           Title <span class="sort-arrow" id="sa-title"></span></th>
-        <th class="col-tldr"     onclick="setSort('ss_tldr')">
+        <th class="col-tldr"       onclick="setSort('ss_tldr')">
           TLDR <span class="sort-arrow" id="sa-ss_tldr"></span></th>
-        <th class="col-abstract" onclick="setSort('abstract')">
+        <th class="col-abstract"   onclick="setSort('abstract')">
           Abstract <span class="sort-arrow" id="sa-abstract"></span></th>
-        <th class="col-url"      onclick="setSort('url')">
+        <th class="col-url"        onclick="setSort('url')">
           Link <span class="sort-arrow" id="sa-url"></span></th>
-        <th class="col-date"     onclick="setSort('date_added')">
+        <th class="col-date"       onclick="setSort('date_added')">
           Date Added <span class="sort-arrow" id="sa-date_added"></span></th>
-        <th class="col-tier"     onclick="setSort('Prominence')">
-          Author Tier <span class="sort-arrow" id="sa-Prominence"></span></th>
-        <th class="col-hindices" onclick="setSort('_hmax')">
-          H-Indices <span class="sort-arrow" id="sa-_hmax"></span></th>
+        <th class="col-prominence" onclick="setSort('Prominence')">
+          Author Prominence <span class="sort-arrow" id="sa-Prominence"></span></th>
+        <th class="col-count"      onclick="setSort('author_count')">
+          Author Count <span class="sort-arrow" id="sa-author_count"></span></th>
+        <th class="col-citation"   onclick="setSort('CitationTier')">
+          Citation Impact <span class="sort-arrow" id="sa-CitationTier"></span></th>
       </tr>
     </thead>
     <tbody id="grid-tbody"></tbody>
@@ -2485,16 +2488,19 @@ def build_grid_html(run_date: str) -> str:
       var v = p[col];
       if (v !== null && v !== undefined && v !== '') seen[String(v)] = true;
     });
+    // For author_count (numeric), add all Fibonacci bucket labels present
     var values = Object.keys(seen).sort(function (a, b) {
-      // Keep natural order for known tier columns; sort rest alphabetically
       var tierOrder = {
         'Elite': 0, 'Enhanced': 1, 'Emerging': 2, 'Unverified': 3,
-        'Very Highly Cited': 0, 'Highly Cited': 1, 'Cited': 2,
+        'Very Highly Cited': 0, 'Highly Cited': 1, 'Cited': 2, 'Uncited': 3,
         'Today': 0, 'Yesterday': 1, 'Earlier': 2,
         '1-3 Authors': 0, '4-7 Authors': 1, '8+ Authors': 2,
       };
       var oa = tierOrder[a], ob = tierOrder[b];
       if (oa !== undefined && ob !== undefined) return oa - ob;
+      // Numeric strings: sort numerically
+      var na = parseFloat(a), nb = parseFloat(b);
+      if (!isNaN(na) && !isNaN(nb)) return na - nb;
       return a.localeCompare(b);
     });
 
@@ -2510,7 +2516,26 @@ def build_grid_html(run_date: str) -> str:
       opts.appendChild(btn);
     });
 
-    document.getElementById('arm-filter-popup').style.display = 'block';
+    // Position popup to the right of the shortcuts panel, vertically near the tile
+    var popup = document.getElementById('arm-filter-popup');
+    popup.style.display = 'block';
+    var panelEl = document.getElementById('arm-shortcuts-panel');
+    var panelRect = panelEl.getBoundingClientRect();
+    var tileRect  = tileEl  ? tileEl.getBoundingClientRect() : panelRect;
+    var left = panelRect.right + 10;
+    var top  = tileRect.top;
+    // Clamp horizontally (popup is ~210px wide)
+    if (left + 220 > window.innerWidth) left = Math.max(8, window.innerWidth - 228);
+    popup.style.left = left + 'px';
+    popup.style.top  = top  + 'px';
+    // Clamp vertically after render
+    requestAnimationFrame(function () {
+      var maxTop = window.innerHeight - popup.offsetHeight - 8;
+      if (parseFloat(popup.style.top) > maxTop) {
+        popup.style.top = Math.max(8, maxTop) + 'px';
+      }
+    });
+
     document.querySelectorAll('.arm-tile').forEach(function (t) { t.classList.remove('arm-tile-active'); });
     if (tileEl) tileEl.classList.add('arm-tile-active');
   }
@@ -2521,10 +2546,20 @@ def build_grid_html(run_date: str) -> str:
   }
   window.hideFilterPopup = hideFilterPopup;
 
+  // Close popup when clicking outside it (but not on a tile)
+  document.addEventListener('click', function (e) {
+    var popup = document.getElementById('arm-filter-popup');
+    if (popup.style.display === 'none') return;
+    if (popup.contains(e.target)) return;
+    if (e.target.closest && e.target.closest('.arm-tile')) return;
+    hideFilterPopup();
+    document.querySelectorAll('.arm-tile').forEach(function (t) { t.classList.remove('arm-tile-active'); });
+  }, true);
+
   function applyFilter(col, value, label) {
     activeFilter = { col: col, value: value, label: label };
     hideFilterPopup();
-    armClose('arm-shortcuts-panel', 'arm-shortcuts-tab');
+    // Intentionally do NOT close shortcuts panel — avoids animation flicker during re-render
     render();
   }
 
@@ -2549,24 +2584,32 @@ def build_grid_html(run_date: str) -> str:
   }
   window.setSort = setSort;
 
-  function hmax(p) {
-    var h = p.author_hindices;
-    if (!Array.isArray(h) || h.length === 0) return -1;
-    return Math.max.apply(null, h);
-  }
-
   // ── Data helpers ──────────────────────────────────────────────────
+  // Map CitationTier string → numeric rank for sorting
+  var citationRank = { 'Very Highly Cited': 3, 'Highly Cited': 2, 'Cited': 1, 'Uncited': 0 };
+  var prominenceRank = { 'Elite': 3, 'Enhanced': 2, 'Emerging': 1, 'Unverified': 0 };
+
   function getFilteredSorted() {
     var rows = papers.slice();
     if (activeFilter) {
+      var fc = activeFilter.col, fv = activeFilter.value;
       rows = rows.filter(function (p) {
-        return String(p[activeFilter.col] == null ? '' : p[activeFilter.col]) === activeFilter.value;
+        var pv = p[fc];
+        // CitationTier: treat null/'' as 'Uncited'
+        if (fc === 'CitationTier') pv = pv || 'Uncited';
+        return String(pv == null ? '' : pv) === fv;
       });
     }
     rows.sort(function (a, b) {
       var av, bv;
-      if (sortCol === '_hmax') {
-        av = hmax(a); bv = hmax(b);
+      if (sortCol === 'CitationTier') {
+        av = citationRank[a.CitationTier] != null ? citationRank[a.CitationTier] : -1;
+        bv = citationRank[b.CitationTier] != null ? citationRank[b.CitationTier] : -1;
+        return sortDir * (av - bv);
+      }
+      if (sortCol === 'Prominence') {
+        av = prominenceRank[a.Prominence] != null ? prominenceRank[a.Prominence] : -1;
+        bv = prominenceRank[b.Prominence] != null ? prominenceRank[b.Prominence] : -1;
         return sortDir * (av - bv);
       }
       av = a[sortCol]; bv = b[sortCol];
@@ -2577,12 +2620,44 @@ def build_grid_html(run_date: str) -> str:
     return rows;
   }
 
-  // ── DOM helpers ───────────────────────────────────────────────────
-  function badgeHtml(tier) {
+  // ── Badge helpers ─────────────────────────────────────────────────
+  function prominenceBadge(tier) {
     if (!tier) return '\u2014';
-    var cls = { 'Elite': 'badge-elite', 'Enhanced': 'badge-enhanced',
-                'Emerging': 'badge-emerging', 'Unverified': 'badge-unverified' }[tier];
+    var map = {
+      'Elite':      'badge-elite',
+      'Enhanced':   'badge-enhanced',
+      'Emerging':   'badge-emerging',
+      'Unverified': 'badge-unverified',
+    };
+    var cls = map[tier];
     return cls ? '<span class="badge ' + cls + '">' + tier + '</span>' : tier;
+  }
+
+  function authorCountBadge(n) {
+    var count = parseInt(n, 10);
+    if (isNaN(count)) return '\u2014';
+    var cls, label;
+    if      (count === 1)  { cls = 'badge-count-1';   label = '1'; }
+    else if (count === 2)  { cls = 'badge-count-2';   label = '2'; }
+    else if (count === 3)  { cls = 'badge-count-3';   label = '3'; }
+    else if (count <= 5)   { cls = 'badge-count-5';   label = count; }
+    else if (count <= 8)   { cls = 'badge-count-8';   label = count; }
+    else if (count <= 13)  { cls = 'badge-count-13';  label = count; }
+    else if (count <= 21)  { cls = 'badge-count-21';  label = count; }
+    else                   { cls = 'badge-count-21p'; label = count + '+'; }
+    return '<span class="badge ' + cls + '">' + label + '</span>';
+  }
+
+  function citationBadge(tier) {
+    var t = tier || 'Uncited';
+    var map = {
+      'Very Highly Cited': ['badge-vhc',          'Very Highly Cited'],
+      'Highly Cited':      ['badge-highly-cited',  'Highly Cited'],
+      'Cited':             ['badge-cited',          'Cited'],
+      'Uncited':           ['badge-uncited',        'Uncited'],
+    };
+    var entry = map[t] || map['Uncited'];
+    return '<span class="badge ' + entry[0] + '">' + entry[1] + '</span>';
   }
 
   function td(content, className) {
@@ -2620,12 +2695,9 @@ def build_grid_html(run_date: str) -> str:
       // Abstract (click to expand)
       var absDiv = document.createElement('div');
       absDiv.className = 'cell-abstract';
-      var absText = p.abstract || '\u2014';
-      absDiv.textContent = absText;
+      absDiv.textContent = p.abstract || '\u2014';
       absDiv.title = 'Click to expand';
-      absDiv.onclick = function () {
-        absDiv.classList.toggle('expanded');
-      };
+      absDiv.onclick = function () { absDiv.classList.toggle('expanded'); };
       tr.appendChild(td(absDiv));
 
       // URL
@@ -2641,27 +2713,26 @@ def build_grid_html(run_date: str) -> str:
       }
       tr.appendChild(urlTd);
 
-      // Date added (first 10 chars = YYYY-MM-DD)
+      // Date added
       var dateTd = document.createElement('td');
       dateTd.className = 'cell-date';
       dateTd.textContent = (p.date_added || '').substring(0, 10) || '\u2014';
       tr.appendChild(dateTd);
 
-      // Author Tier (Prominence badge)
-      var tierTd = document.createElement('td');
-      tierTd.innerHTML = badgeHtml(p.Prominence);
-      tr.appendChild(tierTd);
+      // Author Prominence (badge)
+      var promTd = document.createElement('td');
+      promTd.innerHTML = prominenceBadge(p.Prominence);
+      tr.appendChild(promTd);
 
-      // H-Indices (sorted descending, comma-separated)
-      var hTd = document.createElement('td');
-      hTd.className = 'cell-hindices';
-      var h = p.author_hindices;
-      if (Array.isArray(h) && h.length > 0) {
-        hTd.textContent = h.slice().sort(function (a, b) { return b - a; }).join(', ');
-      } else {
-        hTd.textContent = '\u2014';
-      }
-      tr.appendChild(hTd);
+      // Author Count (Fibonacci badge)
+      var countTd = document.createElement('td');
+      countTd.innerHTML = authorCountBadge(p.author_count);
+      tr.appendChild(countTd);
+
+      // Citation Impact (badge)
+      var citTd = document.createElement('td');
+      citTd.innerHTML = citationBadge(p.CitationTier);
+      tr.appendChild(citTd);
 
       tbody.appendChild(tr);
     });
@@ -2672,24 +2743,27 @@ def build_grid_html(run_date: str) -> str:
     var clearBtn = document.getElementById('clear-filter-btn');
     countEl.textContent = rows.length + ' of ' + papers.length + ' papers';
     if (activeFilter) {
-      labelEl.textContent  = activeFilter.label;
+      labelEl.textContent    = activeFilter.label;
       clearBtn.style.display = '';
     } else {
-      labelEl.textContent  = '';
+      labelEl.textContent    = '';
       clearBtn.style.display = 'none';
     }
   }
 
   // ── Render sort header indicators ─────────────────────────────────
   function renderHeaders() {
-    var cols = ['title', 'ss_tldr', 'abstract', 'url', 'date_added', 'Prominence', '_hmax'];
+    var cols = ['title', 'ss_tldr', 'abstract', 'url', 'date_added', 'Prominence', 'author_count', 'CitationTier'];
     cols.forEach(function (c) {
       var el = document.getElementById('sa-' + c);
       if (!el) return;
       el.textContent = sortCol === c ? (sortDir === 1 ? '\u2191' : '\u2193') : '';
     });
     document.querySelectorAll('#grid-table th').forEach(function (th) { th.classList.remove('sort-active'); });
-    var idx = {'title':0,'ss_tldr':1,'abstract':2,'url':3,'date_added':4,'Prominence':5,'_hmax':6}[sortCol];
+    var idx = {
+      'title': 0, 'ss_tldr': 1, 'abstract': 2, 'url': 3,
+      'date_added': 4, 'Prominence': 5, 'author_count': 6, 'CitationTier': 7
+    }[sortCol];
     if (idx !== undefined) {
       var ths = document.querySelectorAll('#grid-table th');
       if (ths[idx]) ths[idx].classList.add('sort-active');
