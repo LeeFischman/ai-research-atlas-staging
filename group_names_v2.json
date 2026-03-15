@@ -5,11 +5,12 @@
   "3": "Reinforcement Learning",
   "4": "Robotics & Embodied AI",
   "5": "Safety, Alignment & Ethics",
-  "8": "Speech & Audio Processing",
-  "9": "Graph Neural Networks & Structured Data",
+  "6": "Theory, Optimization & Efficient ML",
+  "7": "Domain Applications",
+  "8": "Graph Neural Networks & Structured Learning",
+  "9": "Speech & Audio Processing",
   "10": "Time Series & Forecasting",
-  "11": "Scientific Computing & Physics",
-  "12": "Optimization & Training Methods",
-  "13": "Domain Applications In Healthcare",
-  "14": "Domain Applications In Science & Engineering"
+  "11": "Generative Models & Diffusion",
+  "12": "Multi-Agent Systems",
+  "13": "Knowledge Graphs & Semantic Understanding"
 }
