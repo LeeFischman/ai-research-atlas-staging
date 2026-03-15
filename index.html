@@ -60,7 +60,8 @@
     transition:background 0.2s,color 0.2s,box-shadow 0.2s; user-select:none;
   }
   #arm-shortcuts-tab { border-radius:0 10px 0 0; }
-  #arm-about-tab     { border-radius:0 0 10px 0; }
+  #arm-about-tab     { border-radius:0; }
+  #arm-grid-tab      { border-radius:0 0 10px 0; }
   .arm-tab:hover     { background:rgba(30,41,59,0.95); color:#93c5fd; box-shadow:4px 0 24px rgba(96,165,250,0.2); }
   .arm-tab.arm-active { background:rgba(30,41,59,0.98); color:#93c5fd; }
 
@@ -412,6 +413,9 @@
   <button id="arm-about-tab" class="arm-tab"
     onclick="armToggle('arm-about-panel','arm-about-tab','arm-shortcuts-tab')"
     aria-label="Open About panel">About</button>
+  <button id="arm-grid-tab" class="arm-tab"
+    onclick="window.open('grid.html', '_blank')"
+    aria-label="Open Grid View">Grid View</button>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
