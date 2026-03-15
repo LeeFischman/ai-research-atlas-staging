@@ -1949,7 +1949,7 @@ def build_panel_html(run_date: str) -> tuple[str, str]:
     onclick="armToggle('arm-about-panel','arm-about-tab','arm-shortcuts-tab')"
     aria-label="Open About panel">About</button>
   <button id="arm-grid-tab" class="arm-tab"
-    onclick="window.open('grid.html', '_blank')"
+    onclick="window.location.href='grid.html'"
     aria-label="Open Grid View">Grid View</button>
 </div>
 
@@ -2314,7 +2314,7 @@ def build_grid_html(run_date: str) -> str:
     aria-label="Open About panel">About</button>
   <button id="arm-atlas-tab" class="arm-tab"
     onclick="window.location.href='index.html'"
-    aria-label="Return to Atlas map">AI Research Atlas</button>
+    aria-label="Return to Map View">Map View</button>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════
