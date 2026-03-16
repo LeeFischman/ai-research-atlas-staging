@@ -51,7 +51,7 @@ SS_CACHE_PATH        = "ss_cache.json"
 
 RETENTION_DAYS             = 14
 ARXIV_MAX                  = 400
-GROUP_COUNT_MAX            = 20
+GROUP_COUNT_MAX            = 60
 GROUP_COUNT_MIN_WARN       = 3     # fewer than this is suspicious
 DOMINANT_GROUP_WARN_PCT    = 0.60  # one group owning > 60% of papers is suspicious
 DOMINANT_GROUP_FAIL_PCT    = 0.80  # one group owning > 80% is almost certainly broken
