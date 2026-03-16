@@ -13,8 +13,16 @@
   "11": "Data, Benchmarks & Evaluation",
   "12": "Human-AI Interaction",
   "13": "Planning & Search",
-  "14": "Ai Agents & Multi-Agent Systems",
-  "16": "Scientific Ai & Discovery",
-  "17": "Medical Ai Applications",
-  "18": "Code Generation & Software Engineering"
+  "14": "Agentic Ai Systems",
+  "15": "Vision-Language Models",
+  "17": "Multi-Agent Systems",
+  "19": "Time Series & Forecasting",
+  "21": "Vision-Language-Action Models",
+  "22": "Inference Optimization",
+  "23": "Model Merging & Composition",
+  "26": "Code Generation & Analysis",
+  "28": "Uncertainty & Calibration",
+  "31": "Bias & Fairness",
+  "32": "Mechanistic Interpretability",
+  "33": "Factuality & Hallucination"
 }
