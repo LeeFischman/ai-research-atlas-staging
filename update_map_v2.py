@@ -716,8 +716,9 @@ def compute_mds_centroids(df: pd.DataFrame) -> dict[int, tuple[float, float]]:
     print(f"  Group dist: min={group_dist.min():.4f}, "
           f"max={group_dist.max():.4f}, mean={group_dist.mean():.4f}")
 
-    mds = MDS(n_components=2, metric=True, dissimilarity="precomputed",
-              random_state=42, n_init=4, max_iter=500, normalized_stress="auto")
+    mds = MDS(n_components=2, metric_mds=True, metric="precomputed",
+              init="random", random_state=42, n_init=4, max_iter=500,
+              normalized_stress="auto")
     raw_coords   = mds.fit_transform(group_dist)          # shape (n_groups, 2)
     group_coords = raw_coords * LAYOUT_SCALE               # ← scale applied here
     print(f"  MDS stress: {mds.stress_:.6f}  (lower is better)")
