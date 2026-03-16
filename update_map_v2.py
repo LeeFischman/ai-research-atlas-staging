@@ -99,14 +99,14 @@ GROUP_NAMES_CACHE = "group_names_v2.json"
 # ── Haiku grouping ───────────────────────────────────────────────────────────
 
 # Stable bucket count (always offered to Haiku; only used if papers fit).
-GROUP_STABLE_COUNT = 8
+GROUP_STABLE_COUNT = 14
 
 # Maximum dynamic groups Haiku may invent beyond the stable buckets.
-GROUP_DYNAMIC_MAX  = 12
+GROUP_DYNAMIC_MAX  = 16
 
 # Hard cap on total groups (stable + dynamic).
 # Haiku is not required to reach this — it's a ceiling, not a target.
-GROUP_COUNT_MAX    = 20
+GROUP_COUNT_MAX    = 30
 
 # No hard minimum — if 10 groups make sense today, that's fine.
 # Validation rejects responses with 0 groups only.
@@ -236,7 +236,38 @@ ID 6 — Theory, Optimization & Efficient ML
 ID 7 — Domain Applications
   AI applied to a specific external field as the primary contribution:
   medicine, biology, climate, law, finance, education, scientific discovery.
-  The application domain — not the AI method — is the main result."""
+  The application domain — not the AI method — is the main result.
+
+ID 8 — Generative Models & Synthesis
+  Generative modelling as the primary contribution: diffusion models, GANs,
+  VAEs, flow-based models, autoregressive generation of images, video, 3D,
+  molecules, or other structured data. Distinct from Computer Vision when the
+  core contribution is the generative method rather than visual understanding.
+
+ID 9 — Speech & Audio Processing
+  Spoken language, audio signals, and music. Speech recognition, synthesis,
+  voice conversion, speaker identification, audio generation, sound event
+  detection, music information retrieval. Primary modality is audio.
+
+ID 10 — Graph Learning & Networks
+  Graph neural networks, knowledge graphs, network analysis, link prediction,
+  node classification, graph generation, and geometric deep learning on
+  non-Euclidean data structures.
+
+ID 11 — Data, Benchmarks & Evaluation
+  Datasets, evaluation frameworks, and measurement methodology as the primary
+  contribution: new benchmarks, annotation pipelines, evaluation metrics,
+  leaderboard analysis, reproducibility studies, dataset audits.
+
+ID 12 — Human-AI Interaction
+  Interfaces, user experience, and the human side of AI systems: conversational
+  agents, explainability for end-users, HCI studies, accessibility, human
+  factors, collaborative AI tools, trust and transparency research.
+
+ID 13 — Planning & Search
+  Planning algorithms, search-based reasoning, symbolic AI, combinatorial
+  optimisation, constraint satisfaction, automated reasoning, and hybrid
+  neuro-symbolic approaches where planning or search is the core contribution."""
 
 _GROUPING_SYSTEM = (
     "You are a research taxonomy expert. You will be given a list of AI research "
@@ -246,7 +277,7 @@ _GROUPING_SYSTEM = (
     f"{_STABLE_BUCKETS}\n\n"
 
     f"DYNAMIC CATEGORIES (invent up to {GROUP_DYNAMIC_MAX} additional groups):\n"
-    "  Use IDs starting at 8. Name each with a concise 3-6 word noun phrase "
+    "  Use IDs starting at 14. Name each with a concise 3-6 word noun phrase "
     "capturing the shared intellectual thread (e.g. 'Graph Neural Network Methods', "
     "'Diffusion Model Theory', 'Speech & Audio Processing'). Create a dynamic "
     "group only when papers genuinely don't fit any stable category above.\n\n"
@@ -269,13 +300,13 @@ _GROUPING_SYSTEM = (
     "OUTPUT FORMAT:\n"
     "Respond ONLY with a JSON object with exactly two keys. No preamble, no "
     "explanation, no markdown fences:\n"
-    '{"groups": {"0": "Language Models & Reasoning", "8": "Graph Neural Network Methods"}, '
+    '{"groups": {"0": "Language Models & Reasoning", "14": "Graph Neural Network Methods"}, '
     '"assignments": {"0": 0, "1": 0, "2": 8, "3": 1, ...}}\n'
     "- 'groups': maps each group_id (as a string) to its name. Include only "
     "groups that are actually used.\n"
     "- 'assignments': maps each paper index (as a string) to its group_id integer. "
     "Every paper index from 0 to N-1 must appear exactly once.\n"
-    "- group_id must be an integer (0-7 for stable, 8+ for dynamic).\n"
+    "- group_id must be an integer (0-13 for stable, 14+ for dynamic).\n"
     "- For stable categories, group_name must exactly match the stable category "
     "name (e.g. 'Language Models & Reasoning', not 'LLMs & Reasoning')."
 )
@@ -303,6 +334,12 @@ _STABLE_BUCKET_NAMES: dict[int, str] = {
     5: "Safety, Alignment & Ethics",
     6: "Theory, Optimization & Efficient ML",
     7: "Domain Applications",
+    8: "Generative Models & Synthesis",
+    9: "Speech & Audio Processing",
+    10: "Graph Learning & Networks",
+    11: "Data, Benchmarks & Evaluation",
+    12: "Human-AI Interaction",
+    13: "Planning & Search",
 }
 
 
@@ -312,13 +349,13 @@ def _parse_grouping_response(
     """Parse and validate Haiku's compact JSON grouping response.
 
     Expected format:
-      {"groups": {"0": "Language Models & Reasoning", "8": "Graph Neural Network Methods"},
+      {"groups": {"0": "Language Models & Reasoning", "14": "Graph Neural Network Methods"},
        "assignments": {"0": 0, "1": 0, "2": 8, ...}}
 
     This compact format avoids repeating group names on every entry, keeping
     output well within Haiku's token ceiling even for 800+ papers.
 
-    Stable buckets (IDs 0-7): names are normalised to canonical values.
+    Stable buckets (IDs 0-13): names are normalised to canonical values.
     Dynamic buckets (IDs 8+): names are taken as-is from Haiku; capped at
     GROUP_DYNAMIC_MAX unique dynamic group IDs.
 
