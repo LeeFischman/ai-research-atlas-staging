@@ -102,7 +102,7 @@ GROUP_NAMES_CACHE = "group_names_v2.json"
 GROUP_STABLE_COUNT = 8
 
 # Maximum dynamic groups Haiku may invent beyond the stable buckets.
-GROUP_DYNAMIC_MAX  = 6
+GROUP_DYNAMIC_MAX  = 12
 
 # Hard cap on total groups (stable + dynamic).
 # Haiku is not required to reach this — it's a ceiling, not a target.
