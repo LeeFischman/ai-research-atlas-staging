@@ -100,7 +100,7 @@ jobs:
           OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
 
           # ── STATIC TEST: uncomment to skip all API calls ─────────────────
-          # OFFLINE_MODE: "true"
+          OFFLINE_MODE: "true"
 
           # ── One-time repair: rebuilds author h-index for all papers ──────
           # Comment out immediately after one successful run.
