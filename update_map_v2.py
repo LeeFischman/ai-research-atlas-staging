@@ -102,11 +102,11 @@ GROUP_NAMES_CACHE = "group_names_v2.json"
 GROUP_STABLE_COUNT = 14
 
 # Maximum dynamic groups Haiku may invent beyond the stable buckets.
-GROUP_DYNAMIC_MAX  = 16
+GROUP_DYNAMIC_MAX  = 999  # uncapped — Haiku chooses however many make sense
 
 # Hard cap on total groups (stable + dynamic).
 # Haiku is not required to reach this — it's a ceiling, not a target.
-GROUP_COUNT_MAX    = 30
+GROUP_COUNT_MAX    = 60
 
 # No hard minimum — if 10 groups make sense today, that's fine.
 # Validation rejects responses with 0 groups only.
@@ -276,7 +276,7 @@ _GROUPING_SYSTEM = (
 
     f"{_STABLE_BUCKETS}\n\n"
 
-    f"DYNAMIC CATEGORIES (invent up to {GROUP_DYNAMIC_MAX} additional groups):\n"
+    "DYNAMIC CATEGORIES (create as many as the papers genuinely warrant):\n"
     "  Use IDs starting at 14. Name each with a concise 3-6 word noun phrase "
     "capturing the shared intellectual thread (e.g. 'Graph Neural Network Methods', "
     "'Diffusion Model Theory', 'Speech & Audio Processing'). Create a dynamic "
@@ -356,8 +356,8 @@ def _parse_grouping_response(
     output well within Haiku's token ceiling even for 800+ papers.
 
     Stable buckets (IDs 0-13): names are normalised to canonical values.
-    Dynamic buckets (IDs 8+): names are taken as-is from Haiku; capped at
-    GROUP_DYNAMIC_MAX unique dynamic group IDs.
+    Dynamic buckets (IDs 14+): names are taken as-is from Haiku; number is
+    uncapped — Haiku creates however many the papers warrant.
 
     Hard failures → return None → trigger retry:
       - Non-JSON or wrong top-level structure
@@ -896,7 +896,7 @@ if __name__ == "__main__":
     print(f"  AI Research Atlas v2 — {run_date} UTC")
     print(f"  OFFLINE_MODE       : {OFFLINE_MODE}")
     print(f"  BACKFILL_HINDICES  : {BACKFILL_HINDICES}")
-    print(f"  GROUP_COUNT        : up to {GROUP_COUNT_MAX} ({GROUP_STABLE_COUNT} stable + {GROUP_DYNAMIC_MAX} dynamic max)")
+    print(f"  GROUP_COUNT        : up to {GROUP_COUNT_MAX} ({GROUP_STABLE_COUNT} stable + uncapped dynamic)")
     print(f"  LAYOUT_SCALE       : {LAYOUT_SCALE}")
     print(f"  SCATTER_FRACTION   : {SCATTER_FRACTION}")
     print(f"  VARIANCE_AMPLIFIER : {VARIANCE_AMPLIFIER}")
