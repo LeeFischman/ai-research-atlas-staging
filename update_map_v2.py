@@ -1269,6 +1269,15 @@ if __name__ == "__main__":
     # ── Write labels parquet ─────────────────────────────────────────────────
     labels_path = write_labels_parquet(df, group_names, centroids)
 
+    # ── Write groups.json for LinkedIn post automation ────────────────────────
+    # Sorted by group_id so the most-populated stable buckets come first.
+    # Read by linkedin_post.js to generate the daily Haiku caption.
+    groups_json_path = "groups.json"
+    group_names_list = [group_names[gid] for gid in sorted(group_names.keys())]
+    with open(groups_json_path, "w") as _f:
+        json.dump(group_names_list, _f, indent=2)
+    print(f"  Wrote {len(group_names_list)} group names → {groups_json_path}")
+
     # ── Save rolling DB ───────────────────────────────────────────────────────
     print("\n▶  Saving rolling database...")
     save_df = df.copy()
