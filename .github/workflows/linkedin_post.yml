@@ -1,0 +1,36 @@
+name: LinkedIn Post
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Update AI Research Atlas"]
+    types: [completed]
+
+jobs:
+  post:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install puppeteer @anthropic-ai/sdk
+
+      - name: Wait for GitHub Pages to deploy
+        run: |
+          echo "Waiting 3 minutes for GitHub Pages to deploy..."
+          sleep 180
+
+      - name: Post to LinkedIn
+        run: node linkedin_post.js
+        env:
+          LINKEDIN_EMAIL: ${{ secrets.LINKEDIN_EMAIL }}
+          LINKEDIN_PASSWORD: ${{ secrets.LINKEDIN_PASSWORD }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
