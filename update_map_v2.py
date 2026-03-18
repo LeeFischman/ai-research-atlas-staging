@@ -131,9 +131,9 @@ ABSTRACT_GROUPING_CHARS = 300
 PASS1_UNCERTAIN_CAP = 400
 
 # Pass 1 is batched to keep output arrays short and reliable.
-# At 500 papers: ~500 integers output ≈ 1500 tokens (well under 8192).
-# Input: ~500 titles × ~90 chars ÷ 4 ≈ 11K tokens (well under 50K TPM).
-PASS1_BATCH_SIZE = 500
+# At 100 papers: ~100 integers output ≈ 300 tokens — trivially reliable.
+# Input: ~100 titles × ~90 chars ÷ 4 ≈ 2K tokens. ~21 batches at 2000 papers.
+PASS1_BATCH_SIZE = 100
 
 # Retry policy — shared across all Haiku calls in Stage 3.
 # Wait schedule: GROUPING_RETRY_BASE_WAIT × 2^(attempt-1) seconds.
@@ -950,6 +950,8 @@ def haiku_group_papers(
                 if b_result is not None:
                     print(f"    ✓ Parsed.")
                     break
+                else:
+                    print(f"    Raw response preview: {raw[:300]!r}")
             if attempt < GROUPING_MAX_RETRIES:
                 wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
                 print(f"    Retrying in {wait}s...")
