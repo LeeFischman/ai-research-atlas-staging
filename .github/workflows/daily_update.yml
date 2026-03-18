@@ -107,7 +107,7 @@ jobs:
           # ── OPENALEX QUOTA EXCEEDED: uncomment to skip OpenAlex fetch ────
           # Existing author_hindices carry forward; new papers get Unverified.
           # Prominence is still recomputed. Remove once quota resets.
-          OPENALEX_OFFLINE_MODE: "true"
+          # OPENALEX_OFFLINE_MODE: "true"
 
           # ── One-time repair: rebuilds author h-index for all papers ──────
           # Comment out immediately after one successful run.
@@ -135,6 +135,8 @@ jobs:
           python update_map_v2.py
 
       - name: Run nightly assertions
+        env:
+          OPENALEX_OFFLINE_MODE: ${{ env.OPENALEX_OFFLINE_MODE }}
         run: python nightly_assert.py
 
       - name: Commit and Push Database Changes
