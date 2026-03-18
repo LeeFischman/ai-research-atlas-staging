@@ -1,4 +1,4 @@
-name: Update Significant Papers
+name: Weekly Update Significant Papers
 on:
   schedule:
     - cron: '0 6 * * 1'   # Monday 06:00 UTC — arXiv-idle, offset from daily run
