@@ -90,6 +90,16 @@ OFFLINE_MODE = os.environ.get("OFFLINE_MODE", "false").strip().lower() == "true"
 # Remove after one successful backfill run.
 BACKFILL_HINDICES = os.environ.get("BACKFILL_HINDICES", "false").strip().lower() == "true"
 
+# When True: skip the OpenAlex API fetch entirely (Stage 1c).
+# Existing author_hindices values carry forward from the loaded parquet.
+# New papers get author_hindices=[] and Prominence="Unverified" — they will
+# be enriched on the next normal run.
+# Prominence is still recomputed from whatever author_hindices is in the data.
+# Use when: OpenAlex daily quota is exhausted but the rest of the pipeline
+# must still run.
+# Set via env var:  OPENALEX_OFFLINE_MODE=true python update_map_v2.py
+OPENALEX_OFFLINE_MODE = os.environ.get("OPENALEX_OFFLINE_MODE", "false").strip().lower() == "true"
+
 # Cache file written after every successful Haiku grouping call.
 # Loaded automatically in offline mode.
 GROUP_NAMES_CACHE = "group_names_v2.json"
@@ -1443,6 +1453,7 @@ if __name__ == "__main__":
     print(f"  AI Research Atlas v2 — {run_date} UTC")
     print(f"  OFFLINE_MODE       : {OFFLINE_MODE}")
     print(f"  BACKFILL_HINDICES  : {BACKFILL_HINDICES}")
+    print(f"  OPENALEX_OFFLINE   : {OPENALEX_OFFLINE_MODE}")
     print(f"  GROUP_COUNT        : up to {GROUP_COUNT_MAX} ({GROUP_STABLE_COUNT} stable + dynamic)")
     print(f"  PASS1_UNCERTAIN_CAP: {PASS1_UNCERTAIN_CAP}")
     print(f"  TAXONOMY_PATH      : {TAXONOMY_PATH}")
@@ -1661,33 +1672,42 @@ if __name__ == "__main__":
         if "authors_list" not in df.columns:
             df["authors_list"] = None
 
-        author_cache = load_author_cache()
-
-        if BACKFILL_HINDICES:
-            # Re-fetch for all rows, including those with empty lists
-            needs_hindex = pd.Series([True] * len(df), index=df.index)
-            print(f"  BACKFILL_HINDICES=true — re-fetching all {len(df)} papers.")
-        else:
-            # Normal mode: only fetch for rows missing h-index data
-            needs_hindex = df["author_hindices"].isna() | df["author_hindices"].apply(
-                lambda x: isinstance(x, list) and len(x) == 0
+        if OPENALEX_OFFLINE_MODE:
+            print("  OPENALEX_OFFLINE_MODE=true — skipping OpenAlex fetch.")
+            print("  Existing author_hindices carried forward; new papers get [].")
+            # Fill any missing entries (new papers added this run)
+            df["author_hindices"] = df["author_hindices"].apply(
+                lambda x: x if isinstance(x, list) else []
             )
+        else:
+            author_cache = load_author_cache()
 
-        n_needs = needs_hindex.sum()
-        print(f"  {n_needs} papers need h-index lookup"
-              f" ({len(df) - n_needs} already have data).")
+            if BACKFILL_HINDICES:
+                # Re-fetch for all rows, including those with empty lists
+                needs_hindex = pd.Series([True] * len(df), index=df.index)
+                print(f"  BACKFILL_HINDICES=true — re-fetching all {len(df)} papers.")
+            else:
+                # Normal mode: only fetch for rows missing h-index data
+                needs_hindex = df["author_hindices"].isna() | df["author_hindices"].apply(
+                    lambda x: isinstance(x, list) and len(x) == 0
+                )
 
-        for idx in df.index[needs_hindex]:
-            authors = df.at[idx, "authors_list"]
-            if not isinstance(authors, list) or len(authors) == 0:
-                df.at[idx, "author_hindices"] = []
-                continue
-            df.at[idx, "author_hindices"] = fetch_author_hindices(authors, author_cache)
+            n_needs = needs_hindex.sum()
+            print(f"  {n_needs} papers need h-index lookup"
+                  f" ({len(df) - n_needs} already have data).")
 
-        save_author_cache(author_cache)
-        print(f"  h-index enrichment complete. Cache now has {len(author_cache)} entries.")
+            for idx in df.index[needs_hindex]:
+                authors = df.at[idx, "authors_list"]
+                if not isinstance(authors, list) or len(authors) == 0:
+                    df.at[idx, "author_hindices"] = []
+                    continue
+                df.at[idx, "author_hindices"] = fetch_author_hindices(authors, author_cache)
 
-        # Compute Prominence now that author_hindices is populated
+            save_author_cache(author_cache)
+            print(f"  h-index enrichment complete. Cache now has {len(author_cache)} entries.")
+
+        # Compute Prominence from whatever author_hindices is in the data
+        # (runs in both normal and OPENALEX_OFFLINE_MODE)
         df["Prominence"] = df.apply(calculate_prominence, axis=1)
         tier_counts = df["Prominence"].value_counts()
         for tier in ["Elite", "Enhanced", "Emerging", "Unverified"]:
