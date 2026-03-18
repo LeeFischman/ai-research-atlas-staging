@@ -42,7 +42,7 @@ import random
 import re
 import time
 from datetime import datetime, timedelta, timezone
-from math import sqrt
+from math import ceil, sqrt
 
 import numpy as np
 import pandas as pd
@@ -122,6 +122,12 @@ ABSTRACT_GROUPING_CHARS = 300
 # With base=60 and 5 retries: 60, 120, 240, 480 s between attempts.
 GROUPING_MAX_RETRIES     = 5
 GROUPING_RETRY_BASE_WAIT = 60   # seconds; recommended range: 30-120
+
+# Maximum papers per Haiku grouping call.
+# At ~250 papers: ~20K input tokens (well under 50K TPM) and ~1K output tokens
+# (well under 8192 output ceiling).  Above this threshold the pipeline
+# automatically splits into sequential batches and merges results.
+GROUPING_BATCH_SIZE = 250
 
 # ── Layout scaling ────────────────────────────────────────────────────────────
 # MDS raw output is in a small range (typically ±0.15 for ~15 groups on
@@ -521,11 +527,121 @@ def _merge_excess_groups(
     return new_mapping, new_names
 
 
+def _run_single_batch(
+    client,
+    batch_df: pd.DataFrame,
+    batch_num: int,
+    total_batches: int,
+) -> tuple[dict[int, int], dict[int, str]] | None:
+    """Run one Haiku grouping call for a batch of papers, with retries.
+
+    batch_df must already be reset_index(drop=True) so paper indices are 0..n-1.
+    Returns (mapping, group_names) where mapping keys are 0..len(batch_df)-1,
+    or None if all attempts fail.
+    """
+    n         = len(batch_df)
+    user_msg  = _build_grouping_user_message(batch_df)
+    approx_tk = len(user_msg) // 4
+    prefix    = f"  Batch {batch_num}/{total_batches} ({n} papers, ≈{approx_tk:,} tokens)"
+    print(f"{prefix}...")
+
+    for attempt in range(1, GROUPING_MAX_RETRIES + 1):
+        print(f"    Attempt {attempt}/{GROUPING_MAX_RETRIES}...")
+        try:
+            response = client.messages.create(
+                model=HAIKU_MODEL,
+                max_tokens=8192,
+                system=_GROUPING_SYSTEM,
+                messages=[{"role": "user", "content": user_msg}],
+            )
+            raw = response.content[0].text.strip()
+            print(f"    Response length: {len(raw)} chars.")
+            result = _parse_grouping_response(raw, n)
+            if result is not None:
+                mapping, group_names = result
+                print(f"    ✓ Parsed ({len(set(mapping.values()))} groups).")
+                return mapping, group_names
+        except Exception as e:
+            err_str = str(e)
+            is_529  = "529" in err_str or "overloaded" in err_str.lower()
+            label   = "API overloaded (529)" if is_529 else "API error"
+            print(f"    {label} on attempt {attempt}: {e}")
+
+        if attempt < GROUPING_MAX_RETRIES:
+            wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
+            print(f"    Retrying in {wait}s...")
+            time.sleep(wait)
+
+    return None
+
+
+def _merge_batch_results(
+    batch_results: list[tuple[list[int], dict[int, int], dict[int, str]]],
+) -> tuple[dict[int, int], dict[int, str]]:
+    """Merge grouping results from multiple batches into a single global mapping.
+
+    Each element of batch_results is:
+      (global_positions, local_mapping, batch_group_names)
+    where global_positions[local_idx] is the original df row index.
+
+    Stable groups (0-13): ID is canonical across batches — no dedup needed.
+    Dynamic groups (14+): deduplicated by exact name match; each unique name
+    is assigned one consistent ID starting at 14.
+
+    Returns (global_mapping, global_group_names):
+      global_mapping keys are original df row positions (0..N-1).
+    """
+    dynamic_name_to_id: dict[str, int] = {}
+    next_dynamic_id = 14
+
+    global_mapping: dict[int, int] = {}
+    global_names: dict[int, str]   = {}
+
+    for global_positions, local_mapping, batch_names in batch_results:
+        # Build a local→global ID remap for dynamic groups in this batch
+        id_remap: dict[int, int] = {}
+        for batch_gid in set(local_mapping.values()):
+            if batch_gid <= 13:
+                # Stable — ID is universal
+                id_remap[batch_gid] = batch_gid
+                if batch_gid not in global_names:
+                    global_names[batch_gid] = _STABLE_BUCKET_NAMES.get(
+                        batch_gid, batch_names.get(batch_gid, f"Group {batch_gid}")
+                    )
+            else:
+                dyn_name = batch_names.get(batch_gid, f"Emerging Topic {batch_gid}")
+                if dyn_name not in dynamic_name_to_id:
+                    dynamic_name_to_id[dyn_name] = next_dynamic_id
+                    global_names[next_dynamic_id] = dyn_name
+                    next_dynamic_id += 1
+                id_remap[batch_gid] = dynamic_name_to_id[dyn_name]
+
+        for local_idx, batch_gid in local_mapping.items():
+            global_pos = global_positions[local_idx]
+            global_mapping[global_pos] = id_remap[batch_gid]
+
+    # Trim global_names to only groups that are actually used
+    used_gids    = set(global_mapping.values())
+    global_names = {gid: name for gid, name in global_names.items()
+                    if gid in used_gids}
+
+    n_stable  = sum(1 for g in used_gids if g <= 13)
+    n_dynamic = sum(1 for g in used_gids if g > 13)
+    print(f"  Batch merge: {n_stable} stable + {n_dynamic} dynamic "
+          f"= {len(used_gids)} total groups across {len(batch_results)} batches.")
+
+    return global_mapping, global_names
+
+
 def haiku_group_papers(
     df: pd.DataFrame,
     client,
 ) -> tuple[pd.DataFrame, dict[int, str]]:
     """Stage 3: Haiku assigns every paper to a group and names each group.
+
+    For pools up to GROUPING_BATCH_SIZE papers: single Haiku call (original path).
+    For larger pools: split into batches of GROUPING_BATCH_SIZE, run sequential
+    Haiku calls, then merge — deduplicating dynamic groups by name.
 
     Returns (df, group_names):
       df          — with group_id_v2 column added
@@ -538,50 +654,87 @@ def haiku_group_papers(
     n  = len(df)
     print(f"\n▶  Stage 3 — Haiku grouping + naming ({n} papers)...")
 
-    user_msg      = _build_grouping_user_message(df)
-    approx_tokens = len(user_msg) // 4
-    print(f"  Grouping prompt ≈ {approx_tokens:,} tokens "
-          f"(abstracts truncated to {ABSTRACT_GROUPING_CHARS} chars each).")
+    if n <= GROUPING_BATCH_SIZE:
+        # ── Single-call path (original logic) ────────────────────────────────
+        user_msg      = _build_grouping_user_message(df)
+        approx_tokens = len(user_msg) // 4
+        print(f"  Grouping prompt ≈ {approx_tokens:,} tokens "
+              f"(abstracts truncated to {ABSTRACT_GROUPING_CHARS} chars each).")
 
-    result = None
-    for attempt in range(1, GROUPING_MAX_RETRIES + 1):
-        print(f"  Haiku grouping call — attempt {attempt}/{GROUPING_MAX_RETRIES}...")
-        try:
-            response = client.messages.create(
-                model=HAIKU_MODEL,
-                max_tokens=16000,  # ~315 papers × ~70 chars/entry ≈ 5.5K tokens; increased for larger pools
-                system=_GROUPING_SYSTEM,
-                messages=[{"role": "user", "content": user_msg}],
-            )
-            raw = response.content[0].text.strip()
-            print(f"  Response length: {len(raw)} chars.")
-            result = _parse_grouping_response(raw, n)
-            if result is not None:
-                mapping, group_names = result
-                print(f"  ✓ Grouping parsed ({len(set(mapping.values()))} groups "
-                      f"before any merging).")
-                break
-        except Exception as e:
-            err_str = str(e)
-            is_529  = "529" in err_str or "overloaded" in err_str.lower()
-            label   = "API overloaded (529)" if is_529 else "API error"
-            print(f"  {label} on attempt {attempt}: {e}")
+        result = None
+        for attempt in range(1, GROUPING_MAX_RETRIES + 1):
+            print(f"  Haiku grouping call — attempt {attempt}/{GROUPING_MAX_RETRIES}...")
+            try:
+                response = client.messages.create(
+                    model=HAIKU_MODEL,
+                    max_tokens=8192,
+                    system=_GROUPING_SYSTEM,
+                    messages=[{"role": "user", "content": user_msg}],
+                )
+                raw = response.content[0].text.strip()
+                print(f"  Response length: {len(raw)} chars.")
+                result = _parse_grouping_response(raw, n)
+                if result is not None:
+                    mapping, group_names = result
+                    print(f"  ✓ Grouping parsed ({len(set(mapping.values()))} groups "
+                          f"before any merging).")
+                    break
+            except Exception as e:
+                err_str = str(e)
+                is_529  = "529" in err_str or "overloaded" in err_str.lower()
+                label   = "API overloaded (529)" if is_529 else "API error"
+                print(f"  {label} on attempt {attempt}: {e}")
 
-        if attempt < GROUPING_MAX_RETRIES:
-            wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
-            print(f"  Retrying in {wait}s...")
-            time.sleep(wait)
+            if attempt < GROUPING_MAX_RETRIES:
+                wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
+                print(f"  Retrying in {wait}s...")
+                time.sleep(wait)
 
-    if result is None:
-        print("  ✗ All Haiku attempts failed. Falling back to HDBSCAN.")
-        mapping     = _hdbscan_fallback_grouping(df)
-        group_names = {gid: f"Group {gid}" for gid in set(mapping.values())}
+        if result is None:
+            print("  ✗ All Haiku attempts failed. Falling back to HDBSCAN.")
+            mapping     = _hdbscan_fallback_grouping(df)
+            group_names = {gid: f"Group {gid}" for gid in set(mapping.values())}
+        else:
+            if len(set(mapping.values())) > GROUP_COUNT_MAX:
+                mapping, group_names = _merge_excess_groups(
+                    mapping, group_names, df, target_max=GROUP_COUNT_MAX
+                )
+
     else:
-        # Merge down if Haiku returned more groups than the maximum
-        if len(set(mapping.values())) > GROUP_COUNT_MAX:
-            mapping, group_names = _merge_excess_groups(
-                mapping, group_names, df, target_max=GROUP_COUNT_MAX
-            )
+        # ── Batched path ──────────────────────────────────────────────────────
+        n_batches = ceil(n / GROUPING_BATCH_SIZE)
+        print(f"  Large pool ({n} papers): splitting into {n_batches} batches "
+              f"of ≤{GROUPING_BATCH_SIZE}.")
+        print(f"  (abstracts truncated to {ABSTRACT_GROUPING_CHARS} chars each)")
+
+        batch_results: list[tuple[list[int], dict[int, int], dict[int, str]]] = []
+        fallback_needed = False
+
+        for b in range(n_batches):
+            start             = b * GROUPING_BATCH_SIZE
+            end               = min(start + GROUPING_BATCH_SIZE, n)
+            global_positions  = list(range(start, end))
+            batch_df          = df.iloc[global_positions].reset_index(drop=True)
+
+            result = _run_single_batch(client, batch_df, b + 1, n_batches)
+            if result is None:
+                print(f"  ✗ Batch {b + 1}/{n_batches} failed all attempts.")
+                fallback_needed = True
+                break
+            batch_mapping, batch_names = result
+            batch_results.append((global_positions, batch_mapping, batch_names))
+
+        if fallback_needed:
+            print("  ✗ Batched grouping incomplete. Falling back to HDBSCAN.")
+            fallback_map = _hdbscan_fallback_grouping(df)
+            mapping      = fallback_map
+            group_names  = {gid: f"Group {gid}" for gid in set(mapping.values())}
+        else:
+            mapping, group_names = _merge_batch_results(batch_results)
+            if len(set(mapping.values())) > GROUP_COUNT_MAX:
+                mapping, group_names = _merge_excess_groups(
+                    mapping, group_names, df, target_max=GROUP_COUNT_MAX
+                )
 
     df["group_id_v2"] = [mapping[i] for i in range(n)]
     group_counts = df["group_id_v2"].value_counts().sort_index()
@@ -1272,11 +1425,11 @@ if __name__ == "__main__":
     # ── Write groups.json for LinkedIn post automation ────────────────────────
     # Sorted by group_id so the most-populated stable buckets come first.
     # Read by linkedin_post.js to generate the daily Haiku caption.
-    groups_json_path = "groups.json"
-    group_names_list = [group_names[gid] for gid in sorted(group_names.keys())]
-    with open(groups_json_path, "w") as _f:
-        json.dump(group_names_list, _f, indent=2)
-    print(f"  Wrote {len(group_names_list)} group names → {groups_json_path}")
+    # groups_json_path = "groups.json"
+    # group_names_list = [group_names[gid] for gid in sorted(group_names.keys())]
+    # with open(groups_json_path, "w") as _f:
+    #     json.dump(group_names_list, _f, indent=2)
+    # print(f"  Wrote {len(group_names_list)} group names → {groups_json_path}")
 
     # ── Save rolling DB ───────────────────────────────────────────────────────
     print("\n▶  Saving rolling database...")
