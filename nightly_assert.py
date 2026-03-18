@@ -46,6 +46,7 @@ DB_PATH              = "database.parquet"
 SIGNIFICANT_PATH     = "significant.parquet"
 SIG_CANDIDATES_PATH  = "sig_candidates.json"
 GROUP_NAMES_CACHE    = "group_names_v2.json"
+TAXONOMY_PATH        = "dynamic_taxonomy.json"
 AUTHOR_CACHE_PATH    = "author_cache.json"
 SS_CACHE_PATH        = "ss_cache.json"
 
@@ -67,6 +68,8 @@ SIG_CANDIDATES_POOL_SIZE   = 500
 SIG_CANDIDATES_MIN         = 50    # below this the pool is depleted
 SIG_CANDIDATES_STALE_WARN  = 18    # last_fetched_date older than this is a WARN
 SIG_CANDIDATES_STALE_DAYS  = 22    # last_fetched_date older than this is a FAIL
+
+TAXONOMY_RETIRE_DAYS       = 14   # mirror of update_map_v2.py
 # Note: last_fetched_date = run_date - 15 days (lookforward offset), so a
 # successful run produces a value already 15 days old. Thresholds must exceed
 # 15 (WARN) and 15+7=22 (FAIL) to avoid false alarms on healthy weekly runs.
@@ -552,6 +555,64 @@ def check_sig_candidates(c: Checker, now: datetime) -> None:
             c.warn(sec, f"last_fetched_date='{last_date_str}' is not a valid YYYY-MM-DD date.")
 
 
+
+def check_dynamic_taxonomy(c: Checker, now: datetime) -> None:
+    """Assert dynamic_taxonomy.json is healthy."""
+    sec = "dynamic_taxonomy.json"
+
+    if not os.path.exists(TAXONOMY_PATH):
+        c.warn(sec, f"{TAXONOMY_PATH} not found — first run has not seeded it yet.")
+        return
+
+    raw = _load_json(TAXONOMY_PATH)
+    if raw is None or not isinstance(raw, dict):
+        c.fail(sec, "File is unreadable or not a JSON object.")
+        return
+
+    c.ok(sec, "File present and parseable.")
+
+    if "next_id" not in raw:
+        c.warn(sec, "Missing 'next_id' key — file may be malformed.")
+    if "groups" not in raw:
+        c.warn(sec, "Missing 'groups' key — file may be malformed.")
+        return
+
+    groups = raw["groups"]
+    n      = len(groups)
+    c.ok(sec, f"{n} dynamic groups tracked.")
+
+    # Check for stale groups (older than retire threshold)
+    stale = []
+    for gid_str, g in groups.items():
+        last_seen = g.get("last_seen", "")
+        if last_seen:
+            try:
+                age = (now.date() - datetime.strptime(last_seen, "%Y-%m-%d").date()).days
+                if age >= TAXONOMY_RETIRE_DAYS:
+                    stale.append((gid_str, g.get("name", "?"), age))
+            except ValueError:
+                pass
+    if stale:
+        c.warn(sec, f"{len(stale)} group(s) have not been seen for "
+                    f">={TAXONOMY_RETIRE_DAYS} days and should be retired: "
+                    f"{[(gid, nm) for gid, nm, _ in stale[:3]]}...")
+    else:
+        c.ok(sec, f"All groups seen within last {TAXONOMY_RETIRE_DAYS} days.")
+
+    # Check confidence histories are non-empty for established groups
+    no_history = [
+        gid_str for gid_str, g in groups.items()
+        if len(g.get("confidence_history", [])) == 0
+    ]
+    if len(no_history) > n // 2 and n > 0:
+        c.warn(sec, f"{len(no_history)}/{n} groups have empty confidence_history "
+                    f"— taxonomy may have just been seeded.")
+    elif no_history:
+        c.ok(sec, f"{n - len(no_history)}/{n} groups have confidence history.")
+    else:
+        c.ok(sec, f"All {n} groups have confidence history.")
+
+
 def check_group_names(c: Checker, db_df: pd.DataFrame | None) -> None:
     """Assert group_names_v2.json exists and covers all groups in the database."""
     sec = "group_names_v2.json"
@@ -625,6 +686,7 @@ def main() -> int:
     sig_df = check_significant(c, db_df, now)
     check_sig_candidates(c, now)
     check_group_names(c, db_df)
+    check_dynamic_taxonomy(c, now)
     check_caches(c)
 
     return c.summary(strict=strict)
