@@ -106,7 +106,8 @@ VALID_PAPER_SOURCE = {"Recent", "Significant"}
 VALID_CITATION_TIER = {"Very Highly Cited", "Highly Cited", "Cited", ""}
 VALID_STRIKES       = {0, 1}
 
-IN_GHA = os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
+IN_GHA              = os.environ.get("GITHUB_ACTIONS",       "").lower() == "true"
+OPENALEX_OFFLINE    = os.environ.get("OPENALEX_OFFLINE_MODE", "").lower() == "true"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -298,7 +299,10 @@ def check_database(c: Checker, now: datetime) -> pd.DataFrame | None:
             c.fail(sec, f"Unexpected Prominence values: {bad_prom}")
         pct_unverified = float((df["Prominence"] == "Unverified").mean())
         if pct_unverified == 1.0:
-            c.fail(sec, "All papers are 'Unverified' — OpenAlex h-index lookup may have failed entirely.")
+            if OPENALEX_OFFLINE:
+                c.warn(sec, "All papers are 'Unverified' — expected: OPENALEX_OFFLINE_MODE=true was set.")
+            else:
+                c.fail(sec, "All papers are 'Unverified' — OpenAlex h-index lookup may have failed entirely.")
         elif pct_unverified > 0.90:
             c.warn(sec, f"{pct_unverified:.1%} papers 'Unverified' — author cache may be sparse.")
         else:
