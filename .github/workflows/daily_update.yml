@@ -1,4 +1,4 @@
-name: Update AI Research Atlas
+name: Daily Update AI Research Atlas
 on:
   schedule:
     - cron: '0 3 * * *'
