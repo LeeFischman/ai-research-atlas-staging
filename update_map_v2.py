@@ -130,6 +130,11 @@ ABSTRACT_GROUPING_CHARS = 300
 # Papers above this cap are force-assigned to their pass 1 stable best-guess.
 PASS1_UNCERTAIN_CAP = 400
 
+# Pass 1 is batched to keep output arrays short and reliable.
+# At 500 papers: ~500 integers output ≈ 1500 tokens (well under 8192).
+# Input: ~500 titles × ~90 chars ÷ 4 ≈ 11K tokens (well under 50K TPM).
+PASS1_BATCH_SIZE = 500
+
 # Retry policy — shared across all Haiku calls in Stage 3.
 # Wait schedule: GROUPING_RETRY_BASE_WAIT × 2^(attempt-1) seconds.
 GROUPING_MAX_RETRIES     = 5
@@ -913,28 +918,56 @@ def haiku_group_papers(
         int(k): v["name"] for k, v in taxonomy.get("groups", {}).items()
     }
 
-    # ── Pass 1: stable assignment (all papers, titles only) ───────────────────
-    print(f"\n  Pass 1 — stable assignment ({n} papers, titles only)...")
-    p1_msg        = _build_pass1_message(df)
-    approx_tokens = len(p1_msg) // 4
-    print(f"  Prompt ≈ {approx_tokens:,} tokens.")
+    # ── Pass 1: stable assignment (batched, titles only) ─────────────────────
+    # Batched to keep each output array short and reliable.
+    # Each batch returns an array of integers; merge by concatenation.
+    import math as _math
+    n_p1_batches = _math.ceil(n / PASS1_BATCH_SIZE)
+    print(f"\n  Pass 1 — stable assignment ({n} papers, titles only, "
+          f"{n_p1_batches} batch{'es' if n_p1_batches > 1 else ''})...")
 
-    p1_result = None
-    for attempt in range(1, GROUPING_MAX_RETRIES + 1):
-        print(f"  Attempt {attempt}/{GROUPING_MAX_RETRIES}...")
-        raw = _haiku_call(client, _PASS1_SYSTEM, p1_msg, max_tokens=8192)
-        if raw is not None:
-            print(f"  Response length: {len(raw)} chars.")
-            p1_result = _parse_pass1_response(raw, n)
-            if p1_result is not None:
-                print(f"  ✓ Pass 1 parsed.")
-                break
-        if attempt < GROUPING_MAX_RETRIES:
-            wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
-            print(f"  Retrying in {wait}s...")
-            time.sleep(wait)
+    stable_assignments: dict[int, int] = {}
+    uncertain_indices:  list[int]      = []
+    p1_failed = False
 
-    if p1_result is None:
+    for b in range(n_p1_batches):
+        b_start  = b * PASS1_BATCH_SIZE
+        b_end    = min(b_start + PASS1_BATCH_SIZE, n)
+        b_size   = b_end - b_start
+        batch_df = df.iloc[b_start:b_end].reset_index(drop=True)
+        p1_msg   = _build_pass1_message(batch_df)
+        approx_tk = len(p1_msg) // 4
+        print(f"  Batch {b+1}/{n_p1_batches} "
+              f"(papers {b_start}–{b_end-1}, ≈{approx_tk:,} tokens)...")
+
+        b_result = None
+        for attempt in range(1, GROUPING_MAX_RETRIES + 1):
+            print(f"    Attempt {attempt}/{GROUPING_MAX_RETRIES}...")
+            raw = _haiku_call(client, _PASS1_SYSTEM, p1_msg, max_tokens=4096)
+            if raw is not None:
+                print(f"    Response length: {len(raw)} chars.")
+                b_result = _parse_pass1_response(raw, b_size)
+                if b_result is not None:
+                    print(f"    ✓ Parsed.")
+                    break
+            if attempt < GROUPING_MAX_RETRIES:
+                wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
+                print(f"    Retrying in {wait}s...")
+                time.sleep(wait)
+
+        if b_result is None:
+            print(f"  ✗ Pass 1 batch {b+1} failed — falling back to HDBSCAN.")
+            p1_failed = True
+            break
+
+        b_assignments, b_uncertain = b_result
+        # Merge into global: offset local indices by batch start
+        for local_i, gid in b_assignments.items():
+            stable_assignments[b_start + local_i] = gid
+        for local_i in b_uncertain:
+            uncertain_indices.append(b_start + local_i)
+
+    if p1_failed:
         print("  ✗ Pass 1 failed — falling back to HDBSCAN.")
         fallback    = _hdbscan_fallback_grouping(df)
         group_names = {gid: f"Group {gid}" for gid in set(fallback.values())}
@@ -942,7 +975,10 @@ def haiku_group_papers(
         _save_group_names_cache(group_names)
         return df, group_names
 
-    stable_assignments, uncertain_indices = p1_result
+    n_uncertain_total = len(uncertain_indices)
+    n_certain_total   = n - n_uncertain_total
+    print(f"  Pass 1 complete: {n_certain_total} certain → stable, "
+          f"{n_uncertain_total} uncertain → pass 2.")
 
     # Apply uncertain cap
     if len(uncertain_indices) > PASS1_UNCERTAIN_CAP:
@@ -1452,6 +1488,7 @@ if __name__ == "__main__":
     print(f"  BACKFILL_HINDICES  : {BACKFILL_HINDICES}")
     print(f"  OPENALEX_OFFLINE   : {OPENALEX_OFFLINE_MODE}")
     print(f"  GROUP_COUNT        : up to {GROUP_COUNT_MAX} ({GROUP_STABLE_COUNT} stable + dynamic)")
+    print(f"  PASS1_BATCH_SIZE   : {PASS1_BATCH_SIZE}")
     print(f"  PASS1_UNCERTAIN_CAP: {PASS1_UNCERTAIN_CAP}")
     print(f"  TAXONOMY_PATH      : {TAXONOMY_PATH}")
     print(f"  LAYOUT_SCALE       : {LAYOUT_SCALE}")
