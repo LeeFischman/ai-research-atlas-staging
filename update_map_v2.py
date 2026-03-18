@@ -42,7 +42,7 @@ import random
 import re
 import time
 from datetime import datetime, timedelta, timezone
-from math import ceil, sqrt
+from math import sqrt
 
 import numpy as np
 import pandas as pd
@@ -90,54 +90,54 @@ OFFLINE_MODE = os.environ.get("OFFLINE_MODE", "false").strip().lower() == "true"
 # Remove after one successful backfill run.
 BACKFILL_HINDICES = os.environ.get("BACKFILL_HINDICES", "false").strip().lower() == "true"
 
-# When True: skip the OpenAlex API fetch entirely (Stage 1c).
-# Existing author_hindices values carry forward from the loaded parquet.
-# New papers get author_hindices=[] and Prominence="Unverified" — they will
-# be enriched on the next normal run.
-# Prominence is still recomputed from whatever author_hindices is in the data.
-# Use when: OpenAlex daily quota is exhausted but the rest of the pipeline
-# must still run.
-# Set via env var:  OPENALEX_OFFLINE_MODE=true python update_map_v2.py
-OPENALEX_OFFLINE_MODE = os.environ.get("OPENALEX_OFFLINE_MODE", "false").strip().lower() == "true"
-
 # Cache file written after every successful Haiku grouping call.
 # Loaded automatically in offline mode.
 GROUP_NAMES_CACHE = "group_names_v2.json"
 
-# ── Haiku grouping ───────────────────────────────────────────────────────────
+# ── Haiku grouping — two-pass + persistent taxonomy ─────────────────────────
+#
+# Pass 1: All papers assigned to stable categories (IDs 0-13) using titles.
+#         Papers that do not clearly fit a stable category are flagged uncertain.
+# Pass 2: Uncertain papers assigned to existing or new dynamic categories with
+#         per-paper confidence ratings. Informed by persistent dynamic taxonomy.
+# Review: Optional targeted call for papers in groups with declining confidence.
+#
+# Token budget at 2000 papers:
+#   Pass 1 input:  ~2000 × 80 chars ÷ 4 ≈ 40K tokens (one call, under TPM limit)
+#   Pass 1 output: ~2000 × 8 chars  ÷ 4 ≈ 4K tokens  (under 8192 ceiling)
+#   Pass 2 input:  ≤400 papers × ~400 chars ÷ 4 ≈ 40K tokens
+#   Pass 2 output: ≤400 × ~30 chars ÷ 4 ≈ 3K tokens
 
-# ── Haiku grouping ───────────────────────────────────────────────────────────
-
-# Stable bucket count (always offered to Haiku; only used if papers fit).
-GROUP_STABLE_COUNT = 14
-
-# Maximum dynamic groups Haiku may invent beyond the stable buckets.
-GROUP_DYNAMIC_MAX  = 999  # uncapped — Haiku chooses however many make sense
+GROUP_STABLE_COUNT = 14    # fixed; IDs 0-13
 
 # Hard cap on total groups (stable + dynamic).
-# Haiku is not required to reach this — it's a ceiling, not a target.
-GROUP_COUNT_MAX    = 60
+GROUP_COUNT_MAX = 60
 
-# No hard minimum — if 10 groups make sense today, that's fine.
-# Validation rejects responses with 0 groups only.
-GROUP_COUNT_MIN    = 1
-
-# Characters of each abstract sent to Haiku.
-# Recommended range: 150-400.  Shorter = cheaper; longer = better grouping.
+# Characters of each abstract sent to Haiku in pass 2.
 ABSTRACT_GROUPING_CHARS = 300
 
-# Retry policy for the Haiku grouping call.
-# Covers both 529 overload errors and hard parse failures.
-# Wait schedule: GROUPING_RETRY_BASE_WAIT * 2^(attempt-1) seconds.
-# With base=60 and 5 retries: 60, 120, 240, 480 s between attempts.
-GROUPING_MAX_RETRIES     = 5
-GROUPING_RETRY_BASE_WAIT = 60   # seconds; recommended range: 30-120
+# Maximum papers Haiku may flag as uncertain in pass 1.
+# Papers above this cap are force-assigned to their pass 1 stable best-guess.
+PASS1_UNCERTAIN_CAP = 400
 
-# Maximum papers per Haiku grouping call.
-# At ~250 papers: ~20K input tokens (well under 50K TPM) and ~1K output tokens
-# (well under 8192 output ceiling).  Above this threshold the pipeline
-# automatically splits into sequential batches and merges results.
-GROUPING_BATCH_SIZE = 250
+# Retry policy — shared across all Haiku calls in Stage 3.
+# Wait schedule: GROUPING_RETRY_BASE_WAIT × 2^(attempt-1) seconds.
+GROUPING_MAX_RETRIES     = 5
+GROUPING_RETRY_BASE_WAIT = 60   # seconds
+
+# ── Dynamic taxonomy persistence ──────────────────────────────────────────────
+# Committed to repo alongside group_names_v2.json.
+TAXONOMY_PATH              = "dynamic_taxonomy.json"
+TAXONOMY_CONFIDENCE_WINDOW = 5    # rolling window length (runs)
+TAXONOMY_RETIRE_DAYS       = 14   # absent this many days → retired from taxonomy
+# Review threshold modulation — groups with fewer runs are exempt.
+# Tightens as the group matures toward a full confidence window.
+#   1-2 runs : exempt (too early to judge)
+#   3 runs   : 0.35
+#   4 runs   : 0.45
+#   5+ runs  : 0.60
+TAXONOMY_REVIEW_THRESHOLDS = {1: None, 2: None, 3: 0.35, 4: 0.45}
+TAXONOMY_REVIEW_THRESHOLD_MATURE = 0.60
 
 # ── Layout scaling ────────────────────────────────────────────────────────────
 # MDS raw output is in a small range (typically ±0.15 for ~15 groups on
@@ -212,7 +212,7 @@ HAIKU_MODEL = "claude-haiku-4-5-20251001"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# STAGE 3 — HAIKU GROUPING
+# STAGE 3 — HAIKU GROUPING  (two-pass + persistent dynamic taxonomy)
 # ══════════════════════════════════════════════════════════════════════════════
 
 _STABLE_BUCKETS = """STABLE CATEGORIES (use only those that have papers today — skip empty ones):
@@ -285,73 +285,19 @@ ID 13 — Planning & Search
   optimisation, constraint satisfaction, automated reasoning, and hybrid
   neuro-symbolic approaches where planning or search is the core contribution."""
 
-_GROUPING_SYSTEM = (
-    "You are a research taxonomy expert. You will be given a list of AI research "
-    "paper titles and abstracts. Your task is to group them into thematically "
-    "coherent clusters.\n\n"
 
-    f"{_STABLE_BUCKETS}\n\n"
-
-    "DYNAMIC CATEGORIES (create as many as the papers genuinely warrant):\n"
-    "  Use IDs starting at 14. Name each with a concise 3-6 word noun phrase "
-    "capturing the shared intellectual thread (e.g. 'Graph Neural Network Methods', "
-    "'Diffusion Model Theory', 'Speech & Audio Processing'). Create a dynamic "
-    "group only when papers genuinely don't fit any stable category above.\n\n"
-
-    f"TOTAL GROUP CAP: {GROUP_COUNT_MAX} groups maximum (stable + dynamic combined). "
-    "You are NOT required to reach this cap — use only as many groups as the "
-    "papers genuinely warrant.\n\n"
-
-    "ASSIGNMENT RULES:\n"
-    "- Assign every paper to exactly one group.\n"
-    "- When a paper could fit multiple stable categories, assign it to the one "
-    "where its PRIMARY CONTRIBUTION lies — the thing the authors would consider "
-    "their main result. Example: a vision-language model whose core contribution "
-    "is a new training objective → Language Models & Reasoning; one whose core "
-    "contribution is cross-modal alignment → Multimodal Learning.\n"
-    "- Prefer stable categories over dynamic ones when the fit is reasonable.\n"
-    "- Group papers by what makes them intellectually related — shared methodology "
-    "or theoretical framework — not just surface topic keywords.\n\n"
-
-    "OUTPUT FORMAT:\n"
-    "Respond ONLY with a JSON object with exactly two keys. No preamble, no "
-    "explanation, no markdown fences:\n"
-    '{"groups": {"0": "Language Models & Reasoning", "14": "Graph Neural Network Methods"}, '
-    '"assignments": {"0": 0, "1": 0, "2": 8, "3": 1, ...}}\n'
-    "- 'groups': maps each group_id (as a string) to its name. Include only "
-    "groups that are actually used.\n"
-    "- 'assignments': maps each paper index (as a string) to its group_id integer. "
-    "Every paper index from 0 to N-1 must appear exactly once.\n"
-    "- group_id must be an integer (0-13 for stable, 14+ for dynamic).\n"
-    "- For stable categories, group_name must exactly match the stable category "
-    "name (e.g. 'Language Models & Reasoning', not 'LLMs & Reasoning')."
-)
-
-
-def _build_grouping_user_message(df: pd.DataFrame) -> str:
-    lines = [f"Assign each of the following {len(df)} papers to a group. "
-             "Return JSON only.\n"]
-    for i, row in df.iterrows():
-        title            = str(row["title"]).strip()
-        abstract         = _strip_urls(str(row.get("abstract", ""))).strip()
-        abstract_snippet = abstract[:ABSTRACT_GROUPING_CHARS]
-        lines.append(f"[{i}] Title: {title}\nAbstract: {abstract_snippet}")
-    return "\n\n".join(lines)
-
-
-# Canonical names for stable buckets — used to normalise Haiku's output
-# so minor variations ("LLMs & Reasoning") are corrected to the exact name.
+# Canonical names for stable buckets — used to normalise Haiku's output.
 _STABLE_BUCKET_NAMES: dict[int, str] = {
-    0: "Language Models & Reasoning",
-    1: "Computer Vision",
-    2: "Multimodal Learning",
-    3: "Reinforcement Learning",
-    4: "Robotics & Embodied AI",
-    5: "Safety, Alignment & Ethics",
-    6: "Theory, Optimization & Efficient ML",
-    7: "Domain Applications",
-    8: "Generative Models & Synthesis",
-    9: "Speech & Audio Processing",
+    0:  "Language Models & Reasoning",
+    1:  "Computer Vision",
+    2:  "Multimodal Learning",
+    3:  "Reinforcement Learning",
+    4:  "Robotics & Embodied AI",
+    5:  "Safety, Alignment & Ethics",
+    6:  "Theory, Optimization & Efficient ML",
+    7:  "Domain Applications",
+    8:  "Generative Models & Synthesis",
+    9:  "Speech & Audio Processing",
     10: "Graph Learning & Networks",
     11: "Data, Benchmarks & Evaluation",
     12: "Human-AI Interaction",
@@ -359,30 +305,288 @@ _STABLE_BUCKET_NAMES: dict[int, str] = {
 }
 
 
-def _parse_grouping_response(
+# ── System prompts ────────────────────────────────────────────────────────────
+
+_PASS1_SYSTEM = (
+    "You are a research taxonomy expert. Assign each AI research paper "
+    "(provided by title only) to exactly one stable category (IDs 0-13). "
+    "For papers that do not clearly fit any stable category, still provide "
+    "your best stable assignment AND add the index to 'uncertain'.\n\n"
+    + _STABLE_BUCKETS + "\n\n"
+    "ASSIGNMENT RULES:\n"
+    "- When a paper could fit multiple categories, assign it to the one where "
+    "its PRIMARY CONTRIBUTION lies — the thing the authors would consider their "
+    "main result.\n"
+    "- Mark a paper 'uncertain' only when no stable category fits well. "
+    "Uncertain papers receive specialized dynamic-group review.\n"
+    "- Prefer stable categories: only mark uncertain if genuinely ambiguous.\n\n"
+    "OUTPUT FORMAT — respond ONLY with JSON, no preamble, no markdown fences:\n"
+    '{"assignments": {"0": 3, "1": 0, "2": 7, ...}, "uncertain": [4, 17, ...]}\n'
+    "- 'assignments': every paper index 0 to N-1 maps to a stable group_id (0-13).\n"
+    "- 'uncertain': subset of indices where no stable category fits well.\n"
+    "- Both certain and uncertain papers must appear in 'assignments'."
+)
+
+_PASS2_SYSTEM = (
+    "You are a research taxonomy expert specialising in emerging and cross-cutting "
+    "AI research topics. You will be given papers that do not clearly fit standard "
+    "AI research categories. Assign each paper to the best available group and "
+    "rate your confidence.\n\n"
+    + _STABLE_BUCKETS + "\n\n"
+    "CONFIDENCE RATING:\n"
+    "- 'high': the paper clearly belongs to this group; you are confident.\n"
+    "- 'low': the paper fits imperfectly, or you are genuinely uncertain.\n\n"
+    "CREATING NEW DYNAMIC CATEGORIES:\n"
+    "- Only create a new group when papers genuinely share an intellectual thread "
+    "not covered by any existing group (stable or dynamic).\n"
+    "- Name each with a concise 3-6 word noun phrase capturing the shared theme.\n"
+    "- Prefer assigning to existing dynamic groups over creating new ones.\n\n"
+    "OUTPUT FORMAT — respond ONLY with JSON, no preamble, no markdown fences:\n"
+    '{"groups": {"14": "Continual Learning & Adaptation", "22": "New Topic Name"},\n'
+    ' "assignments": {"0": {"group": 14, "confidence": "high"}, '
+    '"1": {"group": 22, "confidence": "low"}, ...}}\n'
+    "- 'groups': ALL group IDs used (existing and new) mapped to their names.\n"
+    "- 'assignments': every paper index mapped to {group (int), confidence (str)}.\n"
+    "- For stable groups (0-13), use canonical names exactly as listed above.\n"
+    "- For new dynamic groups, use a concise 3-6 word noun phrase."
+)
+
+
+# ── Low-level API helper ──────────────────────────────────────────────────────
+
+def _haiku_call(client, system: str, user: str, max_tokens: int) -> str | None:
+    """Single Haiku API call. Returns raw response text or None on exception."""
+    try:
+        response = client.messages.create(
+            model=HAIKU_MODEL,
+            max_tokens=max_tokens,
+            system=system,
+            messages=[{"role": "user", "content": user}],
+        )
+        return response.content[0].text.strip()
+    except Exception as e:
+        err_str = str(e)
+        is_529  = "529" in err_str or "overloaded" in err_str.lower()
+        label   = "API overloaded (529)" if is_529 else "API error"
+        print(f"    {label}: {e}")
+        return None
+
+
+# ── Dynamic taxonomy I/O ──────────────────────────────────────────────────────
+
+def load_dynamic_taxonomy() -> dict:
+    """Load dynamic_taxonomy.json. Returns empty taxonomy if file is missing."""
+    if os.path.exists(TAXONOMY_PATH):
+        with open(TAXONOMY_PATH) as f:
+            t = json.load(f)
+        n = len(t.get("groups", {}))
+        print(f"  Loaded dynamic taxonomy: {n} groups "
+              f"(next_id={t.get('next_id', 14)}).")
+        return t
+    return {"next_id": 14, "groups": {}}
+
+
+def save_dynamic_taxonomy(taxonomy: dict) -> None:
+    with open(TAXONOMY_PATH, "w") as f:
+        json.dump(taxonomy, f, indent=2)
+    print(f"  Dynamic taxonomy saved: {len(taxonomy.get('groups', {}))} groups.")
+
+
+def seed_dynamic_taxonomy_from_cache(today: str) -> dict:
+    """Seed dynamic_taxonomy.json from group_names_v2.json on first run.
+
+    Imports all IDs >= 14 with empty confidence_history so they start as
+    1-run-old groups and receive appropriate breathing room.
+    """
+    if not os.path.exists(GROUP_NAMES_CACHE):
+        print(f"  No {GROUP_NAMES_CACHE} found — starting with empty taxonomy.")
+        return {"next_id": 14, "groups": {}}
+
+    with open(GROUP_NAMES_CACHE) as f:
+        raw = json.load(f)
+
+    groups: dict[str, dict] = {}
+    max_id = 13
+    for k, name in raw.items():
+        gid = int(k)
+        if gid >= 14:
+            groups[str(gid)] = {
+                "name":               name,
+                "created":            today,
+                "last_seen":          today,
+                "confidence_history": [],
+                "paper_count_history": [],
+            }
+            max_id = max(max_id, gid)
+
+    next_id  = max_id + 1
+    taxonomy = {"next_id": next_id, "groups": groups}
+    print(f"  Seeded dynamic taxonomy from {GROUP_NAMES_CACHE}: "
+          f"{len(groups)} groups, next_id={next_id}.")
+    return taxonomy
+
+
+def _review_threshold(n_runs: int) -> float | None:
+    """Maturity-modulated review threshold.
+
+    Returns None if the group has too little history to judge.
+    Tightens progressively as the group matures toward TAXONOMY_CONFIDENCE_WINDOW.
+    """
+    return TAXONOMY_REVIEW_THRESHOLDS.get(
+        n_runs,
+        TAXONOMY_REVIEW_THRESHOLD_MATURE if n_runs >= 5 else None,
+    )
+
+
+# ── Pass 1: stable assignment ─────────────────────────────────────────────────
+
+def _build_pass1_message(df: pd.DataFrame) -> str:
+    lines = [
+        f"Assign each of the following {len(df)} AI research papers to a stable "
+        "category (IDs 0-13) using the title alone. For papers that do not clearly "
+        "fit any stable category, still provide your best stable assignment AND "
+        "include the index in 'uncertain'.\n"
+        "Return JSON only — no preamble, no markdown:\n"
+        '{"assignments": {"0": 3, "1": 0, ...}, "uncertain": [4, 17, ...]}\n'
+        "Every paper index 0 to N-1 must appear in 'assignments'.\n"
+    ]
+    for i, row in df.iterrows():
+        lines.append(f"[{i}] {str(row['title']).strip()}")
+    return "\n".join(lines)
+
+
+def _parse_pass1_response(
     text: str, n_papers: int
-) -> tuple[dict[int, int], dict[int, str]] | None:
-    """Parse and validate Haiku's compact JSON grouping response.
+) -> tuple[dict[int, int], list[int]] | None:
+    """Parse pass 1 response.
 
-    Expected format:
-      {"groups": {"0": "Language Models & Reasoning", "14": "Graph Neural Network Methods"},
-       "assignments": {"0": 0, "1": 0, "2": 8, ...}}
+    Returns (assignments, uncertain_indices) or None on hard failure.
+      assignments:       {paper_idx: stable_group_id}  — all N papers
+      uncertain_indices: [paper_idx, ...]               — subset for pass 2
+    """
+    text = re.sub(r"^```(?:json)?\s*", "", text.strip())
+    text = re.sub(r"\s*```$", "", text)
 
-    This compact format avoids repeating group names on every entry, keeping
-    output well within Haiku's token ceiling even for 800+ papers.
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError as e:
+        print(f"    JSON parse error: {e}")
+        return None
 
-    Stable buckets (IDs 0-13): names are normalised to canonical values.
-    Dynamic buckets (IDs 14+): names are taken as-is from Haiku; number is
-    uncapped — Haiku creates however many the papers warrant.
+    if not isinstance(data, dict) or "assignments" not in data:
+        print("    Missing 'assignments' key.")
+        return None
 
-    Hard failures → return None → trigger retry:
-      - Non-JSON or wrong top-level structure
-      - assignments missing paper indices or has extra keys
-      - Non-integer or negative group_ids
-      - group_id referenced in assignments but missing from groups dict
+    assignments_raw = data["assignments"]
+    uncertain_raw   = data.get("uncertain", [])
 
-    Soft acceptance → log warning, return result:
-      - More than GROUP_COUNT_MAX groups (caller merges excess down)
+    if not isinstance(assignments_raw, dict):
+        print(f"    'assignments' must be a dict, got {type(assignments_raw).__name__}.")
+        return None
+    if not isinstance(uncertain_raw, list):
+        print(f"    'uncertain' must be a list, got {type(uncertain_raw).__name__}.")
+        return None
+
+    assignments: dict[int, int] = {}
+    for k, v in assignments_raw.items():
+        try:
+            i = int(k)
+        except (ValueError, TypeError):
+            print(f"    Non-integer paper index: {k!r}")
+            return None
+        if not isinstance(v, int) or v < 0 or v > 13:
+            print(f"    Invalid stable group_id {v!r} for paper {i} "
+                  f"(must be integer 0-13).")
+            return None
+        assignments[i] = v
+
+    missing = set(range(n_papers)) - set(assignments.keys())
+    if missing:
+        print(f"    Missing paper indices in assignments: {sorted(missing)[:10]}...")
+        return None
+
+    uncertain: list[int] = []
+    seen: set[int] = set()
+    for idx in uncertain_raw:
+        try:
+            i = int(idx)
+        except (ValueError, TypeError):
+            print(f"    Non-integer uncertain index: {idx!r}")
+            return None
+        if i not in assignments:
+            print(f"    Uncertain index {i} not in assignments — skipping.")
+            continue
+        if i not in seen:
+            uncertain.append(i)
+            seen.add(i)
+
+    n_certain = n_papers - len(uncertain)
+    print(f"    Pass 1: {n_certain} certain → stable, "
+          f"{len(uncertain)} uncertain → pass 2.")
+    return assignments, uncertain
+
+
+# ── Pass 2: dynamic grouping ──────────────────────────────────────────────────
+
+def _build_pass2_message(
+    uncertain_df: pd.DataFrame,
+    taxonomy: dict,
+    next_id: int,
+    all_known_dynamic: dict[int, str],
+) -> str:
+    """Build pass 2 user message.
+
+    all_known_dynamic: {group_id: name} for all currently-known dynamic groups
+    (taxonomy + any already created this run, e.g. during review rebuild).
+    """
+    if all_known_dynamic:
+        dyn_lines = [
+            "EXISTING DYNAMIC CATEGORIES (prefer these if the paper fits well):"
+        ]
+        for gid in sorted(all_known_dynamic.keys()):
+            dyn_lines.append(f"  ID {gid} — {all_known_dynamic[gid]}")
+        dyn_block = "\n".join(dyn_lines)
+    else:
+        dyn_block = (
+            "EXISTING DYNAMIC CATEGORIES: None yet — "
+            "create new ones as needed."
+        )
+
+    lines = [
+        f"The following {len(uncertain_df)} papers did not clearly fit standard "
+        "stable AI research categories. Assign each to an existing dynamic "
+        f"category, a stable category (IDs 0-13) if appropriate, or create a new "
+        f"dynamic category (use IDs starting at {next_id}).\n"
+        f"{dyn_block}\n"
+        "- Prefer existing groups over creating new ones.\n"
+        "- Mark confidence 'high' if the fit is clear, 'low' if uncertain.\n"
+        "Return JSON only — no preamble, no markdown:\n"
+        '{"groups": {"14": "Continual Learning & Adaptation", '
+        '"22": "New Topic Name"},\n'
+        ' "assignments": {"0": {"group": 14, "confidence": "high"}, '
+        '"1": {"group": 22, "confidence": "low"}, ...}}\n'
+        "Every paper index 0 to N-1 must appear in 'assignments'.\n"
+    ]
+
+    for local_i, (_, row) in enumerate(uncertain_df.iterrows()):
+        title    = str(row["title"]).strip()
+        abstract = _strip_urls(str(row.get("abstract", ""))).strip()
+        snippet  = abstract[:ABSTRACT_GROUPING_CHARS]
+        lines.append(f"\n[{local_i}] Title: {title}\nAbstract: {snippet}")
+
+    return "\n".join(lines)
+
+
+def _parse_pass2_response(
+    text: str,
+    n_papers: int,
+    existing_dynamic_ids: set[int],
+) -> tuple[dict[int, dict], dict[int, str]] | None:
+    """Parse pass 2 / review response.
+
+    Returns (assignments, new_group_names) or None on hard failure.
+      assignments:     {local_idx: {"group": int, "confidence": "high"|"low"}}
+      new_group_names: {group_id: name}  — only groups NOT in existing_dynamic_ids
     """
     text = re.sub(r"^```(?:json)?\s*", "", text.strip())
     text = re.sub(r"\s*```$", "", text)
@@ -394,89 +598,210 @@ def _parse_grouping_response(
         return None
 
     if not isinstance(data, dict) or "groups" not in data or "assignments" not in data:
-        print(f"    Expected JSON object with 'groups' and 'assignments' keys, "
-              f"got: {type(data).__name__}.")
+        print("    Missing 'groups' or 'assignments' key.")
         return None
 
-    assignments_raw = data["assignments"]
     groups_raw      = data["groups"]
+    assignments_raw = data["assignments"]
 
-    if not isinstance(assignments_raw, dict):
-        print(f"    'assignments' must be a dict, got {type(assignments_raw).__name__}.")
+    if not isinstance(groups_raw, dict) or not isinstance(assignments_raw, dict):
+        print("    'groups' and 'assignments' must be dicts.")
         return None
 
-    if not isinstance(groups_raw, dict):
-        print(f"    'groups' must be a dict, got {type(groups_raw).__name__}.")
-        return None
-
-    # Parse group names dict: keys are string group_ids
-    group_names_raw: dict[int, str] = {}
+    # Parse groups dict
+    groups: dict[int, str] = {}
     for k, v in groups_raw.items():
         try:
             gid = int(k)
         except (ValueError, TypeError):
-            print(f"    Non-integer group_id key in 'groups': {k!r}")
+            print(f"    Non-integer group_id in 'groups': {k!r}")
             return None
-        group_names_raw[gid] = str(v).strip()
+        groups[gid] = str(v).strip()
 
-    # Parse assignments dict → mapping from paper index to group_id
-    mapping: dict[int, int] = {}
-    for k, gid_raw in assignments_raw.items():
+    # Parse assignments
+    assignments: dict[int, dict] = {}
+    for k, v in assignments_raw.items():
         try:
-            i = int(k)
+            local_i = int(k)
         except (ValueError, TypeError):
-            print(f"    Non-integer paper index key in 'assignments': {k!r}")
+            print(f"    Non-integer paper index: {k!r}")
             return None
-        if not isinstance(gid_raw, int):
-            print(f"    Non-integer group_id at assignment index {i}: {gid_raw!r}")
-            return None
-        if gid_raw < 0:
-            print(f"    Negative group_id at assignment index {i}: {gid_raw}")
-            return None
-        if gid_raw not in group_names_raw:
-            print(f"    group_id {gid_raw} used in assignments but missing from 'groups'.")
-            return None
-        mapping[i] = gid_raw
 
-    missing = set(range(n_papers)) - set(mapping.keys())
+        if not isinstance(v, dict) or "group" not in v or "confidence" not in v:
+            print(f"    Assignment {local_i} missing 'group' or 'confidence'.")
+            return None
+
+        gid  = v["group"]
+        conf = v["confidence"]
+
+        if not isinstance(gid, int) or gid < 0:
+            print(f"    Invalid group_id {gid!r} at index {local_i}.")
+            return None
+
+        if conf not in ("high", "low"):
+            print(f"    Invalid confidence '{conf}' at index {local_i} "
+                  f"— treating as 'low'.")
+            conf = "low"
+
+        # Auto-fill stable groups missing from groups dict
+        if gid <= 13:
+            if gid not in groups:
+                groups[gid] = _STABLE_BUCKET_NAMES.get(gid, f"Group {gid}")
+        elif gid not in groups:
+            print(f"    group_id {gid} used in assignments but missing from 'groups'.")
+            return None
+
+        assignments[local_i] = {"group": gid, "confidence": conf}
+
+    missing = set(range(n_papers)) - set(assignments.keys())
     if missing:
         print(f"    Missing paper indices: {sorted(missing)[:10]}...")
         return None
 
-    all_gids     = set(mapping.values())
-    stable_gids  = {g for g in all_gids if g in _STABLE_BUCKET_NAMES}
-    dynamic_gids = {g for g in all_gids if g not in _STABLE_BUCKET_NAMES}
-    n_groups     = len(all_gids)
+    used_gids    = {a["group"] for a in assignments.values()}
+    n_stable     = sum(1 for g in used_gids if g <= 13)
+    n_exist_dyn  = sum(1 for g in used_gids if g >= 14 and g in existing_dynamic_ids)
+    n_new_dyn    = sum(1 for g in used_gids if g >= 14 and g not in existing_dynamic_ids)
+    n_high       = sum(1 for a in assignments.values() if a["confidence"] == "high")
+    n_low        = len(assignments) - n_high
 
-    print(f"    Groups: {len(stable_gids)} stable, {len(dynamic_gids)} dynamic "
-          f"= {n_groups} total.")
+    print(f"    {n_stable} stable, {n_exist_dyn} existing dynamic, "
+          f"{n_new_dyn} new dynamic. "
+          f"Confidence: {n_high} high / {n_low} low.")
 
-    if len(dynamic_gids) > GROUP_DYNAMIC_MAX:
-        print(f"    {len(dynamic_gids)} dynamic groups exceeds cap "
-              f"({GROUP_DYNAMIC_MAX}). Will merge excess after parsing.")
+    new_group_names = {
+        gid: name for gid, name in groups.items()
+        if gid >= 14 and gid not in existing_dynamic_ids
+    }
+    return assignments, new_group_names
 
-    if n_groups > GROUP_COUNT_MAX:
-        print(f"    {n_groups} total groups exceeds cap ({GROUP_COUNT_MAX}). "
-              "Will merge excess groups after parsing.")
 
-    # Build final group_names: stable buckets always use canonical names
-    group_names: dict[int, str] = {}
-    for gid in all_gids:
-        if gid in _STABLE_BUCKET_NAMES:
-            canonical  = _STABLE_BUCKET_NAMES[gid]
-            haiku_name = group_names_raw.get(gid, "")
-            if haiku_name and haiku_name != canonical:
-                print(f"    Stable group {gid}: normalised "
-                      f"'{haiku_name}' → '{canonical}'")
-            group_names[gid] = canonical
+# ── Taxonomy update ───────────────────────────────────────────────────────────
+
+def _update_taxonomy(
+    taxonomy: dict,
+    run_group_stats: dict[int, dict],
+    today: str,
+) -> dict:
+    """Update dynamic taxonomy with this run's results.
+
+    run_group_stats: {group_id: {"name": str, "n_high": int, "n_low": int}}
+
+    Updates confidence_history and last_seen for groups used today.
+    Adds new groups. Retires groups absent for TAXONOMY_RETIRE_DAYS.
+    """
+    groups    = taxonomy.get("groups", {})
+    today_dt  = datetime.strptime(today, "%Y-%m-%d")
+
+    for gid, stats in run_group_stats.items():
+        gid_str = str(gid)
+        n_total = stats["n_high"] + stats["n_low"]
+        conf_rate = stats["n_high"] / n_total if n_total > 0 else 0.0
+
+        if gid_str in groups:
+            g = groups[gid_str]
+            g["last_seen"] = today
+            g["name"]      = stats["name"]   # keep name current
+            hist = g.get("confidence_history", [])
+            hist.append(round(conf_rate, 3))
+            g["confidence_history"]  = hist[-TAXONOMY_CONFIDENCE_WINDOW:]
+            cnt_hist = g.get("paper_count_history", [])
+            cnt_hist.append(n_total)
+            g["paper_count_history"] = cnt_hist[-TAXONOMY_CONFIDENCE_WINDOW:]
         else:
-            name = group_names_raw.get(gid, "").title() or f"Emerging Topic {gid}"
-            if not group_names_raw.get(gid):
-                print(f"    Dynamic group {gid}: no name — fallback '{name}'")
-            group_names[gid] = name
+            groups[gid_str] = {
+                "name":                stats["name"],
+                "created":             today,
+                "last_seen":           today,
+                "confidence_history":  [round(conf_rate, 3)],
+                "paper_count_history": [n_total],
+            }
 
-    return mapping, group_names
+    # Retire groups absent for TAXONOMY_RETIRE_DAYS
+    to_retire = []
+    for gid_str, g in groups.items():
+        try:
+            last_dt  = datetime.strptime(g.get("last_seen", "2000-01-01"), "%Y-%m-%d")
+            age_days = (today_dt - last_dt).days
+            if age_days >= TAXONOMY_RETIRE_DAYS:
+                to_retire.append(gid_str)
+        except ValueError:
+            pass
 
+    for gid_str in to_retire:
+        print(f"  Retiring group {gid_str} "
+              f"('{groups[gid_str]['name']}') — absent ≥{TAXONOMY_RETIRE_DAYS} days.")
+        del groups[gid_str]
+
+    taxonomy["groups"] = groups
+
+    n_used    = len(run_group_stats)
+    n_retired = len(to_retire)
+    n_active  = len(groups)
+    print(f"  Taxonomy update: {n_used} groups active today, "
+          f"{n_retired} retired, {n_active} total.")
+    return taxonomy
+
+
+# ── Review call ───────────────────────────────────────────────────────────────
+
+def _build_review_message(
+    review_df: pd.DataFrame,
+    current_assignments: dict[int, int],
+    all_known_dynamic: dict[int, str],
+    weak_group_names: dict[int, str],
+) -> str:
+    """Build review call message for low-confidence papers in weak groups."""
+    weak_ctx = ", ".join(
+        f"ID {gid} '{name}'" for gid, name in sorted(weak_group_names.items())
+    )
+
+    stable_block = "\n".join(
+        f"  ID {gid} — {name}"
+        for gid, name in sorted(_STABLE_BUCKET_NAMES.items())
+    )
+    dyn_block_lines = [
+        f"  ID {gid} — {name}"
+        for gid, name in sorted(all_known_dynamic.items())
+    ]
+    dyn_block = "\n".join(dyn_block_lines) if dyn_block_lines else "  (none yet)"
+
+    lines = [
+        f"The following {len(review_df)} papers were assigned to groups with "
+        f"declining confidence ({weak_ctx}). Please reassign each paper to its "
+        "best fit. You may use any stable or existing dynamic group, or create a "
+        "new one if genuinely warranted.\n"
+        f"STABLE CATEGORIES:\n{stable_block}\n"
+        f"EXISTING DYNAMIC CATEGORIES:\n{dyn_block}\n"
+        "Mark confidence 'high' if the fit is clear, 'low' if still uncertain.\n"
+        "Return JSON only — same format as before:\n"
+        '{"groups": {"14": "name", ...}, '
+        '"assignments": {"0": {"group": 7, "confidence": "high"}, ...}}\n'
+    ]
+
+    for local_i, (_, row) in enumerate(review_df.iterrows()):
+        title       = str(row["title"]).strip()
+        abstract    = _strip_urls(str(row.get("abstract", ""))).strip()
+        snippet     = abstract[:ABSTRACT_GROUPING_CHARS]
+        current_gid = current_assignments.get(local_i, -1)
+        current_nm  = weak_group_names.get(current_gid, f"Group {current_gid}")
+        lines.append(
+            f"\n[{local_i}] Current group: '{current_nm}'\n"
+            f"Title: {title}\nAbstract: {snippet}"
+        )
+
+    return "\n".join(lines)
+
+
+# ── Group names cache ─────────────────────────────────────────────────────────
+
+def _save_group_names_cache(group_names: dict[int, str]) -> None:
+    with open(GROUP_NAMES_CACHE, "w") as f:
+        json.dump({str(k): v for k, v in group_names.items()}, f, indent=2)
+    print(f"  Group names cached to {GROUP_NAMES_CACHE}.")
+
+
+# ── Excess-group merge (safety fallback) ──────────────────────────────────────
 
 def _merge_excess_groups(
     mapping: dict[int, int],
@@ -484,9 +809,9 @@ def _merge_excess_groups(
     df: pd.DataFrame,
     target_max: int,
 ) -> tuple[dict[int, int], dict[int, str]]:
-    """Merge excess groups down to target_max by repeatedly absorbing the
-    closest pair (smallest mean inter-group SPECTER2 cosine distance).
-    The larger group keeps its name; remaps group_ids to 0..n-1 afterward.
+    """Merge excess groups down to target_max by absorbing closest pairs
+    (smallest mean inter-group SPECTER2 cosine distance).
+    The larger group keeps its name; IDs are remapped to 0..n-1 afterward.
     """
     from sklearn.metrics.pairwise import cosine_distances
     from sklearn.preprocessing import normalize as sk_normalize
@@ -500,7 +825,6 @@ def _merge_excess_groups(
     all_vecs     = sk_normalize(np.array(df["embedding"].tolist(), dtype=np.float32))
     all_pairwise = cosine_distances(all_vecs)
 
-    # group_id → list of integer row positions
     active: dict[int, list[int]] = {}
     for pos, gid in enumerate(mapping.values()):
         active.setdefault(gid, []).append(pos)
@@ -520,8 +844,9 @@ def _merge_excess_groups(
         ga, gb = best_pair
         keep   = ga if len(active[ga]) >= len(active[gb]) else gb
         absorb = gb if keep == ga else ga
-        print(f"    Merge group {absorb} ('{group_names[absorb]}', n={len(active[absorb])}) "
-              f"→ group {keep} ('{group_names[keep]}', n={len(active[keep])})  "
+        print(f"    Merge group {absorb} ('{group_names[absorb]}', "
+              f"n={len(active[absorb])}) → group {keep} "
+              f"('{group_names[keep]}', n={len(active[keep])})  "
               f"dist={best_dist:.4f}")
 
         active[keep].extend(active.pop(absorb))
@@ -529,7 +854,6 @@ def _merge_excess_groups(
         for pos in active[keep]:
             mapping[pos] = keep
 
-    # Remap group_ids to clean 0..n-1
     id_remap    = {old: new for new, old in enumerate(sorted(active.keys()))}
     new_mapping = {pos: id_remap[g] for pos, g in mapping.items()}
     new_names   = {id_remap[old]: name for old, name in group_names.items()}
@@ -537,228 +861,287 @@ def _merge_excess_groups(
     return new_mapping, new_names
 
 
-def _run_single_batch(
-    client,
-    batch_df: pd.DataFrame,
-    batch_num: int,
-    total_batches: int,
-) -> tuple[dict[int, int], dict[int, str]] | None:
-    """Run one Haiku grouping call for a batch of papers, with retries.
-
-    batch_df must already be reset_index(drop=True) so paper indices are 0..n-1.
-    Returns (mapping, group_names) where mapping keys are 0..len(batch_df)-1,
-    or None if all attempts fail.
-    """
-    n         = len(batch_df)
-    user_msg  = _build_grouping_user_message(batch_df)
-    approx_tk = len(user_msg) // 4
-    prefix    = f"  Batch {batch_num}/{total_batches} ({n} papers, ≈{approx_tk:,} tokens)"
-    print(f"{prefix}...")
-
-    for attempt in range(1, GROUPING_MAX_RETRIES + 1):
-        print(f"    Attempt {attempt}/{GROUPING_MAX_RETRIES}...")
-        try:
-            response = client.messages.create(
-                model=HAIKU_MODEL,
-                max_tokens=8192,
-                system=_GROUPING_SYSTEM,
-                messages=[{"role": "user", "content": user_msg}],
-            )
-            raw = response.content[0].text.strip()
-            print(f"    Response length: {len(raw)} chars.")
-            result = _parse_grouping_response(raw, n)
-            if result is not None:
-                mapping, group_names = result
-                print(f"    ✓ Parsed ({len(set(mapping.values()))} groups).")
-                return mapping, group_names
-        except Exception as e:
-            err_str = str(e)
-            is_529  = "529" in err_str or "overloaded" in err_str.lower()
-            label   = "API overloaded (529)" if is_529 else "API error"
-            print(f"    {label} on attempt {attempt}: {e}")
-
-        if attempt < GROUPING_MAX_RETRIES:
-            wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
-            print(f"    Retrying in {wait}s...")
-            time.sleep(wait)
-
-    return None
-
-
-def _merge_batch_results(
-    batch_results: list[tuple[list[int], dict[int, int], dict[int, str]]],
-) -> tuple[dict[int, int], dict[int, str]]:
-    """Merge grouping results from multiple batches into a single global mapping.
-
-    Each element of batch_results is:
-      (global_positions, local_mapping, batch_group_names)
-    where global_positions[local_idx] is the original df row index.
-
-    Stable groups (0-13): ID is canonical across batches — no dedup needed.
-    Dynamic groups (14+): deduplicated by exact name match; each unique name
-    is assigned one consistent ID starting at 14.
-
-    Returns (global_mapping, global_group_names):
-      global_mapping keys are original df row positions (0..N-1).
-    """
-    dynamic_name_to_id: dict[str, int] = {}
-    next_dynamic_id = 14
-
-    global_mapping: dict[int, int] = {}
-    global_names: dict[int, str]   = {}
-
-    for global_positions, local_mapping, batch_names in batch_results:
-        # Build a local→global ID remap for dynamic groups in this batch
-        id_remap: dict[int, int] = {}
-        for batch_gid in set(local_mapping.values()):
-            if batch_gid <= 13:
-                # Stable — ID is universal
-                id_remap[batch_gid] = batch_gid
-                if batch_gid not in global_names:
-                    global_names[batch_gid] = _STABLE_BUCKET_NAMES.get(
-                        batch_gid, batch_names.get(batch_gid, f"Group {batch_gid}")
-                    )
-            else:
-                dyn_name = batch_names.get(batch_gid, f"Emerging Topic {batch_gid}")
-                if dyn_name not in dynamic_name_to_id:
-                    dynamic_name_to_id[dyn_name] = next_dynamic_id
-                    global_names[next_dynamic_id] = dyn_name
-                    next_dynamic_id += 1
-                id_remap[batch_gid] = dynamic_name_to_id[dyn_name]
-
-        for local_idx, batch_gid in local_mapping.items():
-            global_pos = global_positions[local_idx]
-            global_mapping[global_pos] = id_remap[batch_gid]
-
-    # Trim global_names to only groups that are actually used
-    used_gids    = set(global_mapping.values())
-    global_names = {gid: name for gid, name in global_names.items()
-                    if gid in used_gids}
-
-    n_stable  = sum(1 for g in used_gids if g <= 13)
-    n_dynamic = sum(1 for g in used_gids if g > 13)
-    print(f"  Batch merge: {n_stable} stable + {n_dynamic} dynamic "
-          f"= {len(used_gids)} total groups across {len(batch_results)} batches.")
-
-    return global_mapping, global_names
-
+# ── Main Stage 3 entry point ──────────────────────────────────────────────────
 
 def haiku_group_papers(
     df: pd.DataFrame,
     client,
 ) -> tuple[pd.DataFrame, dict[int, str]]:
-    """Stage 3: Haiku assigns every paper to a group and names each group.
+    """Stage 3: Two-pass Haiku grouping with persistent dynamic taxonomy.
 
-    For pools up to GROUPING_BATCH_SIZE papers: single Haiku call (original path).
-    For larger pools: split into batches of GROUPING_BATCH_SIZE, run sequential
-    Haiku calls, then merge — deduplicating dynamic groups by name.
+    Pass 1 — All papers, titles only (single call):
+      Assigns each paper to a stable category (0-13).
+      Uncertain papers are flagged for pass 2.
 
-    Returns (df, group_names):
-      df          — with group_id_v2 column added
-      group_names — {group_id: label_text}
+    Pass 2 — Uncertain papers, with abstracts (single call):
+      Assigns to existing dynamic groups (from taxonomy) or creates new ones.
+      Returns per-paper confidence ratings.
 
-    Saves group_names to GROUP_NAMES_CACHE for offline mode reuse.
-    Falls back to HDBSCAN if all Haiku attempts hard-fail.
+    Review — Optional targeted call:
+      Papers in groups whose rolling confidence has fallen below the
+      maturity-modulated threshold are re-evaluated by Haiku.
+
+    Taxonomy is loaded, updated, and saved each run. Groups absent for
+    TAXONOMY_RETIRE_DAYS are retired automatically.
+
+    Returns (df, group_names).
     """
-    df = df.reset_index(drop=True)
-    n  = len(df)
-    print(f"\n▶  Stage 3 — Haiku grouping + naming ({n} papers)...")
+    df    = df.reset_index(drop=True)
+    n     = len(df)
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    print(f"\n▶  Stage 3 — Haiku grouping + naming ({n} papers, two-pass)...")
 
-    if n <= GROUPING_BATCH_SIZE:
-        # ── Single-call path (original logic) ────────────────────────────────
-        user_msg      = _build_grouping_user_message(df)
-        approx_tokens = len(user_msg) // 4
-        print(f"  Grouping prompt ≈ {approx_tokens:,} tokens "
-              f"(abstracts truncated to {ABSTRACT_GROUPING_CHARS} chars each).")
+    # ── Load or seed dynamic taxonomy ────────────────────────────────────────
+    if os.path.exists(TAXONOMY_PATH):
+        taxonomy = load_dynamic_taxonomy()
+    else:
+        print(f"  {TAXONOMY_PATH} not found — seeding from {GROUP_NAMES_CACHE}.")
+        taxonomy = seed_dynamic_taxonomy_from_cache(today)
+        save_dynamic_taxonomy(taxonomy)
 
-        result = None
+    existing_dynamic_ids: set[int] = {
+        int(k) for k in taxonomy.get("groups", {}).keys()
+    }
+    all_known_dynamic: dict[int, str] = {
+        int(k): v["name"] for k, v in taxonomy.get("groups", {}).items()
+    }
+
+    # ── Pass 1: stable assignment (all papers, titles only) ───────────────────
+    print(f"\n  Pass 1 — stable assignment ({n} papers, titles only)...")
+    p1_msg        = _build_pass1_message(df)
+    approx_tokens = len(p1_msg) // 4
+    print(f"  Prompt ≈ {approx_tokens:,} tokens.")
+
+    p1_result = None
+    for attempt in range(1, GROUPING_MAX_RETRIES + 1):
+        print(f"  Attempt {attempt}/{GROUPING_MAX_RETRIES}...")
+        raw = _haiku_call(client, _PASS1_SYSTEM, p1_msg, max_tokens=8192)
+        if raw is not None:
+            print(f"  Response length: {len(raw)} chars.")
+            p1_result = _parse_pass1_response(raw, n)
+            if p1_result is not None:
+                print(f"  ✓ Pass 1 parsed.")
+                break
+        if attempt < GROUPING_MAX_RETRIES:
+            wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
+            print(f"  Retrying in {wait}s...")
+            time.sleep(wait)
+
+    if p1_result is None:
+        print("  ✗ Pass 1 failed — falling back to HDBSCAN.")
+        fallback    = _hdbscan_fallback_grouping(df)
+        group_names = {gid: f"Group {gid}" for gid in set(fallback.values())}
+        df["group_id_v2"] = [fallback[i] for i in range(n)]
+        _save_group_names_cache(group_names)
+        return df, group_names
+
+    stable_assignments, uncertain_indices = p1_result
+
+    # Apply uncertain cap
+    if len(uncertain_indices) > PASS1_UNCERTAIN_CAP:
+        n_over = len(uncertain_indices) - PASS1_UNCERTAIN_CAP
+        print(f"  ⚠ {len(uncertain_indices)} uncertain exceeds cap ({PASS1_UNCERTAIN_CAP}). "
+              f"Force-assigning {n_over} papers to stable best-guess.")
+        uncertain_indices = uncertain_indices[:PASS1_UNCERTAIN_CAP]
+
+    # ── Pass 2: dynamic grouping (uncertain papers, with abstracts) ───────────
+    next_id      = taxonomy.get("next_id", 14)
+    uncertain_df = df.iloc[uncertain_indices].reset_index(drop=True)
+    n_uncertain  = len(uncertain_df)
+
+    p2_assignments:  dict[int, dict]   = {}
+    new_group_names: dict[int, str]    = {}
+
+    if n_uncertain == 0:
+        print("\n  Pass 2 — skipped (all papers assigned to stable categories).")
+    else:
+        print(f"\n  Pass 2 — dynamic grouping ({n_uncertain} papers, with abstracts)...")
+        p2_msg         = _build_pass2_message(uncertain_df, taxonomy, next_id,
+                                               all_known_dynamic)
+        approx_tokens2 = len(p2_msg) // 4
+        print(f"  Prompt ≈ {approx_tokens2:,} tokens.")
+
+        p2_result = None
         for attempt in range(1, GROUPING_MAX_RETRIES + 1):
-            print(f"  Haiku grouping call — attempt {attempt}/{GROUPING_MAX_RETRIES}...")
-            try:
-                response = client.messages.create(
-                    model=HAIKU_MODEL,
-                    max_tokens=8192,
-                    system=_GROUPING_SYSTEM,
-                    messages=[{"role": "user", "content": user_msg}],
-                )
-                raw = response.content[0].text.strip()
+            print(f"  Attempt {attempt}/{GROUPING_MAX_RETRIES}...")
+            raw = _haiku_call(client, _PASS2_SYSTEM, p2_msg, max_tokens=8192)
+            if raw is not None:
                 print(f"  Response length: {len(raw)} chars.")
-                result = _parse_grouping_response(raw, n)
-                if result is not None:
-                    mapping, group_names = result
-                    print(f"  ✓ Grouping parsed ({len(set(mapping.values()))} groups "
-                          f"before any merging).")
+                p2_result = _parse_pass2_response(raw, n_uncertain,
+                                                   existing_dynamic_ids)
+                if p2_result is not None:
+                    print(f"  ✓ Pass 2 parsed.")
                     break
-            except Exception as e:
-                err_str = str(e)
-                is_529  = "529" in err_str or "overloaded" in err_str.lower()
-                label   = "API overloaded (529)" if is_529 else "API error"
-                print(f"  {label} on attempt {attempt}: {e}")
-
             if attempt < GROUPING_MAX_RETRIES:
                 wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
                 print(f"  Retrying in {wait}s...")
                 time.sleep(wait)
 
-        if result is None:
-            print("  ✗ All Haiku attempts failed. Falling back to HDBSCAN.")
-            mapping     = _hdbscan_fallback_grouping(df)
-            group_names = {gid: f"Group {gid}" for gid in set(mapping.values())}
+        if p2_result is None:
+            print("  ✗ Pass 2 failed — uncertain papers kept at stable best-guess.")
+            p2_assignments  = {}
+            new_group_names = {}
         else:
-            if len(set(mapping.values())) > GROUP_COUNT_MAX:
-                mapping, group_names = _merge_excess_groups(
-                    mapping, group_names, df, target_max=GROUP_COUNT_MAX
-                )
+            p2_assignments, new_group_names = p2_result
+            # Update next_id and known dynamic map for any new groups
+            if new_group_names:
+                new_max = max(new_group_names.keys())
+                taxonomy["next_id"] = max(taxonomy.get("next_id", 14), new_max + 1)
+                all_known_dynamic.update(new_group_names)
 
-    else:
-        # ── Batched path ──────────────────────────────────────────────────────
-        n_batches = ceil(n / GROUPING_BATCH_SIZE)
-        print(f"  Large pool ({n} papers): splitting into {n_batches} batches "
-              f"of ≤{GROUPING_BATCH_SIZE}.")
-        print(f"  (abstracts truncated to {ABSTRACT_GROUPING_CHARS} chars each)")
+    # ── Merge pass 1 + pass 2 assignments into final mapping ─────────────────
+    final_assignment: dict[int, int] = {}
+    confidence_map:   dict[int, str] = {}
 
-        batch_results: list[tuple[list[int], dict[int, int], dict[int, str]]] = []
-        fallback_needed = False
+    for i in range(n):
+        final_assignment[i] = stable_assignments[i]
+        confidence_map[i]   = "high"   # stable assignments are implicitly high
 
-        for b in range(n_batches):
-            start             = b * GROUPING_BATCH_SIZE
-            end               = min(start + GROUPING_BATCH_SIZE, n)
-            global_positions  = list(range(start, end))
-            batch_df          = df.iloc[global_positions].reset_index(drop=True)
+    for local_i, asgn in p2_assignments.items():
+        global_i = uncertain_indices[local_i]
+        final_assignment[global_i] = asgn["group"]
+        confidence_map[global_i]   = asgn["confidence"]
 
-            result = _run_single_batch(client, batch_df, b + 1, n_batches)
-            if result is None:
-                print(f"  ✗ Batch {b + 1}/{n_batches} failed all attempts.")
-                fallback_needed = True
-                break
-            batch_mapping, batch_names = result
-            batch_results.append((global_positions, batch_mapping, batch_names))
-
-        if fallback_needed:
-            print("  ✗ Batched grouping incomplete. Falling back to HDBSCAN.")
-            fallback_map = _hdbscan_fallback_grouping(df)
-            mapping      = fallback_map
-            group_names  = {gid: f"Group {gid}" for gid in set(mapping.values())}
+    # ── Build group_names from all sources ────────────────────────────────────
+    group_names: dict[int, str] = {}
+    for gid in set(final_assignment.values()):
+        if gid <= 13:
+            group_names[gid] = _STABLE_BUCKET_NAMES.get(gid, f"Group {gid}")
+        elif gid in all_known_dynamic:
+            group_names[gid] = all_known_dynamic[gid]
         else:
-            mapping, group_names = _merge_batch_results(batch_results)
-            if len(set(mapping.values())) > GROUP_COUNT_MAX:
-                mapping, group_names = _merge_excess_groups(
-                    mapping, group_names, df, target_max=GROUP_COUNT_MAX
-                )
+            group_names[gid] = f"Emerging Topic {gid}"
 
-    df["group_id_v2"] = [mapping[i] for i in range(n)]
+    # ── Compute per-group confidence stats for taxonomy update ────────────────
+    def _build_run_stats(
+        final_asgn: dict[int, int],
+        conf_map: dict[int, str],
+        gnames: dict[int, str],
+    ) -> dict[int, dict]:
+        stats: dict[int, dict] = {}
+        for gi, gid in final_asgn.items():
+            if gid < 14:
+                continue
+            conf = conf_map.get(gi, "high")
+            if gid not in stats:
+                stats[gid] = {"name": gnames.get(gid, f"Group {gid}"),
+                               "n_high": 0, "n_low": 0}
+            if conf == "high":
+                stats[gid]["n_high"] += 1
+            else:
+                stats[gid]["n_low"] += 1
+        return stats
+
+    run_group_stats = _build_run_stats(final_assignment, confidence_map, group_names)
+
+    # ── Review: identify weak groups, re-evaluate their low-confidence papers ─
+    weak_group_ids: set[int] = set()
+    for gid, stats in run_group_stats.items():
+        gid_str  = str(gid)
+        existing = taxonomy.get("groups", {}).get(gid_str, {})
+        hist     = existing.get("confidence_history", [])
+        n_total  = stats["n_high"] + stats["n_low"]
+        conf_rate = stats["n_high"] / n_total if n_total > 0 else 0.0
+        projected = (hist + [conf_rate])[-TAXONOMY_CONFIDENCE_WINDOW:]
+        n_runs    = len(projected)
+        threshold = _review_threshold(n_runs)
+        if threshold is None:
+            continue
+        rolling_mean = sum(projected) / len(projected)
+        if rolling_mean < threshold:
+            weak_group_ids.add(gid)
+            print(f"  ⚠ Group {gid} ('{stats['name']}'): "
+                  f"rolling confidence {rolling_mean:.2f} < "
+                  f"threshold {threshold:.2f} (n_runs={n_runs}) "
+                  f"— flagged for review.")
+
+    if weak_group_ids:
+        review_global_idxs = [
+            i for i, gid in final_assignment.items()
+            if gid in weak_group_ids and confidence_map.get(i, "high") == "low"
+        ]
+
+        if review_global_idxs:
+            weak_gnames = {
+                gid: group_names[gid]
+                for gid in weak_group_ids if gid in group_names
+            }
+            review_df  = df.iloc[review_global_idxs].reset_index(drop=True)
+            l2g        = {li: gi for li, gi in enumerate(review_global_idxs)}
+            local_curr = {li: final_assignment[gi] for li, gi in l2g.items()}
+
+            print(f"\n  Review — {len(review_global_idxs)} low-confidence papers "
+                  f"from {len(weak_group_ids)} weak groups...")
+            rev_msg    = _build_review_message(
+                review_df, local_curr, all_known_dynamic, weak_gnames
+            )
+            approx_tkr = len(rev_msg) // 4
+            print(f"  Review prompt ≈ {approx_tkr:,} tokens.")
+
+            rev_result = None
+            for attempt in range(1, GROUPING_MAX_RETRIES + 1):
+                print(f"  Review attempt {attempt}/{GROUPING_MAX_RETRIES}...")
+                raw = _haiku_call(client, _PASS2_SYSTEM, rev_msg, max_tokens=4096)
+                if raw is not None:
+                    print(f"  Response length: {len(raw)} chars.")
+                    # existing_dynamic_ids for review = all currently known
+                    all_known_now = existing_dynamic_ids | set(new_group_names.keys())
+                    rev_result    = _parse_pass2_response(
+                        raw, len(review_df), all_known_now
+                    )
+                    if rev_result is not None:
+                        print("  ✓ Review parsed.")
+                        break
+                if attempt < GROUPING_MAX_RETRIES:
+                    wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
+                    print(f"  Retrying in {wait}s...")
+                    time.sleep(wait)
+
+            if rev_result is not None:
+                rev_assignments, rev_new_groups = rev_result
+                # Apply review overrides
+                for li, asgn in rev_assignments.items():
+                    gi = l2g[li]
+                    final_assignment[gi] = asgn["group"]
+                    confidence_map[gi]   = asgn["confidence"]
+                # Add any new groups from review
+                group_names.update(rev_new_groups)
+                all_known_dynamic.update(rev_new_groups)
+                if rev_new_groups:
+                    rev_max = max(rev_new_groups.keys())
+                    taxonomy["next_id"] = max(
+                        taxonomy.get("next_id", 14), rev_max + 1
+                    )
+                # Recompute run stats after review overrides
+                run_group_stats = _build_run_stats(
+                    final_assignment, confidence_map, group_names
+                )
+                print(f"  Review complete: {len(rev_assignments)} papers "
+                      f"re-evaluated.")
+            else:
+                print("  ✗ Review failed — keeping pass 2 assignments.")
+
+    # ── Update and save dynamic taxonomy ─────────────────────────────────────
+    taxonomy = _update_taxonomy(taxonomy, run_group_stats, today)
+    save_dynamic_taxonomy(taxonomy)
+
+    # ── Safety: merge down if over GROUP_COUNT_MAX ────────────────────────────
+    if len(set(final_assignment.values())) > GROUP_COUNT_MAX:
+        final_assignment, group_names = _merge_excess_groups(
+            final_assignment, group_names, df, target_max=GROUP_COUNT_MAX
+        )
+
+    # ── Apply to DataFrame ────────────────────────────────────────────────────
+    df["group_id_v2"] = [final_assignment[i] for i in range(n)]
+
     group_counts = df["group_id_v2"].value_counts().sort_index()
     for gid, count in group_counts.items():
-        print(f"    Group {gid:>2} ({count:>3} papers): '{group_names.get(gid, '?')}'")
+        print(f"    Group {gid:>2} ({count:>3} papers): "
+              f"'{group_names.get(gid, '?')}'")
     print(f"  Total: {len(group_counts)} groups, {n} papers assigned.")
 
-    # Cache for offline mode
-    with open(GROUP_NAMES_CACHE, "w") as f:
-        json.dump({str(k): v for k, v in group_names.items()}, f, indent=2)
-    print(f"  Group names cached to {GROUP_NAMES_CACHE}.")
-
+    _save_group_names_cache(group_names)
     return df, group_names
-
 
 def _load_group_names_cache(df: pd.DataFrame | None = None) -> dict[int, str]:
     """Load group names from cache (used in offline mode).
@@ -1060,7 +1443,9 @@ if __name__ == "__main__":
     print(f"  AI Research Atlas v2 — {run_date} UTC")
     print(f"  OFFLINE_MODE       : {OFFLINE_MODE}")
     print(f"  BACKFILL_HINDICES  : {BACKFILL_HINDICES}")
-    print(f"  GROUP_COUNT        : up to {GROUP_COUNT_MAX} ({GROUP_STABLE_COUNT} stable + uncapped dynamic)")
+    print(f"  GROUP_COUNT        : up to {GROUP_COUNT_MAX} ({GROUP_STABLE_COUNT} stable + dynamic)")
+    print(f"  PASS1_UNCERTAIN_CAP: {PASS1_UNCERTAIN_CAP}")
+    print(f"  TAXONOMY_PATH      : {TAXONOMY_PATH}")
     print(f"  LAYOUT_SCALE       : {LAYOUT_SCALE}")
     print(f"  SCATTER_FRACTION   : {SCATTER_FRACTION}")
     print(f"  VARIANCE_AMPLIFIER : {VARIANCE_AMPLIFIER}")
@@ -1276,42 +1661,33 @@ if __name__ == "__main__":
         if "authors_list" not in df.columns:
             df["authors_list"] = None
 
-        if OPENALEX_OFFLINE_MODE:
-            print("  OPENALEX_OFFLINE_MODE=true — skipping OpenAlex fetch.")
-            print("  Existing author_hindices carried forward; new papers get [].")
-            # Fill any missing entries (new papers added this run)
-            df["author_hindices"] = df["author_hindices"].apply(
-                lambda x: x if isinstance(x, list) else []
-            )
+        author_cache = load_author_cache()
+
+        if BACKFILL_HINDICES:
+            # Re-fetch for all rows, including those with empty lists
+            needs_hindex = pd.Series([True] * len(df), index=df.index)
+            print(f"  BACKFILL_HINDICES=true — re-fetching all {len(df)} papers.")
         else:
-            author_cache = load_author_cache()
+            # Normal mode: only fetch for rows missing h-index data
+            needs_hindex = df["author_hindices"].isna() | df["author_hindices"].apply(
+                lambda x: isinstance(x, list) and len(x) == 0
+            )
 
-            if BACKFILL_HINDICES:
-                # Re-fetch for all rows, including those with empty lists
-                needs_hindex = pd.Series([True] * len(df), index=df.index)
-                print(f"  BACKFILL_HINDICES=true — re-fetching all {len(df)} papers.")
-            else:
-                # Normal mode: only fetch for rows missing h-index data
-                needs_hindex = df["author_hindices"].isna() | df["author_hindices"].apply(
-                    lambda x: isinstance(x, list) and len(x) == 0
-                )
+        n_needs = needs_hindex.sum()
+        print(f"  {n_needs} papers need h-index lookup"
+              f" ({len(df) - n_needs} already have data).")
 
-            n_needs = needs_hindex.sum()
-            print(f"  {n_needs} papers need h-index lookup"
-                  f" ({len(df) - n_needs} already have data).")
+        for idx in df.index[needs_hindex]:
+            authors = df.at[idx, "authors_list"]
+            if not isinstance(authors, list) or len(authors) == 0:
+                df.at[idx, "author_hindices"] = []
+                continue
+            df.at[idx, "author_hindices"] = fetch_author_hindices(authors, author_cache)
 
-            for idx in df.index[needs_hindex]:
-                authors = df.at[idx, "authors_list"]
-                if not isinstance(authors, list) or len(authors) == 0:
-                    df.at[idx, "author_hindices"] = []
-                    continue
-                df.at[idx, "author_hindices"] = fetch_author_hindices(authors, author_cache)
+        save_author_cache(author_cache)
+        print(f"  h-index enrichment complete. Cache now has {len(author_cache)} entries.")
 
-            save_author_cache(author_cache)
-            print(f"  h-index enrichment complete. Cache now has {len(author_cache)} entries.")
-
-        # Compute Prominence from whatever author_hindices is in the data
-        # (runs in both normal and OPENALEX_OFFLINE_MODE)
+        # Compute Prominence now that author_hindices is populated
         df["Prominence"] = df.apply(calculate_prominence, axis=1)
         tier_counts = df["Prominence"].value_counts()
         for tier in ["Elite", "Enhanced", "Emerging", "Unverified"]:
