@@ -107,7 +107,7 @@ jobs:
           # ── OPENALEX QUOTA EXCEEDED: uncomment to skip OpenAlex fetch ────
           # Existing author_hindices carry forward; new papers get Unverified.
           # Prominence is still recomputed. Remove once quota resets.
-          # OPENALEX_OFFLINE_MODE: "true"
+          OPENALEX_OFFLINE_MODE: "true"
 
           # ── One-time repair: rebuilds author h-index for all papers ──────
           # Comment out immediately after one successful run.
