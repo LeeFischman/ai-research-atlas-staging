@@ -57,8 +57,9 @@ jobs:
       #   The cron trigger handles this automatically. No changes needed
       #   beyond confirming the two "must be off" items below are off.
       #
-      #   OFFLINE_MODE:     must be commented out
-      #   BACKFILL_HINDICES: must be commented out
+      #   OFFLINE_MODE:          must be commented out
+      #   BACKFILL_HINDICES:     must be commented out
+      #   OPENALEX_OFFLINE_MODE: must be commented out
       #   Everything else:  leave as configured
       # ════════════════════════════════════════════════════════════════════
 
@@ -99,8 +100,14 @@ jobs:
           PYTHONUNBUFFERED: "1"
           OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
 
-          # ── STATIC TEST: uncomment to skip all API calls ─────────────────
+          # ── STATIC TEST: uncomment to skip arXiv, SPECTER2, and Haiku ──────
+          # Runs layout + Atlas build only. Use for UI/CSS iteration.
           # OFFLINE_MODE: "true"
+
+          # ── OPENALEX QUOTA EXCEEDED: uncomment to skip OpenAlex fetch ────
+          # Existing author_hindices carry forward; new papers get Unverified.
+          # Prominence is still recomputed. Remove once quota resets.
+          OPENALEX_OFFLINE_MODE: "true"
 
           # ── One-time repair: rebuilds author h-index for all papers ──────
           # Comment out immediately after one successful run.
