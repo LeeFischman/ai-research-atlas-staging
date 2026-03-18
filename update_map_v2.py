@@ -331,10 +331,11 @@ _PASS1_SYSTEM = (
     "Uncertain papers receive specialized dynamic-group review.\n"
     "- Prefer stable categories: only mark uncertain if genuinely ambiguous.\n\n"
     "OUTPUT FORMAT — respond ONLY with JSON, no preamble, no markdown fences:\n"
-    '{"assignments": {"0": 3, "1": 0, "2": 7, ...}, "uncertain": [4, 17, ...]}\n'
-    "- 'assignments': every paper index 0 to N-1 maps to a stable group_id (0-13).\n"
-    "- 'uncertain': subset of indices where no stable category fits well.\n"
-    "- Both certain and uncertain papers must appear in 'assignments'."
+    '{"assignments": [3, 0, 7, 1, ...], "uncertain": [4, 17, ...]}\n'
+    "- 'assignments': a JSON array of length N where assignments[i] is the\n"
+    "  stable group_id (0-13) for paper i. Index position = paper index.\n"
+    "- 'uncertain': list of paper indices where no stable category fits well.\n"
+    "- Every paper index 0 to N-1 must be represented (array length = N)."
 )
 
 _PASS2_SYSTEM = (
@@ -457,8 +458,10 @@ def _build_pass1_message(df: pd.DataFrame) -> str:
         "fit any stable category, still provide your best stable assignment AND "
         "include the index in 'uncertain'.\n"
         "Return JSON only — no preamble, no markdown:\n"
-        '{"assignments": {"0": 3, "1": 0, ...}, "uncertain": [4, 17, ...]}\n'
-        "Every paper index 0 to N-1 must appear in 'assignments'.\n"
+        '{"assignments": [3, 0, 7, 1, ...], "uncertain": [4, 17, ...]}\n'
+        "- 'assignments': array of length N; assignments[i] = stable group_id for paper i.\n"
+        "- 'uncertain': list of paper indices where no stable category fits well.\n"
+        "- Array length must equal N (every paper covered).\n"
     ]
     for i, row in df.iterrows():
         lines.append(f"[{i}] {str(row['title']).strip()}")
@@ -490,30 +493,24 @@ def _parse_pass1_response(
     assignments_raw = data["assignments"]
     uncertain_raw   = data.get("uncertain", [])
 
-    if not isinstance(assignments_raw, dict):
-        print(f"    'assignments' must be a dict, got {type(assignments_raw).__name__}.")
+    if not isinstance(assignments_raw, list):
+        print(f"    'assignments' must be a list, got {type(assignments_raw).__name__}.")
         return None
     if not isinstance(uncertain_raw, list):
         print(f"    'uncertain' must be a list, got {type(uncertain_raw).__name__}.")
         return None
 
+    if len(assignments_raw) != n_papers:
+        print(f"    'assignments' length {len(assignments_raw)} != n_papers {n_papers}.")
+        return None
+
     assignments: dict[int, int] = {}
-    for k, v in assignments_raw.items():
-        try:
-            i = int(k)
-        except (ValueError, TypeError):
-            print(f"    Non-integer paper index: {k!r}")
-            return None
+    for i, v in enumerate(assignments_raw):
         if not isinstance(v, int) or v < 0 or v > 13:
-            print(f"    Invalid stable group_id {v!r} for paper {i} "
+            print(f"    Invalid stable group_id {v!r} at index {i} "
                   f"(must be integer 0-13).")
             return None
         assignments[i] = v
-
-    missing = set(range(n_papers)) - set(assignments.keys())
-    if missing:
-        print(f"    Missing paper indices in assignments: {sorted(missing)[:10]}...")
-        return None
 
     uncertain: list[int] = []
     seen: set[int] = set()
