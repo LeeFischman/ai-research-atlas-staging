@@ -9,10 +9,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      # Job-level env vars are visible to ALL steps (including nightly assert).
-      # To skip OpenAlex fetch: uncomment below. Comment out for production.
-      OPENALEX_OFFLINE_MODE: "true"
+    # To skip OpenAlex fetch for all steps, add a job-level env block here:
+      env:
+        OPENALEX_OFFLINE_MODE: "true"
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -107,11 +106,6 @@ jobs:
           # ── STATIC TEST: uncomment to skip arXiv, SPECTER2, and Haiku ──────
           # Runs layout + Atlas build only. Use for UI/CSS iteration.
           # OFFLINE_MODE: "true"
-
-          # ── OPENALEX QUOTA EXCEEDED: uncomment to skip OpenAlex fetch ────
-          # Existing author_hindices carry forward; new papers get Unverified.
-          # Prominence is still recomputed. Remove once quota resets.
-          OPENALEX_OFFLINE_MODE: "true"  # set at job level above instead
 
           # ── One-time repair: rebuilds author h-index for all papers ──────
           # Comment out immediately after one successful run.
