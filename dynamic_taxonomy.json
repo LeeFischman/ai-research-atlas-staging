@@ -1,15 +1,17 @@
 {
-  "next_id": 26,
+  "next_id": 31,
   "groups": {
     "22": {
       "name": "AI Philosophy & Theory",
       "created": "2026-03-19",
       "last_seen": "2026-03-19",
       "confidence_history": [
-        0.55
+        0.55,
+        1.0
       ],
       "paper_count_history": [
-        20
+        20,
+        5
       ]
     },
     "21": {
@@ -17,10 +19,12 @@
       "created": "2026-03-19",
       "last_seen": "2026-03-19",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        8
+        8,
+        2
       ]
     },
     "15": {
@@ -28,10 +32,12 @@
       "created": "2026-03-19",
       "last_seen": "2026-03-19",
       "confidence_history": [
-        0.958
+        0.958,
+        1.0
       ],
       "paper_count_history": [
-        24
+        24,
+        6
       ]
     },
     "20": {
@@ -39,10 +45,12 @@
       "created": "2026-03-19",
       "last_seen": "2026-03-19",
       "confidence_history": [
-        0.8
+        0.8,
+        1.0
       ],
       "paper_count_history": [
-        10
+        10,
+        7
       ]
     },
     "16": {
@@ -50,10 +58,12 @@
       "created": "2026-03-19",
       "last_seen": "2026-03-19",
       "confidence_history": [
-        0.947
+        0.947,
+        1.0
       ],
       "paper_count_history": [
-        19
+        19,
+        11
       ]
     },
     "23": {
@@ -72,10 +82,12 @@
       "created": "2026-03-19",
       "last_seen": "2026-03-19",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        11
+        11,
+        2
       ]
     },
     "19": {
@@ -83,10 +95,12 @@
       "created": "2026-03-19",
       "last_seen": "2026-03-19",
       "confidence_history": [
-        0.667
+        0.667,
+        1.0
       ],
       "paper_count_history": [
-        12
+        12,
+        3
       ]
     },
     "17": {
@@ -94,10 +108,12 @@
       "created": "2026-03-19",
       "last_seen": "2026-03-19",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        4
+        4,
+        1
       ]
     },
     "24": {
@@ -105,14 +121,42 @@
       "created": "2026-03-19",
       "last_seen": "2026-03-19",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        4
+        4,
+        7
       ]
     },
     "18": {
       "name": "Foundation Models & Transfer Learning",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        1.0,
+        1.0
+      ],
+      "paper_count_history": [
+        2,
+        2
+      ]
+    },
+    "25": {
+      "name": "Knowledge Graphs & Semantic Reasoning",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        1.0,
+        1.0
+      ],
+      "paper_count_history": [
+        4,
+        2
+      ]
+    },
+    "30": {
+      "name": "Federated & Distributed Learning",
       "created": "2026-03-19",
       "last_seen": "2026-03-19",
       "confidence_history": [
@@ -122,15 +166,48 @@
         2
       ]
     },
-    "25": {
-      "name": "Knowledge Graphs & Semantic Reasoning",
+    "26": {
+      "name": "Adaptive Control & Resource Optimization",
       "created": "2026-03-19",
       "last_seen": "2026-03-19",
       "confidence_history": [
         1.0
       ],
       "paper_count_history": [
-        4
+        2
+      ]
+    },
+    "29": {
+      "name": "Physics-Informed AI",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        2
+      ]
+    },
+    "27": {
+      "name": "Causal Reasoning & Intervention",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        3
+      ]
+    },
+    "28": {
+      "name": "Vision-Language-Action Models",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        3
       ]
     }
   }
