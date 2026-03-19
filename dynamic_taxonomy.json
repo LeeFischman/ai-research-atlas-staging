@@ -1,0 +1,137 @@
+{
+  "next_id": 26,
+  "groups": {
+    "22": {
+      "name": "AI Philosophy & Theory",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        0.55
+      ],
+      "paper_count_history": [
+        20
+      ]
+    },
+    "21": {
+      "name": "Cognitive Science & Brain-Inspired AI",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        8
+      ]
+    },
+    "15": {
+      "name": "Mechanistic Interpretability & Probing",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        0.958
+      ],
+      "paper_count_history": [
+        24
+      ]
+    },
+    "20": {
+      "name": "Scientific Computing & Simulation",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        0.8
+      ],
+      "paper_count_history": [
+        10
+      ]
+    },
+    "16": {
+      "name": "AI Agents & Multi-Agent Systems",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        0.947
+      ],
+      "paper_count_history": [
+        19
+      ]
+    },
+    "23": {
+      "name": "Code Generation & Software Engineering",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        5
+      ]
+    },
+    "14": {
+      "name": "Neurosymbolic & Hybrid AI",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        11
+      ]
+    },
+    "19": {
+      "name": "Quantum Computing & AI",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        0.667
+      ],
+      "paper_count_history": [
+        12
+      ]
+    },
+    "17": {
+      "name": "Model Editing & Continual Learning",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        4
+      ]
+    },
+    "24": {
+      "name": "Temporal & Sequential Modeling",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        4
+      ]
+    },
+    "18": {
+      "name": "Foundation Models & Transfer Learning",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        2
+      ]
+    },
+    "25": {
+      "name": "Knowledge Graphs & Semantic Reasoning",
+      "created": "2026-03-19",
+      "last_seen": "2026-03-19",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        4
+      ]
+    }
+  }
+}
