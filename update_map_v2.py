@@ -232,6 +232,11 @@ HAIKU_MODEL = "claude-haiku-4-5-20251001"
 
 _STABLE_BUCKETS = """STABLE CATEGORIES (use only those that have papers today — skip empty ones):
 
+ID 0 — Language Models & Reasoning
+  Core LLM research: pretraining, fine-tuning, RLHF, instruction following,
+  chain-of-thought, inference-time scaling, agents, prompt engineering,
+  retrieval-augmented generation, context length, and LLM efficiency.
+
 ID 1 — Computer Vision
   Image and video understanding, generation, and editing. Object detection,
   segmentation, recognition, diffusion models for images, 3D reconstruction,
@@ -293,23 +298,12 @@ ID 12 — Human-AI Interaction
 ID 13 — Planning & Search
   Planning algorithms, search-based reasoning, symbolic AI, combinatorial
   optimisation, constraint satisfaction, automated reasoning, and hybrid
-  neuro-symbolic approaches where planning or search is the core contribution.
-
-ID 0 — Language Models & Pretraining
-  ONLY use for papers whose PRIMARY contribution is the language model itself:
-  pretraining objectives, model architecture, fine-tuning methods, RLHF,
-  inference-time scaling, context length, or LLM-specific efficiency (e.g.
-  quantization, distillation of LLMs).
-  NOT this category: agents, RAG, prompt engineering, reasoning chains,
-  instruction following, tool use, LLM applications, or any paper where an
-  LLM is used as a component rather than studied as the primary subject.
-  If unsure whether the LLM or its application is the main contribution,
-  mark the paper uncertain."""
+  neuro-symbolic approaches where planning or search is the core contribution."""
 
 
 # Canonical names for stable buckets — used to normalise Haiku's output.
 _STABLE_BUCKET_NAMES: dict[int, str] = {
-    0:  "Language Models & Pretraining",
+    0:  "Language Models & Reasoning",
     1:  "Computer Vision",
     2:  "Multimodal Learning",
     3:  "Reinforcement Learning",
@@ -338,12 +332,7 @@ _PASS1_SYSTEM = (
     "- When a paper could fit multiple categories, assign it to the one where "
     "its PRIMARY CONTRIBUTION lies — the thing the authors would consider their "
     "main result.\n"
-    "- Consider ALL categories before settling on one. Categories are listed "
-    "with ID 0 last deliberately — exhaust all other options before using it.\n"
-    "- ID 0 (Language Models & Pretraining) is ONLY for papers studying the "
-    "model itself. Papers using LLMs as a tool belong elsewhere or in uncertain.\n"
-    "- Mark a paper 'uncertain' if it uses LLMs as a component but its main "
-    "contribution is agentic, applied, or not clearly core model research. "
+    "- Mark a paper 'uncertain' only when no stable category fits well. "
     "Uncertain papers receive specialized dynamic-group review.\n"
     "- Prefer stable categories: only mark uncertain if genuinely ambiguous.\n\n"
     "OUTPUT FORMAT — respond ONLY with JSON, no preamble, no markdown fences:\n"
@@ -982,6 +971,8 @@ def haiku_group_papers(
                 if b_result is not None:
                     print(f"    ✓ Parsed.")
                     break
+                else:
+                    print(f"    Full response dump:\n{raw}")
 
             if attempt < GROUPING_MAX_RETRIES:
                 wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
