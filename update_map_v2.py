@@ -370,8 +370,22 @@ _PASS2_SYSTEM = (
 
 # ── Low-level API helper ──────────────────────────────────────────────────────
 
-def _haiku_call(client, system: str, user: str, max_tokens: int) -> str | None:
-    """Single Haiku API call. Returns raw response text or None on exception."""
+def _haiku_call(
+    client, system: str, user: str, max_tokens: int,
+    log_label: str = "",
+) -> str | None:
+    """Single Haiku API call. Returns raw response text or None on exception.
+
+    Logs the full prompt and full response for every call to aid debugging.
+    log_label: short string identifying the call context (e.g. "Pass 1 batch 3/21").
+    """
+    label_str = f"[{log_label}] " if log_label else ""
+    print(f"    {label_str}── PROMPT ({len(user)} chars, max_tokens={max_tokens}) ──")
+    # Print prompt in chunks so long prompts don't get swallowed by log truncation
+    for i in range(0, len(user), 2000):
+        print(user[i:i+2000])
+    print(f"    {label_str}── END PROMPT ──")
+
     try:
         response = client.messages.create(
             model=HAIKU_MODEL,
@@ -379,7 +393,11 @@ def _haiku_call(client, system: str, user: str, max_tokens: int) -> str | None:
             system=system,
             messages=[{"role": "user", "content": user}],
         )
-        return response.content[0].text.strip()
+        raw = response.content[0].text.strip()
+        print(f"    {label_str}── RESPONSE ({len(raw)} chars) ──")
+        print(raw)
+        print(f"    {label_str}── END RESPONSE ──")
+        return raw
     except Exception as e:
         err_str = str(e)
         is_529  = "529" in err_str or "overloaded" in err_str.lower()
@@ -505,8 +523,16 @@ def _parse_pass1_response(
         print(f"    'uncertain' must be a list, got {type(uncertain_raw).__name__}.")
         return None
 
-    if len(assignments_raw) != n_papers:
-        print(f"    'assignments' length {len(assignments_raw)} != n_papers {n_papers}.")
+    # Allow short arrays: Haiku occasionally drops a few trailing entries.
+    # Hard-fail only if the array is more than 10% short (likely garbage).
+    n_received = len(assignments_raw)
+    if n_received > n_papers:
+        print(f"    'assignments' length {n_received} > n_papers {n_papers} "
+              f"— truncating excess.")
+        assignments_raw = assignments_raw[:n_papers]
+    elif n_received < int(n_papers * 0.90):
+        print(f"    'assignments' length {n_received} is >10% short of "
+              f"n_papers {n_papers} — hard fail.")
         return None
 
     assignments: dict[int, int] = {}
@@ -517,8 +543,18 @@ def _parse_pass1_response(
             return None
         assignments[i] = v
 
-    uncertain: list[int] = []
-    seen: set[int] = set()
+    # Fill any gaps (trailing entries Haiku dropped) with group 0
+    # and route them to uncertain for pass 2 review.
+    gap_indices: list[int] = []
+    for i in range(len(assignments_raw), n_papers):
+        assignments[i] = 0
+        gap_indices.append(i)
+    if gap_indices:
+        print(f"    {len(gap_indices)} trailing paper(s) not returned by Haiku "
+              f"— defaulted to group 0, routed to uncertain.")
+
+    uncertain: list[int] = list(gap_indices)  # gaps go to uncertain first
+    seen: set[int]       = set(gap_indices)
     for idx in uncertain_raw:
         try:
             i = int(idx)
@@ -943,15 +979,15 @@ def haiku_group_papers(
         b_result = None
         for attempt in range(1, GROUPING_MAX_RETRIES + 1):
             print(f"    Attempt {attempt}/{GROUPING_MAX_RETRIES}...")
-            raw = _haiku_call(client, _PASS1_SYSTEM, p1_msg, max_tokens=4096)
+            raw = _haiku_call(client, _PASS1_SYSTEM, p1_msg, max_tokens=4096,
+                              log_label=f"Pass 1 batch {b+1}/{n_p1_batches}")
             if raw is not None:
                 print(f"    Response length: {len(raw)} chars.")
                 b_result = _parse_pass1_response(raw, b_size)
                 if b_result is not None:
                     print(f"    ✓ Parsed.")
                     break
-                else:
-                    print(f"    Raw response preview: {raw[:300]!r}")
+
             if attempt < GROUPING_MAX_RETRIES:
                 wait = GROUPING_RETRY_BASE_WAIT * (2 ** (attempt - 1))
                 print(f"    Retrying in {wait}s...")
@@ -1009,7 +1045,8 @@ def haiku_group_papers(
         p2_result = None
         for attempt in range(1, GROUPING_MAX_RETRIES + 1):
             print(f"  Attempt {attempt}/{GROUPING_MAX_RETRIES}...")
-            raw = _haiku_call(client, _PASS2_SYSTEM, p2_msg, max_tokens=8192)
+            raw = _haiku_call(client, _PASS2_SYSTEM, p2_msg, max_tokens=8192,
+                              log_label="Pass 2")
             if raw is not None:
                 print(f"  Response length: {len(raw)} chars.")
                 p2_result = _parse_pass2_response(raw, n_uncertain,
@@ -1126,7 +1163,8 @@ def haiku_group_papers(
             rev_result = None
             for attempt in range(1, GROUPING_MAX_RETRIES + 1):
                 print(f"  Review attempt {attempt}/{GROUPING_MAX_RETRIES}...")
-                raw = _haiku_call(client, _PASS2_SYSTEM, rev_msg, max_tokens=4096)
+                raw = _haiku_call(client, _PASS2_SYSTEM, rev_msg, max_tokens=4096,
+                                  log_label="Review")
                 if raw is not None:
                     print(f"  Response length: {len(raw)} chars.")
                     # existing_dynamic_ids for review = all currently known
