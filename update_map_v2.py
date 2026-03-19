@@ -370,22 +370,8 @@ _PASS2_SYSTEM = (
 
 # ── Low-level API helper ──────────────────────────────────────────────────────
 
-def _haiku_call(
-    client, system: str, user: str, max_tokens: int,
-    log_label: str = "",
-) -> str | None:
-    """Single Haiku API call. Returns raw response text or None on exception.
-
-    Logs the full prompt and full response for every call to aid debugging.
-    log_label: short string identifying the call context (e.g. "Pass 1 batch 3/21").
-    """
-    label_str = f"[{log_label}] " if log_label else ""
-    print(f"    {label_str}── PROMPT ({len(user)} chars, max_tokens={max_tokens}) ──")
-    # Print prompt in chunks so long prompts don't get swallowed by log truncation
-    for i in range(0, len(user), 2000):
-        print(user[i:i+2000])
-    print(f"    {label_str}── END PROMPT ──")
-
+def _haiku_call(client, system: str, user: str, max_tokens: int) -> str | None:
+    """Single Haiku API call. Returns raw response text or None on exception."""
     try:
         response = client.messages.create(
             model=HAIKU_MODEL,
@@ -393,11 +379,7 @@ def _haiku_call(
             system=system,
             messages=[{"role": "user", "content": user}],
         )
-        raw = response.content[0].text.strip()
-        print(f"    {label_str}── RESPONSE ({len(raw)} chars) ──")
-        print(raw)
-        print(f"    {label_str}── END RESPONSE ──")
-        return raw
+        return response.content[0].text.strip()
     except Exception as e:
         err_str = str(e)
         is_529  = "529" in err_str or "overloaded" in err_str.lower()
@@ -475,19 +457,22 @@ def _review_threshold(n_runs: int) -> float | None:
 # ── Pass 1: stable assignment ─────────────────────────────────────────────────
 
 def _build_pass1_message(df: pd.DataFrame) -> str:
+    n = len(df)
     lines = [
-        f"Assign each of the following {len(df)} AI research papers to a stable "
-        "category (IDs 0-13) using the title alone. For papers that do not clearly "
-        "fit any stable category, still provide your best stable assignment AND "
-        "include the index in 'uncertain'.\n"
+        f"Assign each of the following {n} AI research papers to a stable "
+        "category using the title alone. The ONLY valid group IDs are 0 through 13 — "
+        "do NOT use any other numbers as group IDs.\n"
+        "For papers that do not clearly fit any stable category, still provide your "
+        "best stable assignment AND include its position (0-based) in 'uncertain'.\n"
         "Return JSON only — no preamble, no markdown:\n"
         '{"assignments": [3, 0, 7, 1, ...], "uncertain": [4, 17, ...]}\n'
-        "- 'assignments': array of length N; assignments[i] = stable group_id for paper i.\n"
-        "- 'uncertain': list of paper indices where no stable category fits well.\n"
-        "- Array length must equal N (every paper covered).\n"
+        f"- 'assignments': array of exactly {n} integers, each between 0 and 13 inclusive.\n"
+        "- 'uncertain': list of 0-based positions where no stable category fits well.\n"
+        "- Every value in 'assignments' MUST be 0-13. Never use the paper's position as a group ID.\n"
     ]
-    for i, row in df.iterrows():
-        lines.append(f"[{i}] {str(row['title']).strip()}")
+    # No numeric prefixes — they confuse position with group ID
+    for _, row in df.iterrows():
+        lines.append(str(row['title']).strip())
     return "\n".join(lines)
 
 
@@ -979,8 +964,7 @@ def haiku_group_papers(
         b_result = None
         for attempt in range(1, GROUPING_MAX_RETRIES + 1):
             print(f"    Attempt {attempt}/{GROUPING_MAX_RETRIES}...")
-            raw = _haiku_call(client, _PASS1_SYSTEM, p1_msg, max_tokens=4096,
-                              log_label=f"Pass 1 batch {b+1}/{n_p1_batches}")
+            raw = _haiku_call(client, _PASS1_SYSTEM, p1_msg, max_tokens=4096)
             if raw is not None:
                 print(f"    Response length: {len(raw)} chars.")
                 b_result = _parse_pass1_response(raw, b_size)
@@ -1045,8 +1029,7 @@ def haiku_group_papers(
         p2_result = None
         for attempt in range(1, GROUPING_MAX_RETRIES + 1):
             print(f"  Attempt {attempt}/{GROUPING_MAX_RETRIES}...")
-            raw = _haiku_call(client, _PASS2_SYSTEM, p2_msg, max_tokens=8192,
-                              log_label="Pass 2")
+            raw = _haiku_call(client, _PASS2_SYSTEM, p2_msg, max_tokens=8192)
             if raw is not None:
                 print(f"  Response length: {len(raw)} chars.")
                 p2_result = _parse_pass2_response(raw, n_uncertain,
@@ -1163,8 +1146,7 @@ def haiku_group_papers(
             rev_result = None
             for attempt in range(1, GROUPING_MAX_RETRIES + 1):
                 print(f"  Review attempt {attempt}/{GROUPING_MAX_RETRIES}...")
-                raw = _haiku_call(client, _PASS2_SYSTEM, rev_msg, max_tokens=4096,
-                                  log_label="Review")
+                raw = _haiku_call(client, _PASS2_SYSTEM, rev_msg, max_tokens=4096)
                 if raw is not None:
                     print(f"  Response length: {len(raw)} chars.")
                     # existing_dynamic_ids for review = all currently known
