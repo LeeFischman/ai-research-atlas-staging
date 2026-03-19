@@ -1475,6 +1475,11 @@ def build_and_deploy_atlas(
         font_html, panel_html = build_panel_html(run_date)
         with open(index_file, "r", encoding="utf-8", errors="replace") as f:
             content = f.read()
+        # Rename browser tab title from CLI default to "AI Research Atlas"
+        import re as _re
+        content = _re.sub(r"<title>[^<]*</title>",
+                          "<title>AI Research Atlas</title>", content)
+
         if "</head>" in content:
             content = content.replace("</head>", font_html + "\n</head>")
         else:
