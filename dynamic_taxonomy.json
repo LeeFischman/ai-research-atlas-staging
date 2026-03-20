@@ -9,13 +9,15 @@
         0.55,
         1.0,
         0.5,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         20,
         5,
         2,
-        3
+        3,
+        5
       ]
     },
     "21": {
@@ -26,12 +28,14 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         8,
         2,
         3,
+        4,
         4
       ]
     },
@@ -43,13 +47,15 @@
         0.958,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         24,
         6,
         4,
-        12
+        12,
+        6
       ]
     },
     "20": {
@@ -60,13 +66,15 @@
         0.8,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         10,
         7,
         3,
-        8
+        8,
+        3
       ]
     },
     "16": {
@@ -77,13 +85,15 @@
         0.947,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         19,
         11,
         20,
-        38
+        38,
+        36
       ]
     },
     "23": {
@@ -93,12 +103,14 @@
       "confidence_history": [
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         5,
         7,
-        13
+        13,
+        10
       ]
     },
     "14": {
@@ -109,13 +121,15 @@
         1.0,
         1.0,
         1.0,
-        1.0
+        1.0,
+        0.75
       ],
       "paper_count_history": [
         11,
         2,
         2,
-        5
+        5,
+        4
       ]
     },
     "19": {
@@ -126,13 +140,15 @@
         0.667,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         12,
         3,
         2,
-        3
+        3,
+        4
       ]
     },
     "17": {
@@ -143,13 +159,15 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         4,
         1,
         3,
-        13
+        13,
+        1
       ]
     },
     "24": {
@@ -160,12 +178,14 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         4,
         7,
         3,
+        4,
         4
       ]
     },
@@ -177,13 +197,15 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         2,
         2,
         2,
-        4
+        4,
+        3
       ]
     },
     "25": {
@@ -194,13 +216,15 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         4,
         2,
         2,
-        6
+        6,
+        2
       ]
     },
     "30": {
@@ -210,12 +234,14 @@
       "confidence_history": [
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         2,
         4,
-        3
+        3,
+        4
       ]
     },
     "26": {
@@ -225,12 +251,14 @@
       "confidence_history": [
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         2,
         2,
-        7
+        7,
+        5
       ]
     },
     "29": {
@@ -240,9 +268,11 @@
       "confidence_history": [
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
+        2,
         2,
         2,
         2
@@ -254,9 +284,11 @@
       "last_seen": "2026-03-20",
       "confidence_history": [
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
+        3,
         3,
         3
       ]
@@ -268,12 +300,14 @@
       "confidence_history": [
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         3,
         1,
-        3
+        3,
+        6
       ]
     },
     "31": {
@@ -282,11 +316,13 @@
       "last_seen": "2026-03-20",
       "confidence_history": [
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         3,
-        3
+        3,
+        5
       ]
     },
     "35": {
@@ -294,10 +330,12 @@
       "created": "2026-03-20",
       "last_seen": "2026-03-20",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        16
+        16,
+        10
       ]
     },
     "32": {
@@ -305,10 +343,12 @@
       "created": "2026-03-20",
       "last_seen": "2026-03-20",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        23
+        23,
+        7
       ]
     },
     "38": {
@@ -316,10 +356,12 @@
       "created": "2026-03-20",
       "last_seen": "2026-03-20",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        11
+        11,
+        14
       ]
     },
     "40": {
@@ -327,10 +369,12 @@
       "created": "2026-03-20",
       "last_seen": "2026-03-20",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        6
+        6,
+        4
       ]
     },
     "37": {
@@ -338,9 +382,11 @@
       "created": "2026-03-20",
       "last_seen": "2026-03-20",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
+        5,
         5
       ]
     },
@@ -349,10 +395,12 @@
       "created": "2026-03-20",
       "last_seen": "2026-03-20",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        13
+        13,
+        4
       ]
     },
     "39": {
@@ -360,9 +408,11 @@
       "created": "2026-03-20",
       "last_seen": "2026-03-20",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
+        9,
         9
       ]
     },
@@ -371,10 +421,12 @@
       "created": "2026-03-20",
       "last_seen": "2026-03-20",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        3
+        3,
+        2
       ]
     },
     "33": {
@@ -382,10 +434,23 @@
       "created": "2026-03-20",
       "last_seen": "2026-03-20",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        7
+        7,
+        5
+      ]
+    },
+    "41": {
+      "name": "LLM-Grounded Analysis & Auditing",
+      "created": "2026-03-20",
+      "last_seen": "2026-03-20",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        11
       ]
     }
   }
