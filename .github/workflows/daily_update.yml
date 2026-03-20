@@ -105,7 +105,7 @@ jobs:
 
           # ── STATIC TEST: uncomment to skip arXiv, SPECTER2, and Haiku ──────
           # Runs layout + Atlas build only. Use for UI/CSS iteration.
-          # OFFLINE_MODE: "true"
+          OFFLINE_MODE: "true"
 
           # ── One-time repair: rebuilds author h-index for all papers ──────
           # Comment out immediately after one successful run.
