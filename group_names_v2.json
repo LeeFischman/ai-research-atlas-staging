@@ -1,5 +1,5 @@
 {
-  "0": "Language Models & Reasoning",
+  "0": "Language Models & Pretraining",
   "1": "Computer Vision",
   "2": "Multimodal Learning",
   "3": "Reinforcement Learning",
@@ -26,8 +26,18 @@
   "24": "Temporal & Sequential Modeling",
   "25": "Knowledge Graphs & Semantic Reasoning",
   "26": "Adaptive Control & Resource Optimization",
+  "27": "Causal Reasoning & Intervention",
   "28": "Vision-Language-Action Models",
   "29": "Physics-Informed AI",
   "30": "Federated & Distributed Learning",
-  "31": "Vision-Language Reasoning & Grounding"
+  "31": "Vision-Language Reasoning & Grounding",
+  "32": "LLM Reasoning & Chain-of-Thought",
+  "33": "Multimodal Time Series & Forecasting",
+  "34": "AI Governance & Verification",
+  "35": "LLM Alignment & Reward Modeling",
+  "36": "Embodied Agents & Open Worlds",
+  "37": "Financial AI & Economics",
+  "38": "Clinical AI & Healthcare Applications",
+  "39": "Privacy & Security in AI",
+  "40": "Prompt Engineering & Context Design"
 }
