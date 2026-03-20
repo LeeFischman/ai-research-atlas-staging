@@ -1475,11 +1475,6 @@ def build_and_deploy_atlas(
         font_html, panel_html = build_panel_html(run_date)
         with open(index_file, "r", encoding="utf-8", errors="replace") as f:
             content = f.read()
-        # Rename browser tab title from CLI default to "AI Research Atlas"
-        import re as _re
-        content = _re.sub(r"<title>[^<]*</title>",
-                          "<title>AI Research Atlas</title>", content)
-
         if "</head>" in content:
             content = content.replace("</head>", font_html + "\n</head>")
         else:
@@ -1500,9 +1495,17 @@ def build_and_deploy_atlas(
         grid_cols = [
             "title", "ss_tldr", "abstract", "url", "date_added",
             "Prominence", "author_count", "CitationTier", "recency",
+            "secondary_tags",
         ]
         grid_cols = [c for c in grid_cols if c in grid_df.columns]
         grid_out = grid_df[grid_cols].copy()
+
+        # Ensure secondary_tags is a proper list column (not stringified)
+        # so pandas to_json emits it as a JSON array, not a string.
+        if "secondary_tags" in grid_out.columns:
+            grid_out["secondary_tags"] = grid_out["secondary_tags"].apply(
+                lambda v: v if isinstance(v, list) else []
+            )
 
         papers_json_path = os.path.join(docs_dir, "data", "papers.json")
         grid_out.to_json(papers_json_path, orient="records", default_handler=str)
@@ -2233,14 +2236,15 @@ def build_grid_html(run_date: str) -> str:
   }
   #grid-table tr:hover td { background:rgba(255,255,255,0.018); }
 
-  .col-title      { width:20%; min-width:150px; }
-  .col-tldr       { width:17%; min-width:110px; }
-  .col-abstract   { width:18%; min-width:120px; }
+  .col-title      { width:18%; min-width:150px; }
+  .col-tldr       { width:15%; min-width:110px; }
+  .col-abstract   { width:16%; min-width:120px; }
   .col-url        { width:5%;  min-width:56px;  }
-  .col-date       { width:8%;  min-width:82px;  }
-  .col-prominence { width:9%;  min-width:88px;  }
-  .col-count      { width:8%;  min-width:78px;  }
-  .col-citation   { width:11%; min-width:96px;  }
+  .col-date       { width:7%;  min-width:82px;  }
+  .col-prominence { width:8%;  min-width:88px;  }
+  .col-count      { width:7%;  min-width:78px;  }
+  .col-citation   { width:9%;  min-width:96px;  }
+  .col-secondary  { width:11%; min-width:100px; }
 
   .cell-title { color:#f1f5f9; font-weight:600; font-size:12px; text-decoration:none; display:block; line-height:1.4; }
   .cell-title:hover { color:var(--arm-accent); text-decoration:underline; }
@@ -2292,6 +2296,16 @@ def build_grid_html(run_date: str) -> str:
   .badge-cited          { color:#facc15; background:rgba(250,204,21,0.12);  border-color:rgba(250,204,21,0.35); }
   .badge-highly-cited   { color:#f97316; background:rgba(249,115,22,0.12); border-color:rgba(249,115,22,0.35); }
   .badge-vhc            { color:#ef4444; background:rgba(239,68,68,0.12);   border-color:rgba(239,68,68,0.35); }
+
+  /* Secondary topic tags */
+  .badge-secondary-tag {
+    display:inline-block; font-size:10px; font-weight:500;
+    padding:2px 6px; border-radius:4px; border:1px solid;
+    color:#818cf8; background:rgba(129,140,248,0.10);
+    border-color:rgba(129,140,248,0.30); white-space:nowrap;
+    margin:1px 2px 1px 0; cursor:pointer; transition:background 0.15s,border-color 0.15s;
+  }
+  .badge-secondary-tag:hover { background:rgba(129,140,248,0.22); border-color:rgba(129,140,248,0.5); }
 
   /* ── Status bar ────────────────────────────────────────────────────── */
   #grid-status-bar {
@@ -2368,6 +2382,12 @@ def build_grid_html(run_date: str) -> str:
        onclick="armShowFilterOptions('recency','Recency',this)">
       <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="7"/><polyline points="9,5 9,9 12,11"/></svg></span>
       <span class="arm-tile-text"><span class="arm-tile-label">Recency</span><span class="arm-tile-sub">Today \xb7 Yesterday \xb7 Earlier</span></span>
+    </a>
+
+    <a class="arm-tile" href="javascript:void(0)" id="tile-secondary_tags"
+       onclick="armShowFilterOptions('secondary_tags','Also In',this)">
+      <span class="arm-tile-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h12M9 3v12"/><circle cx="9" cy="9" r="7"/></svg></span>
+      <span class="arm-tile-text"><span class="arm-tile-label">Also In</span><span class="arm-tile-sub">Secondary topic tags</span></span>
     </a>
 
   </div>
@@ -2448,6 +2468,8 @@ def build_grid_html(run_date: str) -> str:
           Author Count <span class="sort-arrow" id="sa-author_count"></span></th>
         <th class="col-citation"   onclick="setSort('CitationTier')">
           Citation Impact <span class="sort-arrow" id="sa-CitationTier"></span></th>
+        <th class="col-secondary"  title="Secondary topic tags — click a chip to filter">
+          Also In</th>
       </tr>
     </thead>
     <tbody id="grid-tbody"></tbody>
@@ -2502,6 +2524,14 @@ def build_grid_html(run_date: str) -> str:
       // Fixed Fibonacci "or more" buckets — always shown regardless of data
       isGte = true;
       values = FIB_COUNT.map(String);
+    } else if (col === 'secondary_tags') {
+      // Flatten all tag arrays and collect unique values
+      var tagSeen = Object.create(null);
+      papers.forEach(function (p) {
+        var tags = Array.isArray(p.secondary_tags) ? p.secondary_tags : [];
+        tags.forEach(function (t) { if (t) tagSeen[t] = true; });
+      });
+      values = Object.keys(tagSeen).sort();
     } else {
       // Gather distinct non-empty values from data
       var seen = Object.create(null);
@@ -2615,6 +2645,12 @@ def build_grid_html(run_date: str) -> str:
       if (activeFilter.gte) {
         var threshold = Number(fv);
         rows = rows.filter(function (p) { return (p[fc] || 0) >= threshold; });
+      } else if (fc === 'secondary_tags') {
+        // Array-contains filter: keep papers where the tag appears in secondary_tags
+        rows = rows.filter(function (p) {
+          var tags = Array.isArray(p.secondary_tags) ? p.secondary_tags : [];
+          return tags.indexOf(fv) !== -1;
+        });
       } else {
         rows = rows.filter(function (p) {
           var pv = p[fc];
@@ -2759,6 +2795,26 @@ def build_grid_html(run_date: str) -> str:
       citTd.innerHTML = citationBadge(p.CitationTier);
       tr.appendChild(citTd);
 
+      // Also In — secondary topic tags (clickable chips filter by tag)
+      var secTd = document.createElement('td');
+      var tags = Array.isArray(p.secondary_tags) ? p.secondary_tags : [];
+      if (tags.length === 0) {
+        secTd.textContent = '';
+      } else {
+        tags.forEach(function (tag) {
+          var chip = document.createElement('span');
+          chip.className = 'badge-secondary-tag';
+          chip.textContent = tag;
+          chip.title = 'Filter by: ' + tag;
+          chip.onclick = function (e) {
+            e.stopPropagation();
+            applyFilter('secondary_tags', tag, 'Also In: ' + tag, false);
+          };
+          secTd.appendChild(chip);
+        });
+      }
+      tr.appendChild(secTd);
+
       tbody.appendChild(tr);
     });
 
@@ -2788,6 +2844,7 @@ def build_grid_html(run_date: str) -> str:
     var idx = {
       'title': 0, 'ss_tldr': 1, 'abstract': 2, 'url': 3,
       'date_added': 4, 'Prominence': 5, 'author_count': 6, 'CitationTier': 7
+      // col 8 (Also In / secondary_tags) is not sortable
     }[sortCol];
     if (idx !== undefined) {
       var ths = document.querySelectorAll('#grid-table th');
