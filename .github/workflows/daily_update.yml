@@ -1,4 +1,4 @@
-name: Daily Update AI Research Atlas
+name: Daily Update AI Research Atlas — v3 Staging
 on:
   schedule:
     - cron: '0 3 * * *'
@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # To enable OPENALEX_OFFLINE_MODE for all steps, add a job-level env block:
-    env:
-      OPENALEX_OFFLINE_MODE: "true"
+    # env:
+    #   OPENALEX_OFFLINE_MODE: "true"
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -105,7 +105,7 @@ jobs:
 
           # ── STATIC TEST: uncomment to skip arXiv, SPECTER2, and Haiku ──────
           # Runs layout + Atlas build only. Use for UI/CSS iteration.
-          OFFLINE_MODE: "true"
+          # OFFLINE_MODE: "true"
 
           # ── One-time repair: rebuilds author h-index for all papers ──────
           # Comment out immediately after one successful run.
@@ -130,7 +130,7 @@ jobs:
           print('All imports OK')
           "
           echo "=== Running main script ==="
-          python update_map_v2.py
+          python update_map_v3.py
 
       - name: Run nightly assertions
         run: python nightly_assert.py
@@ -139,7 +139,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add database.parquet run_state.json author_stats_cache.json author_cache.json label_diagnostics.json group_names_v2.json dynamic_taxonomy.json labels_v2.parquet ss_cache.json 2>/dev/null || true
+          git add database.parquet run_state.json author_stats_cache.json author_cache.json label_diagnostics.json group_names_v3.json dynamic_taxonomy.json labels_v3.parquet ss_cache.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
