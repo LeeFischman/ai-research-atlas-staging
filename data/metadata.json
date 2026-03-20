@@ -9,72 +9,219 @@
         },
         "embeddingViewLabels": [
             {
-                "x": -2.039041556189656,
-                "y": -0.4004583474787305,
-                "text": "Group 0",
+                "x": 0.5821133114748201,
+                "y": 0.8943376391037706,
+                "text": "Language Models & Reasoning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.5769776393965178,
-                "y": 1.5701342556582079,
-                "text": "Group 1",
+                "x": -1.033450454582798,
+                "y": -2.0854340596242946,
+                "text": "Computer Vision",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.14665016002833,
-                "y": 1.2171878140991972,
-                "text": "Group 2",
+                "x": 1.0058334809615175,
+                "y": -0.9888874443591946,
+                "text": "Multimodal Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.8029105683246112,
-                "y": -1.552603385235394,
-                "text": "Group 3",
+                "x": -0.9850884295931772,
+                "y": 0.2320986683766355,
+                "text": "Reinforcement Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.2048293705849316,
-                "y": -1.877400595830637,
-                "text": "Group 4",
+                "x": 0.9100477934212448,
+                "y": -2.0773868569062692,
+                "text": "Robotics & Embodied AI",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.9986072980451137,
-                "y": -0.15611771051872944,
-                "text": "Group 5",
+                "x": 0.41483299958926545,
+                "y": 1.8034324300965145,
+                "text": "Safety, Alignment & Ethics",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.7412255035091544,
-                "y": 0.98643063955631,
-                "text": "Group 6",
+                "x": -1.8710825057620244,
+                "y": 0.4138042132508883,
+                "text": "Theory, Optimization & Efficient ML",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.7577586221196743,
-                "y": 1.662853689691835,
-                "text": "Group 7",
+                "x": 1.5273270280978215,
+                "y": -1.5611347578230708,
+                "text": "Domain Applications",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.04034689168425122,
-                "y": -0.05583417032512348,
-                "text": "Group 8",
+                "x": 0.2883188143462714,
+                "y": -1.7505161825803282,
+                "text": "Generative Models & Synthesis",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.2158194226996466,
-                "y": -1.390534513748959,
-                "text": "Group 9",
+                "x": 2.579332598703145,
+                "y": -0.26247514859054605,
+                "text": "Speech & Audio Processing",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.013258603782727363,
+                "y": -2.288791862240848,
+                "text": "Graph Learning & Networks",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -1.3381474103202093,
+                "y": 1.2814390142309684,
+                "text": "Data, Benchmarks & Evaluation",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 1.2964114483745013,
+                "y": 1.7689282273376972,
+                "text": "Human-AI Interaction",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 2.031180840925946,
+                "y": 0.06266663551289071,
+                "text": "Planning & Search",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.3442130266703316,
+                "y": 2.0039671895494533,
+                "text": "Neurosymbolic & Hybrid AI",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 2.071958202138652,
+                "y": 1.2422232192884146,
+                "text": "Mechanistic Interpretability & Probing",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.32182690388110147,
+                "y": 1.1859281067851397,
+                "text": "AI Agents & Multi-Agent Systems",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 0.17679171462993593,
+                "y": -0.3125089338194114,
+                "text": "Model Editing & Continual Learning",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 0.05985264086048142,
+                "y": 0.25417925728888036,
+                "text": "Foundation Models & Transfer Learning",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -2.80884977974043,
+                "y": 1.2743432891932192,
+                "text": "Quantum Computing & AI",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -1.7525938721473897,
+                "y": -1.4063622606382624,
+                "text": "Scientific Computing & Simulation",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 1.8472699298017343,
+                "y": -0.9812195987482948,
+                "text": "Cognitive Science & Brain-Inspired AI",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 1.2717283682554446,
+                "y": 3.777156088427352,
+                "text": "AI Philosophy & Theory",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -1.0244016138708412,
+                "y": 1.8902129455145142,
+                "text": "Code Generation & Software Engineering",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -1.075156963249991,
+                "y": -0.7437279852159339,
+                "text": "Temporal & Sequential Modeling",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 1.4678145422383573,
+                "y": 0.6146918059402495,
+                "text": "Knowledge Graphs & Semantic Reasoning",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -2.043515116527383,
+                "y": -0.19501596777644065,
+                "text": "Adaptive Control & Resource Optimization",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.5056806660571727,
+                "y": -1.3002886448614104,
+                "text": "Vision-Language-Action Models",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.8195949628822816,
+                "y": -1.6026205965594298,
+                "text": "Physics-Informed AI",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -2.2827578785077716,
+                "y": -1.0050308965555301,
+                "text": "Federated & Distributed Learning",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 0.8704568689914254,
+                "y": -0.15278255910236635,
+                "text": "Vision-Language Reasoning & Grounding",
                 "level": 0,
                 "priority": 10
             }
