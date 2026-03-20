@@ -40,5 +40,16 @@
   "38": "Clinical AI & Healthcare Applications",
   "39": "Privacy & Security in AI",
   "40": "Prompt Engineering & Context Design",
-  "41": "LLM-Grounded Analysis & Auditing"
+  "41": "LLM-Grounded Analysis & Auditing",
+  "42": "LLM Behavioral Analysis & Cognition",
+  "43": "Multimodal Generation & Synthesis",
+  "44": "AI-Assisted Scientific Discovery",
+  "45": "Agent Tool Integration & APIs",
+  "46": "Neuro-Symbolic Mathematical Reasoning",
+  "47": "Bias & Fairness in Foundation Models",
+  "48": "LLM Efficiency & Inference Optimization",
+  "49": "Strategic Multi-Agent Coordination",
+  "50": "Adversarial Robustness & Attacks",
+  "51": "Agentic Data Synthesis & Augmentation",
+  "52": "Domain-Specific Agent Applications"
 }
