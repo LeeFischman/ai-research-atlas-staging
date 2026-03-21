@@ -3,7 +3,7 @@
 # ──────────────────────────────────────────────────────────────────────────────
 # AI Research Atlas — Nightly pipeline health assertions.
 #
-# Runs after the main daily build (update_map_v2.py) completes. Reads the
+# Runs after the main daily build (update_map_v3.py) completes. Reads the
 # committed artefacts and checks that the pipeline produced sane outputs.
 #
 # Exit codes
@@ -39,13 +39,13 @@ from typing import Literal
 import pandas as pd
 
 # ══════════════════════════════════════════════════════════════════════════════
-# CONSTANTS — mirror atlas_utils.py and update_map_v2.py exactly
+# CONSTANTS — mirror atlas_utils.py and update_map_v3.py exactly
 # ══════════════════════════════════════════════════════════════════════════════
 
 DB_PATH              = "database.parquet"
 SIGNIFICANT_PATH     = "significant.parquet"
 SIG_CANDIDATES_PATH  = "sig_candidates.json"
-GROUP_NAMES_CACHE    = "group_names_v2.json"
+GROUP_NAMES_CACHE    = "group_names_v3.json"
 TAXONOMY_PATH        = "dynamic_taxonomy.json"
 AUTHOR_CACHE_PATH    = "author_cache.json"
 SS_CACHE_PATH        = "ss_cache.json"
@@ -69,7 +69,7 @@ SIG_CANDIDATES_MIN         = 50    # below this the pool is depleted
 SIG_CANDIDATES_STALE_WARN  = 18    # last_fetched_date older than this is a WARN
 SIG_CANDIDATES_STALE_DAYS  = 22    # last_fetched_date older than this is a FAIL
 
-TAXONOMY_RETIRE_DAYS       = 14   # mirror of update_map_v2.py
+TAXONOMY_RETIRE_DAYS       = 14   # mirror of update_map_v3.py
 # Note: last_fetched_date = run_date - 15 days (lookforward offset), so a
 # successful run produces a value already 15 days old. Thresholds must exceed
 # 15 (WARN) and 15+7=22 (FAIL) to avoid false alarms on healthy weekly runs.
@@ -82,7 +82,7 @@ SS_CACHE_TLDR_NULL_WARN    = 0.50  # > 50% of papers with no TLDR is worth flagg
 # Columns that must be present and fully non-null in database.parquet
 DB_REQUIRED_NONNULL = [
     "id", "title", "abstract", "url",
-    "projection_v2_x", "projection_v2_y", "group_id_v2",
+    "projection_v3_x", "projection_v3_y", "group_id_v3",
     "Prominence", "paper_source", "date_added",
     "ss_citation_count", "ss_influential_citations",
 ]
@@ -335,8 +335,8 @@ def check_database(c: Checker, now: datetime) -> pd.DataFrame | None:
                             "CITATION_TIER_TOP_PCT split may not have fired.")
 
     # ── Group structure ───────────────────────────────────────────────────────
-    if "group_id_v2" in df.columns:
-        n_groups = int(df["group_id_v2"].nunique())
+    if "group_id_v3" in df.columns:
+        n_groups = int(df["group_id_v3"].nunique())
 
         if n_groups == 0:
             c.fail(sec, "No groups assigned — Haiku grouping step produced no output.")
@@ -350,7 +350,7 @@ def check_database(c: Checker, now: datetime) -> pd.DataFrame | None:
 
         # Dominant group check
         if n_groups > 0:
-            group_fracs = df["group_id_v2"].value_counts(normalize=True)
+            group_fracs = df["group_id_v3"].value_counts(normalize=True)
             max_frac    = float(group_fracs.iloc[0])
             dom_gid     = int(group_fracs.index[0])
             if max_frac > DOMINANT_GROUP_FAIL_PCT:
@@ -363,7 +363,7 @@ def check_database(c: Checker, now: datetime) -> pd.DataFrame | None:
                 c.ok(sec, f"Group size distribution OK (largest: {max_frac:.1%}).")
 
     # ── Projection coordinates populated ─────────────────────────────────────
-    for col in ("projection_v2_x", "projection_v2_y"):
+    for col in ("projection_v3_x", "projection_v3_y"):
         if col in df.columns:
             n_nan = int(df[col].isna().sum())
             if n_nan > 0:
@@ -614,8 +614,8 @@ def check_dynamic_taxonomy(c: Checker, now: datetime) -> None:
 
 
 def check_group_names(c: Checker, db_df: pd.DataFrame | None) -> None:
-    """Assert group_names_v2.json exists and covers all groups in the database."""
-    sec = "group_names_v2.json"
+    """Assert group_names_v3.json exists and covers all groups in the database."""
+    sec = "group_names_v3.json"
 
     if not os.path.exists(GROUP_NAMES_CACHE):
         c.fail(sec, f"{GROUP_NAMES_CACHE} missing — offline mode will crash on next run.")
@@ -628,16 +628,16 @@ def check_group_names(c: Checker, db_df: pd.DataFrame | None) -> None:
 
     c.ok(sec, f"File present: {len(raw)} group names.")
 
-    if db_df is None or db_df.empty or "group_id_v2" not in db_df.columns:
+    if db_df is None or db_df.empty or "group_id_v3" not in db_df.columns:
         return
 
-    db_gids     = set(int(g) for g in db_df["group_id_v2"].unique())
+    db_gids     = set(int(g) for g in db_df["group_id_v3"].unique())
     cached_gids = set(int(k) for k in raw.keys())
     missing     = db_gids - cached_gids
 
     if missing:
         c.fail(sec, f"Groups {sorted(missing)} appear in database.parquet but "
-                    f"have no entry in group_names_v2.json — Atlas labels will show 'Group N'.")
+                    f"have no entry in group_names_v3.json — Atlas labels will show 'Group N'.")
     else:
         c.ok(sec, f"All {len(db_gids)} group IDs in database have cached names.")
 
