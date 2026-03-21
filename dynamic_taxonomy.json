@@ -1,23 +1,23 @@
 {
-  "next_id": 60,
+  "next_id": 65,
   "groups": {
     "22": {
       "name": "AI Philosophy & Theory",
       "created": "2026-03-19",
       "last_seen": "2026-03-21",
       "confidence_history": [
-        0.5,
         1.0,
         1.0,
         1.0,
-        1.0
+        1.0,
+        0.077
       ],
       "paper_count_history": [
-        2,
         3,
         5,
         9,
-        10
+        10,
+        13
       ]
     },
     "21": {
@@ -32,11 +32,11 @@
         1.0
       ],
       "paper_count_history": [
+        4,
+        4,
+        4,
         3,
-        4,
-        4,
-        4,
-        3
+        6
       ]
     },
     "15": {
@@ -51,11 +51,11 @@
         1.0
       ],
       "paper_count_history": [
-        4,
         12,
         6,
         16,
-        10
+        10,
+        15
       ]
     },
     "20": {
@@ -70,11 +70,11 @@
         1.0
       ],
       "paper_count_history": [
-        3,
         8,
         3,
         4,
-        11
+        11,
+        7
       ]
     },
     "16": {
@@ -89,11 +89,11 @@
         1.0
       ],
       "paper_count_history": [
-        20,
         38,
         36,
         36,
-        22
+        22,
+        23
       ]
     },
     "23": {
@@ -108,11 +108,11 @@
         1.0
       ],
       "paper_count_history": [
-        7,
         13,
         10,
         11,
-        12
+        12,
+        13
       ]
     },
     "14": {
@@ -121,17 +121,17 @@
       "last_seen": "2026-03-21",
       "confidence_history": [
         1.0,
-        1.0,
         0.75,
+        1.0,
         1.0,
         1.0
       ],
       "paper_count_history": [
-        2,
         5,
         4,
         11,
-        4
+        4,
+        5
       ]
     },
     "19": {
@@ -146,11 +146,11 @@
         1.0
       ],
       "paper_count_history": [
-        2,
         3,
         4,
         4,
-        4
+        4,
+        1
       ]
     },
     "17": {
@@ -165,11 +165,11 @@
         1.0
       ],
       "paper_count_history": [
-        3,
         13,
         1,
         3,
-        9
+        9,
+        12
       ]
     },
     "24": {
@@ -184,11 +184,11 @@
         1.0
       ],
       "paper_count_history": [
-        3,
         4,
         4,
         7,
-        6
+        6,
+        8
       ]
     },
     "18": {
@@ -203,11 +203,11 @@
         1.0
       ],
       "paper_count_history": [
-        2,
         4,
         3,
         2,
-        7
+        7,
+        1
       ]
     },
     "25": {
@@ -219,14 +219,14 @@
         1.0,
         1.0,
         1.0,
-        1.0
+        0.5
       ],
       "paper_count_history": [
-        2,
         6,
         2,
         5,
-        3
+        3,
+        6
       ]
     },
     "30": {
@@ -241,11 +241,11 @@
         1.0
       ],
       "paper_count_history": [
-        4,
         3,
         4,
         4,
-        4
+        4,
+        2
       ]
     },
     "26": {
@@ -260,11 +260,11 @@
         1.0
       ],
       "paper_count_history": [
-        2,
         7,
         5,
         5,
-        2
+        2,
+        3
       ]
     },
     "29": {
@@ -281,9 +281,9 @@
       "paper_count_history": [
         2,
         2,
-        2,
         5,
-        1
+        1,
+        2
       ]
     },
     "27": {
@@ -300,9 +300,9 @@
       "paper_count_history": [
         3,
         3,
-        3,
         6,
-        2
+        2,
+        4
       ]
     },
     "28": {
@@ -317,11 +317,11 @@
         1.0
       ],
       "paper_count_history": [
-        1,
         3,
         6,
         5,
-        5
+        5,
+        3
       ]
     },
     "31": {
@@ -337,10 +337,10 @@
       ],
       "paper_count_history": [
         3,
-        3,
         5,
         11,
-        4
+        4,
+        5
       ]
     },
     "35": {
@@ -351,13 +351,15 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         16,
         10,
         21,
-        16
+        16,
+        18
       ]
     },
     "32": {
@@ -368,13 +370,15 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         23,
         7,
         8,
-        13
+        13,
+        8
       ]
     },
     "38": {
@@ -385,13 +389,15 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         11,
         14,
         9,
-        17
+        17,
+        15
       ]
     },
     "40": {
@@ -402,13 +408,15 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         6,
         4,
         3,
-        4
+        4,
+        7
       ]
     },
     "37": {
@@ -419,13 +427,15 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         5,
         5,
         10,
-        4
+        4,
+        2
       ]
     },
     "34": {
@@ -436,13 +446,15 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         13,
         4,
         12,
-        14
+        14,
+        12
       ]
     },
     "39": {
@@ -453,13 +465,15 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         9,
         9,
         10,
-        6
+        6,
+        5
       ]
     },
     "36": {
@@ -470,13 +484,15 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         3,
         2,
         11,
-        6
+        6,
+        9
       ]
     },
     "33": {
@@ -487,13 +503,15 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         7,
         5,
         5,
-        3
+        3,
+        5
       ]
     },
     "41": {
@@ -503,11 +521,13 @@
       "confidence_history": [
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         11,
         10,
+        6,
         6
       ]
     },
@@ -517,11 +537,13 @@
       "last_seen": "2026-03-21",
       "confidence_history": [
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         11,
-        11
+        11,
+        9
       ]
     },
     "42": {
@@ -530,11 +552,13 @@
       "last_seen": "2026-03-21",
       "confidence_history": [
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         11,
-        9
+        9,
+        13
       ]
     },
     "48": {
@@ -543,11 +567,13 @@
       "last_seen": "2026-03-21",
       "confidence_history": [
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         9,
-        13
+        13,
+        8
       ]
     },
     "51": {
@@ -556,11 +582,13 @@
       "last_seen": "2026-03-21",
       "confidence_history": [
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         4,
-        2
+        2,
+        5
       ]
     },
     "46": {
@@ -569,10 +597,12 @@
       "last_seen": "2026-03-21",
       "confidence_history": [
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         4,
+        2,
         2
       ]
     },
@@ -582,11 +612,13 @@
       "last_seen": "2026-03-21",
       "confidence_history": [
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         9,
-        5
+        5,
+        22
       ]
     },
     "50": {
@@ -595,11 +627,13 @@
       "last_seen": "2026-03-21",
       "confidence_history": [
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         6,
-        17
+        17,
+        7
       ]
     },
     "47": {
@@ -608,11 +642,13 @@
       "last_seen": "2026-03-21",
       "confidence_history": [
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         6,
-        10
+        10,
+        4
       ]
     },
     "45": {
@@ -621,11 +657,13 @@
       "last_seen": "2026-03-21",
       "confidence_history": [
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         4,
-        2
+        2,
+        12
       ]
     },
     "52": {
@@ -634,11 +672,13 @@
       "last_seen": "2026-03-21",
       "confidence_history": [
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         3,
-        5
+        5,
+        13
       ]
     },
     "49": {
@@ -647,10 +687,12 @@
       "last_seen": "2026-03-21",
       "confidence_history": [
         1.0,
+        1.0,
         1.0
       ],
       "paper_count_history": [
         6,
+        4,
         4
       ]
     },
@@ -659,10 +701,12 @@
       "created": "2026-03-21",
       "last_seen": "2026-03-21",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        15
+        15,
+        2
       ]
     },
     "54": {
@@ -670,10 +714,12 @@
       "created": "2026-03-21",
       "last_seen": "2026-03-21",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        4
+        4,
+        3
       ]
     },
     "55": {
@@ -681,10 +727,12 @@
       "created": "2026-03-21",
       "last_seen": "2026-03-21",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        8
+        8,
+        3
       ]
     },
     "56": {
@@ -692,10 +740,12 @@
       "created": "2026-03-21",
       "last_seen": "2026-03-21",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        3
+        3,
+        1
       ]
     },
     "57": {
@@ -707,6 +757,50 @@
       ],
       "paper_count_history": [
         2
+      ]
+    },
+    "60": {
+      "name": "LLM Reasoning Bias Mitigation",
+      "created": "2026-03-21",
+      "last_seen": "2026-03-21",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        1
+      ]
+    },
+    "63": {
+      "name": "LLM Safety & Jailbreak Defense",
+      "created": "2026-03-21",
+      "last_seen": "2026-03-21",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        3
+      ]
+    },
+    "62": {
+      "name": "Multi-Modal Agent Evaluation & Benchmarking",
+      "created": "2026-03-21",
+      "last_seen": "2026-03-21",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        9
+      ]
+    },
+    "64": {
+      "name": "Agent Planning & Specification",
+      "created": "2026-03-21",
+      "last_seen": "2026-03-21",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        5
       ]
     }
   }
