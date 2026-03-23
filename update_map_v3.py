@@ -190,6 +190,8 @@ LAYOUT_SCALE = 20.0
 # Recommended range: 1.0-3.0.
 SCATTER_FRACTION   = 0.35
 VARIANCE_AMPLIFIER = 2.0
+LAYOUT_X_SCALE     = 1.6   # stretch x for a wider canvas (>1.0 = wider)
+LAYOUT_Y_SCALE     = 0.7   # compress y to fit landscape view (<1.0 = shorter)
 
 # ── Layout tuning guide ──────────────────────────────────────────────────────
 # Quick reference for adjusting the visual appearance of the atlas:
@@ -1627,8 +1629,12 @@ def scatter_within_groups(
     n_placed = df["projection_v3_x"].notna().sum()
     x_range  = (df["projection_v3_x"].min(), df["projection_v3_x"].max())
     y_range  = (df["projection_v3_y"].min(), df["projection_v3_y"].max())
+    df["projection_v3_x"] = df["projection_v3_x"] * LAYOUT_X_SCALE
+    df["projection_v3_y"] = df["projection_v3_y"] * LAYOUT_Y_SCALE
+    x_range  = (df["projection_v3_x"].min(), df["projection_v3_x"].max())
+    y_range  = (df["projection_v3_y"].min(), df["projection_v3_y"].max())
     print(f"\n  Placed {n_placed}/{len(df)} papers.")
-    print(f"  Final layout bounds: x=[{x_range[0]:.2f}, {x_range[1]:.2f}], "
+    print(f"  Final layout bounds (after aspect scaling): x=[{x_range[0]:.2f}, {x_range[1]:.2f}], "
           f"y=[{y_range[0]:.2f}, {y_range[1]:.2f}]")
     return df
 
