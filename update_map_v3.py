@@ -1382,6 +1382,17 @@ def haiku_group_papers(
               f"'{group_names.get(gid, '?')}'")
     print(f"  Total: {len(group_counts)} groups, {n} papers assigned.")
 
+    # Guard: ensure group_names covers every ID in final_assignment.
+    # The review call can route papers to existing-taxonomy groups that were
+    # never in pass 1/2 assignments, so those IDs won't be in group_names yet.
+    for _gid in set(final_assignment.values()):
+        if _gid not in group_names:
+            if _gid <= 13:
+                group_names[_gid] = _STABLE_BUCKET_NAMES.get(_gid, f"Group {_gid}")
+            elif _gid in all_known_dynamic:
+                group_names[_gid] = all_known_dynamic[_gid]
+            else:
+                group_names[_gid] = f"Emerging Topic {_gid}"
     _save_group_names_cache(group_names)
     return df, group_names
 
