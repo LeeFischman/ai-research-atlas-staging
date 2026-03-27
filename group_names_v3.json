@@ -1,16 +1,12 @@
 {
-  "0": "Language Models & Pretraining",
-  "1": "Computer Vision",
-  "2": "Multimodal Learning",
-  "3": "Reinforcement Learning",
-  "4": "Robotics & Embodied AI",
-  "5": "Safety, Alignment & Ethics",
-  "6": "Theory, Optimization & Efficient ML",
-  "7": "Domain Applications",
-  "8": "Generative Models & Synthesis",
-  "9": "Speech & Audio Processing",
-  "10": "Graph Learning & Networks",
-  "11": "Data, Benchmarks & Evaluation",
-  "12": "Human-AI Interaction",
-  "13": "Planning & Search"
+  "0": "Group 0",
+  "1": "Group 1",
+  "2": "Group 2",
+  "3": "Group 3",
+  "4": "Group 4",
+  "5": "Group 5",
+  "6": "Group 6",
+  "7": "Group 7",
+  "8": "Group 8",
+  "9": "Group 9"
 }
