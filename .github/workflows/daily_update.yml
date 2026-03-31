@@ -12,6 +12,7 @@ jobs:
     # To enable OPENALEX_OFFLINE_MODE for all steps, add a job-level env block:
     env:
       OPENALEX_OFFLINE_MODE: "true"
+      SKIP_HAIKU: "true"          # Haiku runs weekly only (weekly_significant.yml)
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -63,6 +64,7 @@ jobs:
       #   OFFLINE_MODE:          must be commented out
       #   BACKFILL_HINDICES:     must be commented out
       #   OPENALEX_OFFLINE_MODE: must be commented out (job-level env block)
+      #   SKIP_HAIKU:            leave as "true" (weekly workflow owns Haiku)
       #   Everything else:  leave as configured
       # ════════════════════════════════════════════════════════════════════
 
