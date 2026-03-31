@@ -1,7 +1,7 @@
 name: Weekly Update Significant Papers
 on:
   schedule:
-    - cron: '0 6 * * 1'   # Monday 06:00 UTC — arXiv-idle, offset from daily run
+    - cron: '0 4 * * 1'   # Monday 04:00 UTC — 1 hour after daily run
   workflow_dispatch:       # Manual trigger for testing
 permissions:
   contents: write
@@ -46,7 +46,7 @@ jobs:
           SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
           OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
         run: python update_significant.py
-      - name: Commit and Push
+      - name: Commit Significant Papers
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -58,3 +58,43 @@ jobs:
             git pull --rebase --autostash origin main
             git push
           fi
+
+      # ════════════════════════════════════════════════════════════════════
+      # WEEKLY FULL PIPELINE RUN (with Haiku grouping)
+      #
+      # Runs immediately after the significant papers scan so the atlas
+      # reflects the updated pool. This is the only weekly run that calls
+      # Haiku — daily runs use SKIP_HAIKU=true (nearest-centroid only).
+      #
+      # SKIP_HAIKU is intentionally absent here → full two-pass grouping.
+      # ════════════════════════════════════════════════════════════════════
+      - name: Run Weekly Atlas Pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
+          SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
+          PYTHONUNBUFFERED: "1"
+        run: python update_map_v3.py
+
+      - name: Run Nightly Assertions
+        run: python nightly_assert.py
+
+      - name: Commit Weekly Pipeline Outputs
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add database.parquet run_state.json author_cache.json author_stats_cache.json label_diagnostics.json group_names_v3.json dynamic_taxonomy.json labels_v3.parquet ss_cache.json significant_papers.json sig_candidates.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Weekly atlas update: $(date -u +'%Y-%m-%d')"
+            git pull --rebase --autostash origin main
+            git push
+          fi
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs
+          branch: gh-pages
