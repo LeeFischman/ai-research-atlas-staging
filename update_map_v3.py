@@ -949,7 +949,7 @@ def _merge_excess_groups(
 
     id_remap    = {old: new for new, old in enumerate(sorted(active.keys()))}
     new_mapping = {pos: id_remap[g] for pos, g in mapping.items()}
-    new_names   = {id_remap[old]: name for old, name in group_names.items()}
+    new_names   = {id_remap[old]: name for old, name in group_names.items() if old in id_remap}
     print(f"  Merge complete: {len(active)} groups remaining.")
     return new_mapping, new_names
 
