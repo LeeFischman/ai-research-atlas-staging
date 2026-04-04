@@ -64,6 +64,7 @@ from atlas_utils import (
     load_author_cache,
     save_author_cache,
     fetch_author_hindices,
+    fetch_hindices_bulk,
     load_existing_db,
     merge_papers,
     fetch_arxiv_oai,
@@ -1927,7 +1928,6 @@ if __name__ == "__main__":
         if OPENALEX_OFFLINE_MODE:
             print("  OPENALEX_OFFLINE_MODE=true — skipping OpenAlex fetch.")
             print("  Existing author_hindices carried forward; new papers get [].")
-            # Fill any missing entries (new papers added this run)
             df["author_hindices"] = df["author_hindices"].apply(
                 lambda x: x if isinstance(x, list) else []
             )
@@ -1935,11 +1935,9 @@ if __name__ == "__main__":
             author_cache = load_author_cache()
 
             if BACKFILL_HINDICES:
-                # Re-fetch for all rows, including those with empty lists
                 needs_hindex = pd.Series([True] * len(df), index=df.index)
                 print(f"  BACKFILL_HINDICES=true — re-fetching all {len(df)} papers.")
             else:
-                # Normal mode: only fetch for rows missing h-index data
                 needs_hindex = df["author_hindices"].isna() | df["author_hindices"].apply(
                     lambda x: isinstance(x, list) and len(x) == 0
                 )
@@ -1948,12 +1946,20 @@ if __name__ == "__main__":
             print(f"  {n_needs} papers need h-index lookup"
                   f" ({len(df) - n_needs} already have data).")
 
-            for idx in df.index[needs_hindex]:
-                authors = df.at[idx, "authors_list"]
-                if not isinstance(authors, list) or len(authors) == 0:
-                    df.at[idx, "author_hindices"] = []
-                    continue
-                df.at[idx, "author_hindices"] = fetch_author_hindices(authors, author_cache)
+            if n_needs > 0:
+                # Collect authors for all papers needing lookup in one bulk call
+                papers_authors = {}
+                for idx in df.index[needs_hindex]:
+                    authors = df.at[idx, "authors_list"]
+                    if isinstance(authors, list) and authors:
+                        papers_authors[idx] = authors
+                    else:
+                        df.at[idx, "author_hindices"] = []
+
+                if papers_authors:
+                    bulk_results = fetch_hindices_bulk(papers_authors, author_cache)
+                    for idx, hindices in bulk_results.items():
+                        df.at[idx, "author_hindices"] = hindices
 
             save_author_cache(author_cache)
             print(f"  h-index enrichment complete. Cache now has {len(author_cache)} entries.")
