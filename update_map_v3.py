@@ -673,6 +673,10 @@ def _parse_pass2_response(
     """
     text = re.sub(r"^```(?:json)?\s*", "", text.strip())
     text = re.sub(r"\s*```$", "", text)
+    # Truncate at last } to strip any trailing explanation Haiku appends after the JSON
+    last_brace = text.rfind("}")
+    if last_brace != -1:
+        text = text[:last_brace + 1]
 
     try:
         data = json.loads(text)
