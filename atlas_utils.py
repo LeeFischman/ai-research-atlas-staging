@@ -336,6 +336,168 @@ def fetch_author_hindices(author_names: list, cache: dict) -> list:
     return hindices
 
 
+def fetch_hindices_bulk(
+    papers_authors: dict,   # {paper_idx_or_id: [author_name, ...]}
+    cache: dict,
+) -> dict:                  # {same key: [hindex, ...]}
+    """Batch h-index lookup across ALL papers in one pass.
+
+    Deduplicates author names across all papers, makes ~ceil(unique/50) API
+    calls total (vs one call per paper), then maps results back to each paper.
+
+    Parameters
+    ----------
+    papers_authors : dict mapping any hashable key → list of author name strings
+    cache          : shared in-memory author cache (mutated in-place)
+
+    Returns
+    -------
+    dict mapping same keys → list of int h-indices (0 for unknown/failed)
+    """
+    import difflib
+    import urllib.parse
+    import urllib.request as _req
+
+    _OA_BATCH_SIZE  = 50
+    _OA_MAX_RETRIES = 5
+    _OA_BASE_WAIT   = 60
+    _OA_MAX_WAIT    = 600
+    _OA_BATCH_SLEEP = 0.5
+    _OA_SLOW_SLEEP  = 2.0
+
+    cutoff_ts = (
+        datetime.now(timezone.utc) - timedelta(days=AUTHOR_CACHE_TTL_DAYS)
+    ).isoformat()
+
+    _oa_key = os.environ.get("OPENALEX_API_KEY", "")
+    _oa_qs  = f"&api_key={_oa_key}" if _oa_key else ""
+    _UA = ("ai-research-atlas/2.0 "
+           "(https://github.com/LeeFischman/ai-research-atlas; "
+           "mailto:lee.fischman@gmail.com)")
+
+    # ── Single budget check ───────────────────────────────────────────────────
+    if _oa_key:
+        try:
+            _rl_url = f"https://api.openalex.org/rate-limit?api_key={_oa_key}"
+            _rl_req = _req.Request(_rl_url, headers={"User-Agent": _UA})
+            with _req.urlopen(_rl_req, timeout=10) as _rl_resp:
+                _rl = json.loads(_rl_resp.read().decode()).get("rate_limit", {})
+            print(f"  OpenAlex budget: "
+                  f"${_rl.get('daily_used_usd', '?'):.4f} used / "
+                  f"${_rl.get('daily_budget_usd', '?'):.2f} daily — "
+                  f"${_rl.get('daily_remaining_usd', '?'):.4f} remaining "
+                  f"(resets in {_rl.get('resets_in_seconds', '?')}s)")
+        except Exception as e:
+            print(f"  OpenAlex rate limit check failed: {e}")
+    else:
+        print("  OpenAlex: no API key — using anonymous tier (may be rate limited)")
+
+    # ── Collect all unique author names needing lookup ────────────────────────
+    # name_key → set of paper keys that include this author
+    name_to_papers: dict = {}
+    # paper_key → [(position_in_list, name_key), ...]
+    paper_name_map: dict = {}
+
+    for pkey, names in papers_authors.items():
+        paper_name_map[pkey] = []
+        for pos, raw in enumerate(names):
+            name = raw.strip()
+            key  = name.lower()
+            paper_name_map[pkey].append((pos, key))
+            if not name:
+                continue
+            entry = cache.get(key)
+            if entry and entry.get("fetched_at", "") > cutoff_ts:
+                continue   # already cached and fresh — skip
+            name_to_papers.setdefault(key, {"name": name, "papers": set()})
+            name_to_papers[key]["papers"].add(pkey)
+
+    unique_to_fetch = list(name_to_papers.keys())  # deduplicated author keys
+    n_fetch   = len(unique_to_fetch)
+    n_batches = max(1, (n_fetch + _OA_BATCH_SIZE - 1) // _OA_BATCH_SIZE)
+
+    print(f"  OpenAlex: {n_fetch} unique authors to fetch across "
+          f"{len(papers_authors)} papers "
+          f"({n_batches} batch{'es' if n_batches != 1 else ''} of up to {_OA_BATCH_SIZE})...")
+
+    inter_batch_sleep = _OA_BATCH_SLEEP
+
+    # ── Fetch in batches ──────────────────────────────────────────────────────
+    for batch_start in range(0, n_fetch, _OA_BATCH_SIZE):
+        batch_keys  = unique_to_fetch[batch_start: batch_start + _OA_BATCH_SIZE]
+        batch_names = [name_to_papers[k]["name"] for k in batch_keys]
+
+        names_filter = "|".join(urllib.parse.quote(n) for n in batch_names)
+        url = (f"https://api.openalex.org/authors"
+               f"?filter=display_name.search:{names_filter}"
+               f"&per_page={_OA_BATCH_SIZE}"
+               f"&select=display_name,summary_stats"
+               f"{_oa_qs}")
+        req = _req.Request(url, headers={"User-Agent": _UA})
+
+        results   = []
+        succeeded = False
+        for attempt in range(1, _OA_MAX_RETRIES + 1):
+            try:
+                with _req.urlopen(req, timeout=20) as resp:
+                    data    = json.loads(resp.read().decode())
+                results   = data.get("results", [])
+                succeeded = True
+                time.sleep(inter_batch_sleep)
+                break
+            except urllib.error.HTTPError as e:
+                if e.code == 429:
+                    inter_batch_sleep = _OA_SLOW_SLEEP
+                    wait = min(_OA_BASE_WAIT * (2 ** (attempt - 1)), _OA_MAX_WAIT)
+                    print(f"  OpenAlex 429 on batch "
+                          f"{batch_start // _OA_BATCH_SIZE + 1}/{n_batches} — "
+                          f"backing off {wait}s (attempt {attempt})...")
+                    time.sleep(wait)
+                else:
+                    print(f"  OpenAlex batch failed: {e}")
+                    break
+            except Exception as e:
+                print(f"  OpenAlex batch failed: {e}")
+                break
+
+        if not succeeded:
+            # Cache zeros so we don't retry same authors next run
+            for key in batch_keys:
+                cache[key] = {"hindex": 0,
+                               "fetched_at": datetime.now(timezone.utc).isoformat()}
+            continue
+
+        api_lookup = {}
+        for r in results:
+            dn = (r.get("display_name") or "").strip()
+            if dn:
+                h = (r.get("summary_stats") or {}).get("h_index", 0) or 0
+                api_lookup[dn.lower()] = h
+
+        api_names_lower = list(api_lookup.keys())
+        for key in batch_keys:
+            if key in api_lookup:
+                hindex = api_lookup[key]
+            elif api_names_lower:
+                matches = difflib.get_close_matches(key, api_names_lower, n=1, cutoff=0.6)
+                hindex  = api_lookup[matches[0]] if matches else 0
+            else:
+                hindex = 0
+            cache[key] = {"hindex": hindex,
+                           "fetched_at": datetime.now(timezone.utc).isoformat()}
+
+    # ── Reconstruct per-paper h-index lists from cache ────────────────────────
+    results_out: dict = {}
+    for pkey, names in papers_authors.items():
+        hindices = []
+        for raw in names:
+            key = raw.strip().lower()
+            hindices.append(cache.get(key, {}).get("hindex", 0))
+        results_out[pkey] = hindices
+
+    return results_out
+
+
 def _safe_hindices(row) -> list:
     """Extract author_hindices from a row as a clean list of ints.
 
