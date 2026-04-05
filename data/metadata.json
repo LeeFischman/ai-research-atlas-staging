@@ -9,422 +9,394 @@
         },
         "embeddingViewLabels": [
             {
-                "x": -1.2293637449801524,
-                "y": 0.6211780893774594,
+                "x": 0.06789772288531677,
+                "y": -0.7874715049378214,
                 "text": "Language Models & Pretraining",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.046112233528389286,
-                "y": -1.2203271135086606,
+                "x": 2.6475968148881557,
+                "y": -0.9874989189376431,
                 "text": "Computer Vision",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.7891697529924597,
-                "y": -0.7118888313898134,
+                "x": 2.8047910512178404,
+                "y": 0.04024259339712324,
                 "text": "Multimodal Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.7943164816369084,
-                "y": 0.027879431990882952,
+                "x": 2.645746514394171,
+                "y": 0.4769379675421644,
                 "text": "Reinforcement Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.245491396138765,
-                "y": -0.47083466960458387,
+                "x": 3.472712671884908,
+                "y": 0.22701550575898932,
                 "text": "Robotics & Embodied AI",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.261005242817685,
-                "y": 0.4845004801053816,
+                "x": -1.7876985561605334,
+                "y": -0.991087012947038,
                 "text": "Safety, Alignment & Ethics",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.103065153604369,
-                "y": -1.1422990951901966,
+                "x": 0.193328359272581,
+                "y": -1.3800919528528246,
                 "text": "Theory, Optimization & Efficient ML",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -3.730697899903818,
-                "y": -0.17438207480738163,
+                "x": -2.947508721263486,
+                "y": -1.027583890448819,
                 "text": "Domain Applications",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.4433998808162043,
-                "y": -0.9579713216025382,
+                "x": 1.8320568633668488,
+                "y": -0.6085911635430219,
                 "text": "Generative Models & Synthesis",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.908030473901509,
-                "y": -1.1361083807616537,
+                "x": -1.1226840303887529,
+                "y": -1.4446838456819162,
                 "text": "Speech & Audio Processing",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -3.3676299464222206,
-                "y": 0.19854924634406798,
+                "x": -2.361177048209507,
+                "y": -0.771455862923423,
                 "text": "Graph Learning & Networks",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.8259281772559115,
-                "y": -0.08019907243955215,
+                "x": -2.542056473856778,
+                "y": 0.5506655675513398,
                 "text": "Data, Benchmarks & Evaluation",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.2680836105241962,
-                "y": 1.354267068394372,
+                "x": 3.3715014822603027,
+                "y": 0.7913581291914384,
                 "text": "Human-AI Interaction",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.3547207719561296,
-                "y": 1.4007137490640087,
+                "x": -3.864632866720455,
+                "y": 0.5032295507598155,
                 "text": "Planning & Search",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -3.6419881357447683,
-                "y": -0.46137321305805584,
+                "x": 0.7117099860778874,
+                "y": -0.08386466042992112,
                 "text": "Neurosymbolic & Hybrid AI",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.1486871747865726,
-                "y": 0.8602079674491139,
+                "x": -0.6397809841804047,
+                "y": 0.04732064932266988,
                 "text": "Mechanistic Interpretability & Probing",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.9636499157449436,
-                "y": 0.6573414634119081,
+                "x": 1.5768886970445986,
+                "y": 0.7862070642687642,
                 "text": "AI Agents & Multi-Agent Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.258308600849968,
-                "y": -0.6311602540847552,
+                "x": 1.4578607494402984,
+                "y": -0.03416236209083445,
                 "text": "Foundation Models & Transfer Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.35857751891339,
-                "y": 1.4550032931040902,
-                "text": "Quantum Computing & AI",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 2.32392937950404,
-                "y": 0.5635270438442839,
+                "x": 0.9071847384713208,
+                "y": 1.184886970067971,
                 "text": "Scientific Computing & Simulation",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.3131906444677592,
-                "y": -0.38797132342683344,
+                "x": 2.6219866594702825,
+                "y": -1.4335479343520974,
                 "text": "Cognitive Science & Brain-Inspired AI",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.5924705738811658,
-                "y": 1.935447488316791,
+                "x": -1.7383414141587041,
+                "y": 1.4296312898391084,
                 "text": "AI Philosophy & Theory",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.229279362656402,
-                "y": 0.9805380567599091,
+                "x": -1.1264143003561393,
+                "y": 0.5147091853424468,
                 "text": "Code Generation & Software Engineering",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.7657818017858737,
-                "y": -1.113514777358009,
+                "x": -3.860722040510211,
+                "y": -0.6841996921258212,
                 "text": "Temporal & Sequential Modeling",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.6790523790758572,
-                "y": 1.849563060538382,
+                "x": -1.9333406938770168,
+                "y": 0.7898670854066969,
                 "text": "Knowledge Graphs & Semantic Reasoning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.8591047037629034,
-                "y": 1.4045477119652658,
+                "x": 2.894371801046307,
+                "y": -0.7414358680290258,
+                "text": "Adaptive Control & Resource Optimization",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 2.016638965120409,
+                "y": 1.1340850661877524,
                 "text": "Causal Reasoning & Intervention",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.58009358964841,
-                "y": -1.5247927969507955,
-                "text": "Vision-Language-Action Models",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 0.4266606785868221,
-                "y": -1.6177545325468585,
+                "x": 1.7636525750689622,
+                "y": -1.8808806070208104,
                 "text": "Physics-Informed AI",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 4.325714966739024,
-                "y": 0.08757161884542103,
+                "x": 2.9203805114498778,
+                "y": 1.0200778589563864,
                 "text": "Federated & Distributed Learning",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.815985680205286,
-                "y": -1.6804808971391865,
+                "x": 2.6499021141381034,
+                "y": -0.2955994868409929,
                 "text": "Vision-Language Reasoning & Grounding",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.29281487083523916,
-                "y": 0.09145115951416605,
+                "x": 1.0285978435170793,
+                "y": 0.4928718919019208,
                 "text": "LLM Reasoning & Chain-of-Thought",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.7923719553432882,
-                "y": -1.0402596479434305,
+                "x": 1.252837518856563,
+                "y": -1.0870068408560878,
                 "text": "Multimodal Time Series & Forecasting",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.4694146207366785,
-                "y": -0.19384780507825233,
+                "x": -2.3672633854462313,
+                "y": 0.24594215228986172,
                 "text": "AI Governance & Verification",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.15466223988448297,
-                "y": 0.9930599786055564,
+                "x": 0.17707500090140832,
+                "y": -0.3095139121709929,
                 "text": "LLM Alignment & Reward Modeling",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.9987570996894506,
-                "y": -0.7529827780899154,
-                "text": "Embodied Agents & Open Worlds",
+                "x": -0.914406397938508,
+                "y": -0.2674420815619221,
+                "text": "Clinical AI & Healthcare Applications",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -3.6956853603326447,
-                "y": 0.7701255502418042,
+                "x": -2.2162121416143092,
+                "y": -1.4663036771057991,
                 "text": "Privacy & Security in AI",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.5322610948957227,
-                "y": -0.25908541598427653,
+                "x": -1.5023455866853452,
+                "y": -0.45628541625286156,
                 "text": "Prompt Engineering & Context Design",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.816529243546437,
-                "y": 1.3243304964202531,
+                "x": -3.5175541059760804,
+                "y": -0.2581849902660143,
                 "text": "LLM-Grounded Analysis & Auditing",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.0215063326322351,
-                "y": 1.0240515188711663,
+                "x": -0.6219965216953057,
+                "y": 0.8618207672376501,
                 "text": "LLM Behavioral Analysis & Cognition",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.049183285288484,
-                "y": -1.3424364688863337,
+                "x": -0.6710701313250995,
+                "y": 1.5717244689922927,
                 "text": "Multimodal Generation & Synthesis",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -2.9609971154130785,
-                "y": 0.6282946006225698,
+                "x": -3.419995775853554,
+                "y": 0.9143796225869596,
+                "text": "AI-Assisted Scientific Discovery",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -1.1565752786289993,
+                "y": 1.194909125599898,
                 "text": "Bias & Fairness in Foundation Models",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 2.1753302471721216,
-                "y": -0.04467802586723518,
+                "x": 1.0736021036146592,
+                "y": -1.2967366247480265,
                 "text": "LLM Efficiency & Inference Optimization",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.567197537755778,
-                "y": -0.744585088820345,
-                "text": "Strategic Multi-Agent Coordination",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -1.889312689050673,
-                "y": -0.25219356082245237,
+                "x": -0.5799935627519089,
+                "y": -1.71124004494402,
                 "text": "Adversarial Robustness & Attacks",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.8810101725162515,
-                "y": 0.08276481416167064,
+                "x": -1.456120631594458,
+                "y": 0.32005366803471796,
                 "text": "Agentic Data Synthesis & Augmentation",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.3136902297892985,
-                "y": 0.96312822031291,
-                "text": "Domain-Specific Agent Applications",
+                "x": 0.259343613842806,
+                "y": 0.36642946371167606,
+                "text": "LLM Efficiency & Inference Optimization",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 1.3069637326260535,
-                "y": -1.056083509849501,
+                "x": 3.4435850569106052,
+                "y": -0.21678139398108076,
                 "text": "Embodied Robot Learning & Simulation",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.23947133701640017,
-                "y": -0.6470358940913031,
+                "x": 0.8580052239112489,
+                "y": 1.4291031897979443,
                 "text": "Data Quality & Cleaning Methods",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.945027323753947,
-                "y": 0.2553855952615815,
+                "x": -1.0801424163543345,
+                "y": -0.9397807084801113,
                 "text": "Network & Systems Optimization",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 3.01399685024885,
-                "y": 0.9889493893637119,
+                "x": 1.9214143742215506,
+                "y": 1.601448415600568,
+                "text": "Multimodal Foundation Model Training",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -2.1117160283046577,
+                "y": -0.07113874620759576,
+                "text": "LLM Safety & Jailbreak Defense",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": -0.07827401597662068,
+                "y": 1.5690401132654135,
                 "text": "Agentic Workflow & Enterprise Systems",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -1.43369719033506,
-                "y": 0.16669386308562537,
+                "x": -2.531091711478835,
+                "y": 1.1581316242064512,
                 "text": "Knowledge Base & Information Retrieval",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.5894669186593059,
-                "y": 1.641379596672357,
-                "text": "AI-Human Collaboration & Governance",
+                "x": -3.4489939851479416,
+                "y": 0.081375792249439,
+                "text": "LLM Behavioral Consistency & Evaluation",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": -0.40653374844158785,
-                "y": -0.6085833562669709,
+                "x": 0.11200817028286987,
+                "y": 0.7788314262256407,
                 "text": "Human-Interpretable Optimization & Explainability",
                 "level": 0,
                 "priority": 10
             },
             {
-                "x": 0.8081650012375624,
-                "y": -1.7393265790857544,
+                "x": 0.44564415863656687,
+                "y": 0.13579951499558088,
+                "text": "Test-Time Inference & Scaling",
+                "level": 0,
+                "priority": 10
+            },
+            {
+                "x": 4.636546465227996,
+                "y": -1.165941543001375,
                 "text": "Visual Scene Understanding & 3D",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 0.05384583648590626,
-                "y": 0.2956140524155791,
-                "text": "Agentic Reasoning & Planning Systems",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -1.9634492754629826,
-                "y": -0.7336977806897472,
-                "text": "LLM-Based Multimodal Analysis",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 0.85325421432712,
-                "y": 0.6700792801330822,
-                "text": "AI Agents for Scientific Discovery",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 1.141567028727585,
-                "y": 0.38090266283461505,
-                "text": "Context Management & Memory Systems",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": -0.09368785081612652,
-                "y": -1.8765539512748017,
-                "text": "Multimodal Sensor Fusion & Tracking",
-                "level": 0,
-                "priority": 10
-            },
-            {
-                "x": 0.09346889658434343,
-                "y": 0.6563800625891592,
-                "text": "Task Difficulty & Curriculum Learning",
                 "level": 0,
                 "priority": 10
             }
