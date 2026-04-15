@@ -1,4 +1,4 @@
-name: Daily Update AI Research Atlas — v3 Staging
+name: Daily Update AI Research Atlas
 on:
   schedule:
     - cron: '0 3 * * *'
@@ -11,7 +11,6 @@ jobs:
     timeout-minutes: 30
     # To enable OPENALEX_OFFLINE_MODE for all steps, add a job-level env block:
     env:
-      OPENALEX_OFFLINE_MODE: "true"
       SKIP_HAIKU: "true"          # Haiku runs weekly only (weekly_significant.yml)
     steps:
       - name: Checkout Repository
@@ -141,7 +140,17 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add database.parquet run_state.json author_stats_cache.json author_cache.json label_diagnostics.json group_names_v3.json dynamic_taxonomy.json labels_v3.parquet ss_cache.json significant_papers.json sig_candidates.json 2>/dev/null || true
+          git add database.parquet 2>/dev/null || true
+          git add run_state.json 2>/dev/null || true
+          git add author_stats_cache.json 2>/dev/null || true
+          git add author_cache.json 2>/dev/null || true
+          git add group_names_v3.json 2>/dev/null || true
+          git add dynamic_taxonomy.json 2>/dev/null || true
+          git add labels_v3.parquet 2>/dev/null || true
+          git add ss_cache.json 2>/dev/null || true
+          git add significant_papers.json 2>/dev/null || true
+          git add sig_candidates.json 2>/dev/null || true
+          git add label_diagnostics.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
