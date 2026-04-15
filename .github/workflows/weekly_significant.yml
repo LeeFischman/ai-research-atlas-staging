@@ -50,7 +50,10 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add significant.parquet sig_candidates.json author_cache.json ss_cache.json 2>/dev/null || true
+          git add significant.parquet 2>/dev/null || true
+          git add sig_candidates.json 2>/dev/null || true
+          git add author_cache.json 2>/dev/null || true
+          git add ss_cache.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
@@ -84,7 +87,17 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add database.parquet run_state.json author_cache.json author_stats_cache.json label_diagnostics.json group_names_v3.json dynamic_taxonomy.json labels_v3.parquet ss_cache.json significant_papers.json sig_candidates.json 2>/dev/null || true
+          git add database.parquet 2>/dev/null || true
+          git add run_state.json 2>/dev/null || true
+          git add author_cache.json 2>/dev/null || true
+          git add author_stats_cache.json 2>/dev/null || true
+          git add group_names_v3.json 2>/dev/null || true
+          git add dynamic_taxonomy.json 2>/dev/null || true
+          git add labels_v3.parquet 2>/dev/null || true
+          git add ss_cache.json 2>/dev/null || true
+          git add significant_papers.json 2>/dev/null || true
+          git add sig_candidates.json 2>/dev/null || true
+          git add label_diagnostics.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
