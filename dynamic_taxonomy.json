@@ -1,4 +1,104 @@
 {
-  "next_id": 280,
-  "groups": {}
+  "next_id": 290,
+  "groups": {
+    "281": {
+      "name": "Reasoning & Planning",
+      "created": "2026-05-07",
+      "last_seen": "2026-05-07",
+      "confidence_history": [
+        0.848
+      ],
+      "paper_count_history": [
+        33
+      ]
+    },
+    "283": {
+      "name": "Multimodal Reasoning",
+      "created": "2026-05-07",
+      "last_seen": "2026-05-07",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        7
+      ]
+    },
+    "280": {
+      "name": "Agentic AI & Tool Use",
+      "created": "2026-05-07",
+      "last_seen": "2026-05-07",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        22
+      ]
+    },
+    "285": {
+      "name": "Efficient Inference & Deployment",
+      "created": "2026-05-07",
+      "last_seen": "2026-05-07",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        12
+      ]
+    },
+    "286": {
+      "name": "Scientific & Specialized Domains",
+      "created": "2026-05-07",
+      "last_seen": "2026-05-07",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        6
+      ]
+    },
+    "282": {
+      "name": "Retrieval & Information Synthesis",
+      "created": "2026-05-07",
+      "last_seen": "2026-05-07",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        10
+      ]
+    },
+    "284": {
+      "name": "Model Interpretation & Analysis",
+      "created": "2026-05-07",
+      "last_seen": "2026-05-07",
+      "confidence_history": [
+        0.833
+      ],
+      "paper_count_history": [
+        12
+      ]
+    },
+    "287": {
+      "name": "Agent-Based Autonomous Systems",
+      "created": "2026-05-07",
+      "last_seen": "2026-05-07",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        6
+      ]
+    },
+    "288": {
+      "name": "Vision-Language Applications",
+      "created": "2026-05-07",
+      "last_seen": "2026-05-07",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        2
+      ]
+    }
+  }
 }

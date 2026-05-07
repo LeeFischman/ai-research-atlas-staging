@@ -12,5 +12,14 @@
   "10": "Graph Learning & Networks",
   "11": "Data, Benchmarks & Evaluation",
   "12": "Human-AI Interaction",
-  "13": "Planning & Search"
+  "13": "Planning & Search",
+  "280": "Agentic AI & Tool Use",
+  "281": "Reasoning & Planning",
+  "282": "Retrieval & Information Synthesis",
+  "283": "Multimodal Reasoning",
+  "284": "Model Interpretation & Analysis",
+  "285": "Efficient Inference & Deployment",
+  "286": "Scientific & Specialized Domains",
+  "287": "Agent-Based Autonomous Systems",
+  "288": "Vision-Language Applications"
 }
