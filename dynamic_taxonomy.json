@@ -1,54 +1,127 @@
 {
-  "next_id": 290,
+  "next_id": 311,
   "groups": {
     "281": {
       "name": "Reasoning & Planning",
       "created": "2026-05-07",
-      "last_seen": "2026-05-07",
+      "last_seen": "2026-05-08",
       "confidence_history": [
-        0.848
+        0.848,
+        1.0
       ],
       "paper_count_history": [
-        33
+        33,
+        32
       ]
     },
     "283": {
       "name": "Multimodal Reasoning",
       "created": "2026-05-07",
-      "last_seen": "2026-05-07",
+      "last_seen": "2026-05-08",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        7
+        7,
+        9
       ]
     },
     "280": {
       "name": "Agentic AI & Tool Use",
       "created": "2026-05-07",
-      "last_seen": "2026-05-07",
+      "last_seen": "2026-05-08",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        22
+        22,
+        25
       ]
     },
     "285": {
       "name": "Efficient Inference & Deployment",
       "created": "2026-05-07",
-      "last_seen": "2026-05-07",
+      "last_seen": "2026-05-08",
       "confidence_history": [
+        1.0,
         1.0
       ],
       "paper_count_history": [
-        12
+        12,
+        11
       ]
     },
     "286": {
       "name": "Scientific & Specialized Domains",
       "created": "2026-05-07",
-      "last_seen": "2026-05-07",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0,
+        1.0
+      ],
+      "paper_count_history": [
+        6,
+        12
+      ]
+    },
+    "282": {
+      "name": "Retrieval & Information Synthesis",
+      "created": "2026-05-07",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0,
+        1.0
+      ],
+      "paper_count_history": [
+        10,
+        11
+      ]
+    },
+    "284": {
+      "name": "Model Interpretation & Analysis",
+      "created": "2026-05-07",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        0.833,
+        1.0
+      ],
+      "paper_count_history": [
+        12,
+        10
+      ]
+    },
+    "287": {
+      "name": "Agent-Based Autonomous Systems",
+      "created": "2026-05-07",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0,
+        0.833
+      ],
+      "paper_count_history": [
+        6,
+        6
+      ]
+    },
+    "288": {
+      "name": "Vision-Language Applications",
+      "created": "2026-05-07",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0,
+        1.0
+      ],
+      "paper_count_history": [
+        2,
+        4
+      ]
+    },
+    "310": {
+      "name": "Federated & Private Learning",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
       "confidence_history": [
         1.0
       ],
@@ -56,10 +129,120 @@
         6
       ]
     },
-    "282": {
-      "name": "Retrieval & Information Synthesis",
-      "created": "2026-05-07",
-      "last_seen": "2026-05-07",
+    "308": {
+      "name": "Medical & Healthcare AI",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        0.933
+      ],
+      "paper_count_history": [
+        15
+      ]
+    },
+    "305": {
+      "name": "Legal & Policy AI",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        0.857
+      ],
+      "paper_count_history": [
+        7
+      ]
+    },
+    "291": {
+      "name": "Neuro-Symbolic AI",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        8
+      ]
+    },
+    "299": {
+      "name": "Evaluation & Benchmarking",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        4
+      ]
+    },
+    "294": {
+      "name": "Cross-Modal Alignment",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        1
+      ]
+    },
+    "302": {
+      "name": "Trustworthiness & Transparency",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        0.889
+      ],
+      "paper_count_history": [
+        27
+      ]
+    },
+    "292": {
+      "name": "World Models & Simulation",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        9
+      ]
+    },
+    "290": {
+      "name": "Continual Learning & Adaptation",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        6
+      ]
+    },
+    "301": {
+      "name": "Quantum Computing & ML",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        0.5
+      ],
+      "paper_count_history": [
+        2
+      ]
+    },
+    "307": {
+      "name": "Prompt Engineering & Adaptation",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        4
+      ]
+    },
+    "300": {
+      "name": "Code Generation & Software Engineering",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
       "confidence_history": [
         1.0
       ],
@@ -67,37 +250,92 @@
         10
       ]
     },
-    "284": {
-      "name": "Model Interpretation & Analysis",
-      "created": "2026-05-07",
-      "last_seen": "2026-05-07",
+    "303": {
+      "name": "Communication & Multi-Agent Systems",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
       "confidence_history": [
-        0.833
+        0.909
       ],
       "paper_count_history": [
-        12
+        11
       ]
     },
-    "287": {
-      "name": "Agent-Based Autonomous Systems",
-      "created": "2026-05-07",
-      "last_seen": "2026-05-07",
+    "306": {
+      "name": "Contextual Representation Learning",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
       "confidence_history": [
         1.0
       ],
       "paper_count_history": [
-        6
+        5
       ]
     },
-    "288": {
-      "name": "Vision-Language Applications",
-      "created": "2026-05-07",
-      "last_seen": "2026-05-07",
+    "296": {
+      "name": "Synthetic Data & Augmentation",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
       "confidence_history": [
         1.0
       ],
       "paper_count_history": [
-        2
+        3
+      ]
+    },
+    "295": {
+      "name": "Quality & Fairness in Data",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        3
+      ]
+    },
+    "293": {
+      "name": "Scalability & Optimization Theory",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        3
+      ]
+    },
+    "309": {
+      "name": "Climate & Environmental AI",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        1
+      ]
+    },
+    "304": {
+      "name": "Decoding & Inference Optimization",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        4
+      ]
+    },
+    "298": {
+      "name": "Structured Knowledge & Graphs",
+      "created": "2026-05-08",
+      "last_seen": "2026-05-08",
+      "confidence_history": [
+        1.0
+      ],
+      "paper_count_history": [
+        1
       ]
     }
   }
