@@ -1,5 +1,5 @@
 {
-  "last_fetched_date": "2026-04-26",
+  "last_fetched_date": "2026-05-03",
   "pool": [
     {
       "id": "2501.12948",
@@ -23,7 +23,7 @@
     },
     {
       "id": "2503.20783",
-      "ss_citation_count": 973,
+      "ss_citation_count": 972,
       "ss_influential_citations": 135
     },
     {
@@ -43,7 +43,7 @@
     },
     {
       "id": "2504.13837",
-      "ss_citation_count": 760,
+      "ss_citation_count": 759,
       "ss_influential_citations": 96
     },
     {
@@ -283,7 +283,7 @@
     },
     {
       "id": "2506.14245",
-      "ss_citation_count": 169,
+      "ss_citation_count": 168,
       "ss_influential_citations": 16
     },
     {
@@ -1122,6 +1122,11 @@
       "ss_influential_citations": 0
     },
     {
+      "id": "2505.02077",
+      "ss_citation_count": 59,
+      "ss_influential_citations": 7
+    },
+    {
       "id": "2409.02387",
       "ss_citation_count": 58,
       "ss_influential_citations": 0
@@ -1755,6 +1760,16 @@
       "id": "2510.08558",
       "ss_citation_count": 40,
       "ss_influential_citations": 3
+    },
+    {
+      "id": "2301.00712",
+      "ss_citation_count": 40,
+      "ss_influential_citations": 14
+    },
+    {
+      "id": "2401.02458",
+      "ss_citation_count": 40,
+      "ss_influential_citations": 0
     },
     {
       "id": "2308.07870",
@@ -2442,6 +2457,11 @@
       "ss_influential_citations": 0
     },
     {
+      "id": "2409.00557",
+      "ss_citation_count": 29,
+      "ss_influential_citations": 0
+    },
+    {
       "id": "2410.02362",
       "ss_citation_count": 28,
       "ss_influential_citations": 0
@@ -2479,26 +2499,6 @@
     {
       "id": "2306.11593",
       "ss_citation_count": 27,
-      "ss_influential_citations": 0
-    },
-    {
-      "id": "2401.12783",
-      "ss_citation_count": 27,
-      "ss_influential_citations": 0
-    },
-    {
-      "id": "2601.14298",
-      "ss_citation_count": 27,
-      "ss_influential_citations": 1
-    },
-    {
-      "id": "2311.11482",
-      "ss_citation_count": 27,
-      "ss_influential_citations": 0
-    },
-    {
-      "id": "2310.02239",
-      "ss_citation_count": 0,
       "ss_influential_citations": 0
     }
   ]
