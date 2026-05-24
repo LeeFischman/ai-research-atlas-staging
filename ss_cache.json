@@ -14421,7 +14421,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2509.09708": {
     "citation_count": 6,
@@ -18039,7 +18039,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2506.21857": {
     "citation_count": 1,
@@ -70587,7 +70587,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2512.03293": {
     "citation_count": 0,
@@ -114339,7 +114339,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2601.14968": {
     "citation_count": 1,
@@ -115322,8 +115322,8 @@
   "2601.15671": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work presents StreetDesignAI, an interactive system that enables designers to ground evaluation in real street context through imagery and map data, receive parallel feedback from simulated cyclist personas spanning confident to cautious users, and iteratively modify designs while the system surfaces conflicts across perspectives.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2601.15679": {
     "citation_count": 0,
@@ -126426,10 +126426,10 @@
     "fetched_at": "2026-02-27T19:46:49.657522+00:00"
   },
   "2601.11650": {
-    "citation_count": 0,
-    "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "citation_count": 2,
+    "influential_citation_count": 2,
+    "tldr": "A large language model (LLM) agent is integrated with AVEVA Process Simulation via Model Context Protocol (MCP), allowing natural language interaction with rigorous process simulations, and suggest LLM-based agents can become valuable collaborators.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2601.11854": {
     "citation_count": 0,
@@ -126654,10 +126654,10 @@
     "fetched_at": "2026-02-27T19:46:49.657522+00:00"
   },
   "2601.23219": {
-    "citation_count": 0,
+    "citation_count": 2,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work proposes MonoScale, an expansion-aware update framework that proactively generates a small set of agent-conditioned familiarization tasks, harvests evidence from both successful and failed interactions, and distills it into auditable natural-language memory to guide future routing.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2601.23220": {
     "citation_count": 0,
@@ -127904,8 +127904,8 @@
   "2602.00122": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "A rigorously human-annotated and evaluated benchmark specifically designed to assess image editing models on multilingual and complex visual document editing tasks, and introduces a decoupled evaluation framework that systematically quantifies editing performance at the OCR parsing level, enabling fine-grained assessment of text modification accuracy.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.00125": {
     "citation_count": 0,
@@ -130628,8 +130628,8 @@
   "2602.01935": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This paper proposes a lightweight collaborative multi-LLM framework for compiler optimization that enables coordinated reasoning across multiple models within a single Monte Carlo tree search (MCTS) process, and introduces a model-aware tree policy that biases search toward smaller models while preserving exploration.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.01936": {
     "citation_count": 0,
@@ -130842,10 +130842,10 @@
     "fetched_at": "2026-02-27T19:46:49.657522+00:00"
   },
   "2602.02112": {
-    "citation_count": 0,
+    "citation_count": 1,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.02124": {
     "citation_count": 0,
@@ -135146,8 +135146,8 @@
   "2602.04768": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "The GraphBFF is presented: the first end-to-end recipe for building billion-parameter Graph Foundation Models (GFMs) for arbitrary heterogeneous, billion-scale graphs and the first neural scaling laws for general graphs are presented.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.04785": {
     "citation_count": 0,
@@ -136326,10 +136326,10 @@
     "fetched_at": "2026-02-27T19:46:49.657522+00:00"
   },
   "2602.05286": {
-    "citation_count": 0,
+    "citation_count": 3,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work proposes HealthMamba, an uncertainty-aware spatiotemporal framework for accurate and reliable healthcare facility visit prediction and evaluates it on four large-scale real-world datasets from California, New York, Texas, and Florida.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.05287": {
     "citation_count": 0,
@@ -136542,10 +136542,10 @@
     "fetched_at": "2026-03-30T07:15:52.113199+00:00"
   },
   "2602.05536": {
-    "citation_count": 0,
+    "citation_count": 1,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "Singular Value Calibration (SVC), a training-free and data-free post-processing method that quantifies subspace overlap and rescales inflated singular values to restore a balanced spectrum, is proposed.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.05539": {
     "citation_count": 0,
@@ -140604,10 +140604,10 @@
     "fetched_at": "2026-02-27T19:46:49.657522+00:00"
   },
   "2602.08064": {
-    "citation_count": 0,
-    "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "citation_count": 4,
+    "influential_citation_count": 2,
+    "tldr": "SiameseNorm is a two-stream architecture that couples Pre-Norm-like and Post-Norm-like streams with shared parameters, retaining the distinct characteristics of both Pre-Norm and Post-Norm by enabling all residual blocks to receive combined gradients inherited from both paradigms.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.08077": {
     "citation_count": 0,
@@ -143394,10 +143394,10 @@
     "fetched_at": "2026-02-27T19:46:49.657522+00:00"
   },
   "2602.03067": {
-    "citation_count": 0,
-    "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "citation_count": 2,
+    "influential_citation_count": 1,
+    "tldr": "An IO-aware EOT solver for squared Euclidean cost that rewrites stabilized log-domain Sinkhorn updates as row-wise LogSumExp reductions of biased dot-product scores, the same normalization as transformer attention is presented, enabling FlashAttention-style fusion and tiling.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.03913": {
     "citation_count": 0,
@@ -143612,8 +143612,8 @@
   "2602.10009": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This paper synthesizes programs that operate on simulation logs and map them to a series of high level activated patterns, which enables LMs to generate effective reward programs from goals specified in natural language, which may be used within the context of planning or supervised learning.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.10019": {
     "citation_count": 3,
@@ -144530,8 +144530,8 @@
   "2602.10085": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "Continuous Open-ended Discovery and Evolution of Skills as Hierarchical Reward Programs (CODE-SHARP), a novel framework leveraging Foundation Models (FM) to open-endedly expand and refine a hierarchical skill archive, structured as a directed graph of executable reward functions in code.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.10090": {
     "citation_count": 0,
@@ -145214,8 +145214,8 @@
   "2602.10894": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This study proposes a model-free reinforcement learning algorithm designed for board games to achieve more efficient learning and believes that this efficient algorithm shows the potential of model-free reinforcement learning in domains traditionally dominated by search-based methods.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.10916": {
     "citation_count": 0,
@@ -145790,8 +145790,8 @@
   "2602.11574": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "ARC (Agentic Resource&Configuration learner), which learns a light-weight hierarchical policy using reinforcement learning to dynamically tailor agent configurations, demonstrates that learning per-query agent configurations is a powerful alternative to\"one size fits all\"designs.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.11581": {
     "citation_count": 0,
@@ -147488,8 +147488,8 @@
   "2602.12952": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "Theseus is introduced, a training-free method for transporting task-specific updates across heterogeneous models and shows that task updates can be meaningfully transferred across architectures when task identity is defined functionally rather than parametrically.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.12962": {
     "citation_count": 0,
@@ -148376,8 +148376,8 @@
   "2602.00851": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "It is found that on-the-fly persuasion induces weak and inconsistent behavioral effects, which suggest that persuasion, even in prior interaction, can affect the agent's behavior, motivating behavior-level evaluation in agentic systems.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.01023": {
     "citation_count": 0,
@@ -148548,10 +148548,10 @@
     "fetched_at": "2026-03-09T21:30:34.492741+00:00"
   },
   "2602.13372": {
-    "citation_count": 0,
+    "citation_count": 1,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work introduces Morality Chains, a novel formalism for representing moral norms as ordered deontic constraints, and MoralityGym, a benchmark of 98 ethical-dilemma problems presented as trolley-dilemma-style Gymnasium environments that allows the integration of insights from psychology and philosophy into the evaluation of norm-sensitive reasoning.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.13376": {
     "citation_count": 0,
@@ -151754,8 +151754,8 @@
   "2602.13294": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work proposes VisPhyWorld, an execution-based framework that evaluates physical reasoning by requiring models to generate executable simulator code from visual observations, and introduces VisPhyBench, a systematic protocol that evaluates how well models reconstruct appearance and reproduce physically plausible motion.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.13469": {
     "citation_count": 0,
@@ -160890,10 +160890,10 @@
     "fetched_at": "2026-03-16T07:05:45.615214+00:00"
   },
   "2602.17385": {
-    "citation_count": 0,
+    "citation_count": 2,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work proposes a dataless approach to representation drift regularization against representation drift as a curvature matrix approximation problem, and adopts Kronecker-Factored Approximate Curvature to obtain a practical regularizer that achieves state-of-the-art results in task addition and negation.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.17560": {
     "citation_count": 0,
@@ -168800,8 +168800,8 @@
   "2603.19310": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "MemReward, a graph-based experience memory framework: an initial LLM policy generates rollouts for each query, each comprising a thinking process and a final answer, and these rollouts are stored as experience memory, surpassing Oracle in out-of-domain tasks.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2603.19307": {
     "citation_count": 0,
@@ -171831,7 +171831,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2509.22445": {
     "citation_count": 1,
@@ -172434,10 +172434,10 @@
     "fetched_at": "2026-03-23T06:58:21.953991+00:00"
   },
   "2603.02938": {
-    "citation_count": 0,
+    "citation_count": 1,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work introduces GraphSSR, a novel framework designed for adaptive subgraph extraction and denoising in zero-shot LLM-based graph reasoning, and proposes SSR-RL, a two-stage reinforcement learning framework that explicitly regulates sampling and selection operations within the proposed SSR pipeline designed for adaptive subgraph denoising.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2603.02939": {
     "citation_count": 0,
@@ -173408,8 +173408,8 @@
   "2603.03784": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work adopts the DEVS formalism and introduces a staged LLM-based generation pipeline that separates structural inference of component interactions from component-level event and timing logic, and produces world models that are consistent over long-horizon rollouts, verifiable from observable behavior, and efficient to synthesize on demand during online execution.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2603.03790": {
     "citation_count": 0,
@@ -175779,7 +175779,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2603.23562": {
     "citation_count": 0,
@@ -181328,8 +181328,8 @@
   "2603.16672": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "CritiSense is a mobile media-literacy app that builds these skills through short, interactive challenges with instant feedback that provides a multilingual prebunking platform and a testbed for measuring the impact of microlearning on misinformation resilience.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2603.16697": {
     "citation_count": 0,
@@ -184104,10 +184104,10 @@
     "fetched_at": "2026-04-27T06:00:14.197668+00:00"
   },
   "2604.11665": {
-    "citation_count": 0,
+    "citation_count": 1,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "Results show a reinterpretation of the Newton-Leibniz dispute and a phase transition from sparse convergence to a post-Leibniz\"superhighway\", with structural indicators supporting a Kuhnian paradigm shift.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2604.09752": {
     "citation_count": 0,
@@ -184466,8 +184466,8 @@
   "2604.13517": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This paper systematically demonstrate that exposing a temporal attention routing mechanism to policy gradients results in surrogate objective hacking, while adopting gradient-free uncertainty weighting triggers irreversible myopic degeneration, a phenomenon the authors term the Paradox of Temporal Uncertainty.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2604.13488": {
     "citation_count": 0,
@@ -184992,10 +184992,10 @@
     "fetched_at": "2026-04-24T05:42:43.874033+00:00"
   },
   "2604.14084": {
-    "citation_count": 0,
+    "citation_count": 7,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work organizes TIP (Token Importance in on-Policy distillation), a two-axis taxonomy over student entropy and teacher--student divergence, and gives a theoretical explanation for why entropy is useful yet structurally incomplete.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2604.14128": {
     "citation_count": 1,
@@ -188078,8 +188078,8 @@
   "2604.16076": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "Proposed Prototype-Grounded Concept Models match the predictive performance of state-of-the-art CBMs while substantially improving transparency, interpretability, and intervenability.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2604.16021": {
     "citation_count": 0,
@@ -197210,8 +197210,8 @@
   "2604.20665": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work challenges the conventional methodology of multimodal evaluation, which relies on data ablation or new dataset creation and therefore fatally conflates dataset biases with architectural incapacity, and proposes a radical, information-theoretic departure: the Modality Translation Protocol, designed to quantifiably unmask the Expense of Seeing.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2604.20659": {
     "citation_count": 0,
@@ -198729,7 +198729,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2604.21743": {
     "citation_count": 0,
@@ -203228,8 +203228,8 @@
   "2604.07180": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "The presented cases serve as proof-of-concept that patient-specific energy manifolds can function as geometric reference systems for longitudinal mpMRI analysis without explicit segmentation or supervised classification, providing a foundation for further investigation of manifold-based tissue-at-risk tracking in neuro-oncology.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2604.07182": {
     "citation_count": 0,
@@ -204102,10 +204102,10 @@
     "fetched_at": "2026-04-27T06:34:13.872235+00:00"
   },
   "2604.07799": {
-    "citation_count": 0,
+    "citation_count": 4,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work introduces the concept of Embodied Capability Modules (ECMs), which represent modular, versioned units of embodied functionality that can be learned, refined, and composed over time, and presents a unified framework in which capability evolution is decoupled from agent identity.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2604.07801": {
     "citation_count": 0,
@@ -205884,10 +205884,10 @@
     "fetched_at": "2026-05-04T06:45:52.871801+00:00"
   },
   "2604.11028": {
-    "citation_count": 0,
+    "citation_count": 1,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "The results support the view that the path from embodied agents to embodied fleets is better served by federation across coherent robot runtimes than by fragmentation within them.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2604.11035": {
     "citation_count": 0,
@@ -207273,7 +207273,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2604.12255": {
     "citation_count": 0,
@@ -208076,8 +208076,8 @@
   "2605.00185": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work formally analyzes the interaction between these two sources of bias and cast the solution as identifying a group-imbalance-agnostic barycenter of the predictive information that induces similar representations across all subgroups, and shows that group fairness concerns can be reduced.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.00113": {
     "citation_count": 0,
@@ -208482,10 +208482,10 @@
     "fetched_at": "2026-05-18T08:12:46.438382+00:00"
   },
   "2605.00414": {
-    "citation_count": 0,
+    "citation_count": 1,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work unifies decision trees and diffusion models by establishing a crisp mathematical correspondence between hierarchical decision trees and diffusion processes in appropriate limiting regimes, and reveals a shared optimization principle: GTSM, for which gradient boosting (in an idealized version) is asymptotically optimal.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.00402": {
     "citation_count": 0,
@@ -208670,8 +208670,8 @@
   "2605.00515": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "The Space Network of Experts (Space-XNet) framework targeting the distributed execution of a popular mixture-of-experts (MoE) model in space achieves at least a threefold latency reduction compared with conventional random and ablation-based placement strategies.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.00814": {
     "citation_count": 0,
@@ -212661,7 +212661,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.05415": {
     "citation_count": 0,
@@ -213249,7 +213249,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.05826": {
     "citation_count": 0,
@@ -214053,7 +214053,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.06623": {
     "citation_count": 0,
@@ -214209,7 +214209,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.06317": {
     "citation_count": 0,
@@ -214425,7 +214425,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.06955": {
     "citation_count": 0,
@@ -214485,7 +214485,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.06772": {
     "citation_count": 0,
@@ -214629,7 +214629,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.06977": {
     "citation_count": 0,
@@ -214647,7 +214647,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.07151": {
     "citation_count": 0,
@@ -214731,7 +214731,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.07032": {
     "citation_count": 0,
@@ -214851,7 +214851,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.07230": {
     "citation_count": 0,
@@ -215187,7 +215187,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.07572": {
     "citation_count": 1,
@@ -215361,7 +215361,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.07447": {
     "citation_count": 0,
@@ -216024,10 +216024,10 @@
     "fetched_at": "2026-05-11T07:51:45.721875+00:00"
   },
   "2604.17473": {
-    "citation_count": 0,
+    "citation_count": 1,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "A Dual-Anchoring Framework that explicitly anchors the instruction progress and history representations and utilizes a Landmark-Centric World Model to retrospectively predict object-centric embeddings extracted by the Segment Anything Model is proposed.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2604.17475": {
     "citation_count": 0,
@@ -221901,7 +221901,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.08401": {
     "citation_count": 0,
@@ -222273,7 +222273,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.15217": {
     "citation_count": 0,
@@ -222315,7 +222315,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.15250": {
     "citation_count": 0,
@@ -222375,7 +222375,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.15315": {
     "citation_count": 0,
@@ -222441,7 +222441,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.15520": {
     "citation_count": 0,
@@ -222519,7 +222519,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.15416": {
     "citation_count": 0,
@@ -222699,7 +222699,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.15464": {
     "citation_count": 0,
@@ -222747,7 +222747,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.15764": {
     "citation_count": 0,
@@ -222951,7 +222951,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.15726": {
     "citation_count": 0,
@@ -223167,7 +223167,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16052": {
     "citation_count": 0,
@@ -223203,7 +223203,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.15995": {
     "citation_count": 0,
@@ -223359,7 +223359,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16223": {
     "citation_count": 0,
@@ -223473,7 +223473,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2506.11925": {
     "citation_count": 1,
@@ -223515,7 +223515,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2503.20981": {
     "citation_count": 2,
@@ -223551,7 +223551,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2409.10102": {
     "citation_count": 100,
@@ -223605,7 +223605,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2505.02360": {
     "citation_count": 1,
@@ -223635,7 +223635,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2603.02512": {
     "citation_count": 0,
@@ -223683,7 +223683,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.14457": {
     "citation_count": 0,
@@ -223719,37 +223719,37 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16290": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16283": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16282": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16281": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16280": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.12070": {
     "citation_count": 0,
@@ -223791,37 +223791,37 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16292": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16278": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16275": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16272": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16265": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.14624": {
     "citation_count": 0,
@@ -223839,31 +223839,31 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16286": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16284": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16277": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16269": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.06638": {
     "citation_count": 0,
@@ -223881,7 +223881,7 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.14504": {
     "citation_count": 0,
@@ -223911,1225 +223911,1225 @@
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16294": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16279": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16274": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16393": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16391": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16381": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16371": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16354": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16352": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16348": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16327": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16326": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16312": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16306": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16299": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16298": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16358": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16389": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16377": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16366": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16364": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16362": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16351": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16345": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16343": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16303": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16380": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16353": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16336": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16331": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16325": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16320": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16302": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16387": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16384": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16383": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16378": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16374": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16372": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16346": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16309": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16301": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16300": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16385": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16379": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16373": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16360": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16359": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16357": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16350": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16342": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16315": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16361": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16528": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16527": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16474": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16470": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16430": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16427": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16421": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16418": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16411": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16468": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16462": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16443": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16433": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16398": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16397": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16568": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16565": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16524": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16416": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16514": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16464": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16458": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16457": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16446": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16445": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16438": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16435": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16432": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16428": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16552": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16535": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16516": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16508": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16480": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16479": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16452": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16451": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16442": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16441": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16439": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16419": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16567": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16481": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16449": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16447": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16444": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16440": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16436": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16429": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16545": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16806": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16785": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16779": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16774": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16770": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16748": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16726": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16716": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16679": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16671": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16612": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16575": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16728": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16727": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16632": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16600": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16591": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16775": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16795": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16790": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16776": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16757": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16692": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16654": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16630": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16598": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16755": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16750": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16725": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16719": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16714": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16713": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16712": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16672": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16668": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16650": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16638": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16605": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16573": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16818": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16799": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16746": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16739": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16676": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16675": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16626": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16623": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16602": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16578": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16571": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16962": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16938": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16928": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16909": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16893": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16858": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16842": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16821": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17034": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17028": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17010": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17003": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17000": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16969": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16961": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16953": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16892": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16880": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16827": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16825": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16895": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16991": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16927": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16874": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16872": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16857": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16828": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16819": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17029": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17041": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17021": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16860": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16848": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16844": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16834": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16826": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17008": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16993": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16986": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17017": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16975": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16972": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16966": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16864": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16863": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16861": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.16859": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17038": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17037": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17036": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2410.04753": {
     "citation_count": 3,
@@ -225240,1665 +225240,1665 @@
     "fetched_at": "2026-05-23T06:17:36.535662+00:00"
   },
   "2604.03501": {
-    "citation_count": 0,
+    "citation_count": 1,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "A dynamic model in which a decision-maker chooses AI usage intensity for a worker over time, trading immediate productivity against the erosion of worker skill is developed, which produces three main results.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2603.15676": {
-    "citation_count": 0,
+    "citation_count": 1,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "An automated self-testing framework that introduces quality gates with evidence-based release decisions (PROMOTE/HOLD/ROLLBACK) across five empirically grounded dimensions: task success rate, research context preservation, P95 latency, safety pass rate, and evidence coverage is presented.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.17973": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This study proposes PenTiDef, a privacy-preserving and robust defense framework for DFL-IDS, which incorporates Distributed Differential Privacy (DDP) to protect data confidentiality and utilizes latent space representations derived from neural networks to detect malicious updates in the decentralized model aggregation context.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2604.08571": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "It is argued that to achieve reliable reasoning, future reasoning architectures must integrate explicit contextual resets within a model's own Chain-of-Thought, leading to fundamental open questions regarding the optimal granularity of atomic reasoning tasks.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2602.02709": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "ATLAS (Adaptive Task-distributed Learning for Agentic Self-evolution), a task-distributed framework that iteratively develops a lightweight research agent while delegating complementary roles to specialized supporter agents for exploration, hyperparameter tuning, and reference policy management, is proposed.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2603.27355": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "A reproducible, operationally grounded framework for deciding whether an LLM or RAG system is ready to ship, which combines automated benchmarks, OpenTelemetry observability, and CI quality gates under a minimal API contract.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2604.02889": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "A measurement-aware score-based filter (MASF) is proposed that defines a measurement-aware forward process directly from the measurement equation, which makes the likelihood score analytically tractable.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.15040": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "Orchard Env is presented, an open-source framework for scalable agentic modeling providing reusable primitives for sandbox lifecycle management across task domains, agent harnesses, and pipeline stages, and results show that a lightweight, open, harness-agnostic environment layer enables reusable agentic data, training recipes, and evaluations across domains.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.06597": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "UniSD integrates complementary mechanisms that address supervision reliability, representation alignment, and training stability, including multi-teacher agreement, EMA teacher stabilization, token-level contrastive learning, feature matching, and divergence clipping, and reveals when self-distillation improves over static imitation.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.08389": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "DeCIR consistently improves projection-based ZS-CIR without increasing inference complexity and constructs paired forward/reverse edit tuples from image-caption pairs, and trains separate low-rank text adapter branches for endpoint alignment and semantic transition alignment.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21071": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.18372": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17596": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.14322": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "EduAgentBench is the first theory-grounded and realistic benchmark for evaluating the holistic teaching capability of tutor agents, providing a measurement foundation for developing future tutor agents that can support realistic teaching work.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.12058": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work proposes HlderPO, a generalised policy optimisation framework unifying token-level probability aggregation via the Hlder mean, and proves that a larger $p$ concentrates the gradient to amplify sparse learning signals, whereas a smaller $p$ strictly bounds gradient variance.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.08380": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "Overall, AI-only technical discourse is coherent but selective: it repeatedly returns to concerns such as security and trust, memory and context management, tooling and APIs, debugging and error handling, workflow automation, and infrastructure/ops, while omitting much of the concrete runtime and project-local detail common in human developer discourse.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.03241": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21214": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21187": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.20490": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.19578": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17998": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17602": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.20348": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.19192": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.14738": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "It is shown that task-aware layer pruning yields no benefit on in-distribution data but consistently improves out-of-distribution (OOD) accuracy, and causal evidence is provided through controlled distribution shifts and residual-scaling interventions, and consistent behavior across model scales.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.19069": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.15153": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "Results show that the unified paradigm succeeds in preserving specialist strength while bringing understanding, reasoning, imagination, and action into one model.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.11314": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "A markerless gait analysis pipeline that quantifies Rodda and Graham knee and ankle z-scores directly from single-view clinical gait videos is developed, demonstrating the feasibility of video-based z-score estimation, excess-flexion screening, and longitudinal trajectory tracking as a path toward scalable, objective gait assessment in low-resource clinical settings.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.07985": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "Dooly performs a single inference pass, labels each input dimension with its origin via taint propagation, and selectively profiles only operations absent from its latency database, which builds latency regression models based on the database, which becomes a drop-in backend for existing simulators.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21282": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.19329": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.07870": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "A two-level dynamical mean-field theory (DMFT) is developed that jointly tracks bulk and outlier spectral dynamics for spiked ensembles whose spike directions remain statistically dependent on the random bulk.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.03934": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "This work proposes a 1D Deformable architecture that leverages deformable attention to adaptively focus on salient temporal regions and designs a novel Open-World Deformable Sound Event Detection Transformer (WOOT) framework incorporating feature disentanglement to separate class-specific and class-agnostic representations.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.10067": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "Metis is a framework that reformulates jailbreaking as inference-time policy optimization within an adversarial Partially Observable Markov Decision Process (POMDP) that employs a self-evolving metacognitive loop to perform causal diagnosis of a target's defense logic and leverages structured feedback as a semantic gradient to refine its policy, offering enhanced interpretability through transparent reasoning traces.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.20251": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.20246": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17837": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.17254": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.14355": {
     "citation_count": 0,
     "influential_citation_count": 0,
-    "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "tldr": "Herculean is introduced, the first skilled benchmark for agentic financial intelligence spanning four representative workflows, including Trading, Hedging, Market Insights, and Auditing, and points to a key gap in current agents in turning financial reasoning into dependable workflow execution in high-stakes financial workflows.",
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21347": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21665": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21523": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21516": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21726": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21723": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21669": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21652": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21548": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21528": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21504": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21777": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21739": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21736": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21724": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21653": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21622": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21541": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21497": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21492": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21491": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21752": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21502": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21493": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21609": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21545": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21540": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21694": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21654": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21661": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21515": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21695": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21630": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21625": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21623": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21557": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21645": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21706": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21507": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21758": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21740": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21683": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21629": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21606": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21602": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21522": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21496": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21413": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21743": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21379": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21635": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22074": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22047": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22001": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21903": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21851": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21835": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21980": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21974": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21954": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21933": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21919": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21862": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21856": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21825": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21778": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22078": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22060": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22039": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22034": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22018": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21988": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21977": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21963": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21861": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21854": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21792": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22036": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22003": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22000": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21993": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21984": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21850": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21845": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21902": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21962": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22066": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22055": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22054": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21997": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21996": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21994": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21969": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21917": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21832": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21827": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21822": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21810": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21928": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21869": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.21789": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22343": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22300": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22240": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22213": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22176": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22154": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22100": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22243": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22138": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22219": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22205": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22175": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22168": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22158": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22142": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22095": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22342": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22331": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22297": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22287": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22286": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22257": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22093": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22200": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22344": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22304": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22269": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22266": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22098": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22268": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22238": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22221": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22211": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22206": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22183": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22156": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22148": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22122": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22106": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22089": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22306": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22337": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22321": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22263": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22166": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22133": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22109": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22102": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22090": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22080": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22540": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22645": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22641": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22504": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22501": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22480": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22454": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22441": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22437": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22411": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22365": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22608": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22604": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22597": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22513": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22420": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22363": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22511": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22502": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22498": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22493": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22414": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22379": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22368": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22364": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22547": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22535": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22530": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22642": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22612": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22579": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22468": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22391": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22357": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22634": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22602": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22529": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22455": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22568": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22457": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22505": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22462": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22456": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22448": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22422": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22355": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22446": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22660": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22581": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22570": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22817": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22732": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22717": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22714": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22774": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22769": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22733": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22731": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22723": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22720": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22672": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22795": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22794": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22763": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22759": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22738": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22711": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22678": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22715": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22800": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22775": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22773": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22716": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22707": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22662": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22791": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22786": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22781": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22776": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22771": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22749": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22737": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22693": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22681": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22664": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   },
   "2605.22748": {
     "citation_count": 0,
     "influential_citation_count": 0,
     "tldr": "",
-    "fetched_at": "2026-05-23T06:17:36.535662+00:00"
+    "fetched_at": "2026-05-24T06:41:45.605437+00:00"
   }
 }
