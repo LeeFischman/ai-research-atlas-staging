@@ -1,7 +1,7 @@
 name: Weekly Update Significant Papers
 on:
-  schedule:
-    - cron: '0 4 * * 1'   # Monday 04:00 UTC — 1 hour after daily run
+#  schedule:
+#    - cron: '0 4 * * 1'   # Monday 04:00 UTC — 1 hour after daily run
   workflow_dispatch:       # Manual trigger for testing
 permissions:
   contents: write
